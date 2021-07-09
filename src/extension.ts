@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { DocumentSymbolProvider } from './features/documentSymbols';
+import { DocumentSymbolProvider, WorkspaceSymbolProvider } from './features/symbols';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
 
@@ -13,5 +13,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	const trees = new Trees(context);
 	context.subscriptions.push(trees);
 	context.subscriptions.push(new DocumentSymbolProvider(trees).register());
+	context.subscriptions.push(new WorkspaceSymbolProvider(trees).register());
 	context.subscriptions.push(new SelectionRangesProvider(trees).register());
 }

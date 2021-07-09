@@ -7,9 +7,10 @@ import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch } from '../common';
 
-export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
-    private static readonly _queries = new Map<string, Promise<{ default: string }> | Parser.Query>([
+const _symbolQueries = new class {
+
+    private readonly _data = new Map<string, Promise<{ default: string }> | Parser.Query>([
         ['typescript', import('./queries-typescript')],
         ['python', import('./queries-python')],
         ['java', import('./queries-java')],
@@ -18,7 +19,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         ['csharp', import('./queries-c_sharp')],
     ]);
 
-    private static readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
+    private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
         ['class', vscode.SymbolKind.Class],
         ['interface', vscode.SymbolKind.Interface],
         ['enum', vscode.SymbolKind.Enum],
@@ -32,11 +33,44 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         ['module', vscode.SymbolKind.Module],
     ]);
 
+    isSupported(languageId: string): boolean {
+        return this._data.has(languageId);
+    }
+
+    get languageIds(): string[] {
+        return Array.from(this._data.keys());
+    }
+
+    async get(languageId: string, language: Parser.Language): Promise<Parser.Query | undefined> {
+        let query = this._data.get(languageId);
+        if (query instanceof Promise) {
+            try {
+                query = language.query((await query).default);
+                this._data.set(languageId, query);
+            } catch (e) {
+                console.log(languageId, e);
+                this._data.delete(languageId);
+                query = undefined;
+            }
+        }
+        return query;
+    }
+
+    getSymbolKind(symbolKind: string): vscode.SymbolKind {
+        return this._symbolKindMapping.get(symbolKind) ?? vscode.SymbolKind.Variable;
+    }
+};
+
+export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
+
+
+
+
     constructor(private _trees: ITrees) { }
 
     register(): vscode.Disposable {
         // vscode.languages.registerDocumentSymbolProvider([...this._trees.supportedLanguages], new TreeOutline(this._trees));
-        return vscode.languages.registerDocumentSymbolProvider([...DocumentSymbolProvider._queries.keys()], this);
+        return vscode.languages.registerDocumentSymbolProvider(_symbolQueries.languageIds, this);
     }
 
     async provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken) {
@@ -46,17 +80,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
             return undefined;
         }
 
-        let query = DocumentSymbolProvider._queries.get(document.languageId);
-        if (query instanceof Promise) {
-            try {
-                query = (<Parser.Language>tree.getLanguage()).query((await query).default);
-                DocumentSymbolProvider._queries.set(document.languageId, query);
-            } catch (e) {
-                console.log(document.languageId, e);
-                DocumentSymbolProvider._queries.delete(document.languageId);
-                query = undefined;
-            }
-        }
+        const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
 
         if (!query) {
             return undefined;
@@ -79,7 +103,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
                 i++;
             }
             symbolsFlat.push(new vscode.DocumentSymbol(nameCapture.node.text, '',
-                DocumentSymbolProvider._symbolKindMapping.get(capture.name) ?? vscode.SymbolKind.Struct,
+                _symbolQueries.getSymbolKind(capture.name),
                 asCodeRange(capture.node), asCodeRange(nameCapture.node)
             ));
         }
@@ -109,7 +133,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         sw.elapsed('make symbol TREE');
         return symbolsTree;
     }
-};
+}
 
 class TreeOutline implements vscode.DocumentSymbolProvider {
 
@@ -134,5 +158,75 @@ class TreeOutline implements vscode.DocumentSymbolProvider {
         }
         buildTree(tree.rootNode, result);
         return result;
+    }
+}
+
+
+export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
+
+    constructor(private _trees: ITrees) { }
+
+    register(): vscode.Disposable {
+        return vscode.languages.registerWorkspaceSymbolProvider(this);
+    }
+
+    async provideWorkspaceSymbols(search: string, token: vscode.CancellationToken) {
+        const sw = new StopWatch();
+        const result: vscode.SymbolInformation[] = [];
+
+        for (const document of vscode.workspace.textDocuments) {
+            if (token.isCancellationRequested) {
+                break;
+            }
+            if (!_symbolQueries.isSupported(document.languageId)) {
+                continue;
+            }
+            const tree = await this._trees.getParseTree(document, token);
+            if (!tree) {
+                continue;
+            }
+            const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
+            if (!query) {
+                continue;
+            }
+            query.captures(tree.rootNode).forEach((capture, index, array) => {
+                if (!capture.name.endsWith('_name')) {
+                    return;
+                }
+                if (search.length === 0 || WorkspaceSymbolProvider._matchesFuzzy(search, capture.node.text)) {
+                    const symbol = new vscode.SymbolInformation(
+                        capture.node.text,
+                        vscode.SymbolKind.Struct,
+                        '',
+                        new vscode.Location(document.uri, asCodeRange(capture.node))
+                    );
+                    const containerCandidate = array[index - 1];
+                    if (capture.name.startsWith(containerCandidate.name)) {
+                        symbol.containerName = containerCandidate.name;
+                        symbol.kind = _symbolQueries.getSymbolKind(containerCandidate.name);
+                    }
+                    result.push(symbol);
+                }
+            });
+        }
+        sw.elapsed('WORKSPACE symbols');
+        return result;
+    }
+
+    private static _matchesFuzzy(query: string, candidate: string) {
+        if (query.length > candidate.length) {
+            return false;
+        }
+        query = query.toLowerCase();
+        candidate = candidate.toLowerCase();
+        let queryPos = 0;
+        let candidatePos = 0;
+        while (queryPos < query.length && candidatePos < candidate.length) {
+            if (query.charAt(queryPos) === candidate.charAt(candidatePos)) {
+                queryPos++;
+            }
+            candidatePos++;
+        }
+        return queryPos === query.length;
     }
 }

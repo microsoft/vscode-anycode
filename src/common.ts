@@ -31,6 +31,6 @@ export class StopWatch {
     }
     elapsed(msg: string) {
         const du = Date.now() - this.t1;
-        console.info(msg, du);
+        console.info(`${msg}, ${du}ms`);
     }
 }
