@@ -17,7 +17,7 @@ export class SelectionRangesProvider implements vscode.SelectionRangeProvider {
 
     async provideSelectionRanges(document: vscode.TextDocument, positions: vscode.Position[], token: vscode.CancellationToken) {
 
-        const tree = await this._trees.getTree(document);
+        const tree = await this._trees.getParseTree(document, token);
         if (!tree) {
             return undefined;
         }

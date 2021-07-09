@@ -33,7 +33,7 @@ class LRUMap<K, V> extends Map<K, V> {
 
 class Utils {
 
-    static parseAsync(parser: Parser, text: string, oldTree: Parser.Tree | undefined, options = { timeout: 50, rounds: 20 }): Promise<Parser.Tree> {
+    static parseAsync(parser: Parser, text: string, oldTree?: Parser.Tree, token?: vscode.CancellationToken): Promise<Parser.Tree> {
         if (!parser.getLanguage()) {
             throw new Error('no language');
         }
@@ -42,6 +42,7 @@ class Utils {
 
         // pause parsing after timeout (50ms) and then resume after 
         // short timeout, do 20 rounds before giving up
+        const options = { timeout: 50, rounds: 20 };
         return new Promise<Parser.Tree>((resolve, reject) => {
 
             parser.setTimeoutMicros(1000 * options.timeout);
@@ -52,10 +53,12 @@ class Utils {
                     const tree = parser.parse(text, oldTree);
                     resolve(tree);
                 } catch (err) {
-                    if (--options.rounds > 0) {
-                        setTimeout(() => parseStep(), 0);
+                    if (token?.isCancellationRequested) {
+                        reject(new Error('canelled'));
+                    } else if (--options.rounds <= 0) {
+                        reject(new Error('timeout'));
                     } else {
-                        reject(new Error('no tree after all rounds/timeouts'));
+                        setTimeout(() => parseStep(), options.timeout / 3);
                     }
                 }
             })();
@@ -169,7 +172,7 @@ export class Trees implements ITrees {
 
     // --- tree/parse
 
-    async getTree(document: vscode.TextDocument): Promise<Parser.Tree | undefined> {
+    async getParseTree(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined> {
 
         const language = await this.getLanguage(document.languageId);
         if (!language) {
@@ -193,31 +196,39 @@ export class Trees implements ITrees {
         if (!info) {
             info = new Entry(
                 version,
-                Utils.parseAsync(parser, text, undefined),
+                Utils.parseAsync(parser, text, undefined, token),
                 []
             );
             this._cache.set(document, info);
 
             // cleanup MRU cache
             for (let [, value] of this._cache.cleanup()) {
-                value.tree.then(t => t?.delete());
+                value.dispose();
             }
         }
 
-        // wait for parsing to finish and parse again with 
-        // the edited old tree
-        const tree = await info.tree;
+        info.tree = this._updateTree(parser, info, document, token);
 
-        const deltas = info.edits.flat();
-        info.edits.length = 0;
+        return info.tree.finally(() => parser.delete());
+    }
 
-        if (deltas.length > 0) {
-            for (let delta of deltas) {
-                tree.edit(delta);
-            }
-            info.tree = Utils.parseAsync(parser, text, tree);
+    private async _updateTree(parser: Parser, entry: Entry, document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree> {
+        const tree = await entry.tree;
+        if (entry.edits.length === 0) {
+            return tree;
         }
 
-        return info.tree;
+        // apply edits and parse again
+        const deltas = entry.edits.flat();
+        deltas.forEach(tree.edit, tree);
+        entry.edits.length = 0;
+        entry.version = document.version;
+        entry.tree = Utils.parseAsync(parser, document.getText(), tree).finally(() => {
+            // this is new an old tree and can be deleted
+            tree.delete();
+        });
+
+        // restart in cause more edits happened while parsing...
+        return this._updateTree(parser, entry, document, token);
     }
 };

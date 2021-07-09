@@ -30,7 +30,7 @@
 		"compile": "tsc -p ./ && npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode",
 		"watch": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
 		"lint": "eslint src --ext ts",
-		"postinstall": "cd languages && npx tree-sitter build-wasm ../node_modules/tree-sitter-c && npx tree-sitter build-wasm ../node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm ../node_modules/tree-sitter-cpp && npx tree-sitter build-wasm ../node_modules/tree-sitter-java && npx tree-sitter build-wasm ../node_modules/tree-sitter-python"
+		"postinstall": "cd languages && npx tree-sitter build-wasm ../node_modules/tree-sitter-c && npx tree-sitter build-wasm ../node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm ../node_modules/tree-sitter-cpp && npx tree-sitter build-wasm ../node_modules/tree-sitter-java && npx tree-sitter build-wasm ../node_modules/tree-sitter-python && npx tree-sitter build-wasm ../node_modules/tree-sitter-typescript/typescript"
 	},
 	"devDependencies": {
 		"@types/vscode": "^1.57.0",

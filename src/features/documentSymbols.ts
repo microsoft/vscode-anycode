@@ -41,7 +41,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
     async provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken) {
 
-        const tree = await this._trees.getTree(document);
+        const tree = await this._trees.getParseTree(document, token);
         if (!tree) {
             return undefined;
         }
@@ -116,7 +116,7 @@ class TreeOutline implements vscode.DocumentSymbolProvider {
     constructor(private _trees: ITrees) { }
 
     async provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken) {
-        const tree = await this._trees.getTree(document);
+        const tree = await this._trees.getParseTree(document, token);
         if (!tree) {
             return undefined;
         }
