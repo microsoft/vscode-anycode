@@ -5,6 +5,9 @@
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,
+	"repository": {
+		"url": "https://github.com/microsoft/vscode-anycode"
+	},
 	"engines": {
 		"vscode": "^1.57.0"
 	},
