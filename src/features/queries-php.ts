@@ -17,4 +17,8 @@ export = `(class_declaration
 
 (function_definition
 	name: (name) @function_name
-) @function`;
+) @function
+
+(trait_declaration
+	name: (name) @property_name
+) @property`;
