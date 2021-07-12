@@ -32,6 +32,8 @@ const _symbolQueries = new class {
         ['property', vscode.SymbolKind.Property],
         ['struct', vscode.SymbolKind.Struct],
         ['module', vscode.SymbolKind.Module],
+        ['constant', vscode.SymbolKind.Constant],
+        ['event', vscode.SymbolKind.Event],
     ]);
 
     isSupported(languageId: string): boolean {
