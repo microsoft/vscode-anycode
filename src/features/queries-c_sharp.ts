@@ -50,10 +50,10 @@ export = `
 
 (field_declaration
 	(variable_declaration
-    	(variable_declarator
-        	(identifier) @field.name
-        )
-    )
+		(variable_declarator
+			(identifier) @field.name
+		)
+	)
 ) @field
 
 (event_field_declaration

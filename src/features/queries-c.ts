@@ -5,15 +5,15 @@
 
 export = `
 (struct_specifier
-    name: (type_identifier) @struct.name
+	name: (type_identifier) @struct.name
 ) @struct
 
 (union_specifier
-    name: (type_identifier) @struct.name
+	name: (type_identifier) @struct.name
 ) @struct
 
 (enum_specifier
-    name: (type_identifier) @enum.name
+	name: (type_identifier) @enum.name
 ) @enum
 
 (enumerator

@@ -8,8 +8,8 @@ export = `(namespace_definition
 ) @module
 
 (declaration
-    type: (primitive_type)
-    declarator: (identifier) @variable.name
+	type: (primitive_type)
+	declarator: (identifier) @variable.name
 ) @variable
 
 (friend_declaration
@@ -29,6 +29,6 @@ export = `(namespace_definition
 ) @field
 
 (class_specifier
-    (type_identifier) @class.name
+	(type_identifier) @class.name
 ) @class
 `;

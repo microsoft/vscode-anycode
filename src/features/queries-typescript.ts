@@ -28,16 +28,16 @@ export = `
 
 (method_definition
 	name: [
-    	(property_identifier) @method.name
-        (computed_property.name (string) @method.name)
-    ]
+		(property_identifier) @method.name
+		(computed_property_name (string) @method.name)
+	]
 ) @method
 
 (public_field_definition
 	name: [
-    	(property_identifier) @field.name
-        (computed_property.name (string) @field.name)
-    ]
+		(property_identifier) @field.name
+		(computed_property_name (string) @field.name)
+	]
 ) @field
 
 (enum_declaration

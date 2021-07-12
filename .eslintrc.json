@@ -14,7 +14,11 @@
         "curly": "warn",
         "eqeqeq": "warn",
         "no-throw-literal": "warn",
-        "semi": "off"
+        "semi": "off",
+        "indent": [
+            "error",
+            "tab"
+        ]
     },
     "ignorePatterns": [
         "**/*.d.ts"
