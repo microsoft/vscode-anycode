@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "watch",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: watch",
+			"detail": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
+			"runOptions": {
+				"runOn": "folderOpen"
+			}
+		}
+	]
+}
