@@ -2,8 +2,8 @@
 
 Implements the following features
 
-* outline, quick-outline, and breadcrumps for `java`, `python`, `csharp`, `c`
-* expand/shrink selection for `java`, `python`, `csharp`, `cpp`, `c`
+* outline, quick-outline, and breadcrumps for `c`, `cpp`, `csharp`, `java`, `php`, `python`
+* expand/shrink selection for `c`, `cpp`, `csharp`, `java`, `php`, `python`
 
 ## Contributing
 
