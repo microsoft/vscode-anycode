@@ -30,8 +30,17 @@ export = `
 	declarator: (type_identifier) @struct.name
 ) @struct
 
+(linkage_specification
+	value: (string_literal) @struct.name
+) @struct
+
 (field_declaration_list
 	(field_declaration
-		declarator: (field_identifier) @field.name
+		[
+			declarator: (field_identifier) @field.name
+			(array_declarator
+				declarator: (field_identifier) @field.name
+			)
+		]
 	) @field
 )`;
