@@ -98,7 +98,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
         for (let i = 0; i < captures.length; i++) {
             const capture = captures[i];
             let nameCapture = capture;
-            if (captures[i + 1]?.name === capture.name + '_name') {
+            if (captures[i + 1]?.name === `${capture.name}.name`) {
                 nameCapture = captures[i + 1];
                 i++;
             }
@@ -190,7 +190,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
                 continue;
             }
             query.captures(tree.rootNode).forEach((capture, index, array) => {
-                if (!capture.name.endsWith('_name')) {
+                if (!capture.name.endsWith('.name')) {
                     return;
                 }
                 if (search.length === 0 || WorkspaceSymbolProvider._matchesFuzzy(search, capture.node.text)) {

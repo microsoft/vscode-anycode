@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 export = `(class_definition
-	name: (identifier) @class_name
+	name: (identifier) @class.name
 ) @class
 
 (function_definition
-	name: (identifier) @function_name
+	name: (identifier) @function.name
 ) @function`;

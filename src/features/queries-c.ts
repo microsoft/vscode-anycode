@@ -5,33 +5,33 @@
 
 export = `
 (struct_specifier
-    name: (type_identifier) @struct_name
+    name: (type_identifier) @struct.name
 ) @struct
 
 (union_specifier
-    name: (type_identifier) @struct_name
+    name: (type_identifier) @struct.name
 ) @struct
 
 (enum_specifier
-    name: (type_identifier) @enum_name
+    name: (type_identifier) @enum.name
 ) @enum
 
 (enumerator
-	name: (identifier) @enumMember_name
+	name: (identifier) @enumMember.name
 ) @enumMember
 
 (function_declarator
-	declarator: (identifier) @function_name
+	declarator: (identifier) @function.name
 ) @function
 
 (type_definition
 	.
 	type: (_)
-	declarator: (type_identifier) @struct_name
+	declarator: (type_identifier) @struct.name
 ) @struct
 
 (field_declaration_list
 	(field_declaration
-		declarator: (field_identifier) @field_name
+		declarator: (field_identifier) @field.name
 	) @field
 )`;

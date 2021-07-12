@@ -5,53 +5,53 @@
 
 export = `
 (class_declaration
-	name: (identifier) @class_name
+	name: (identifier) @class.name
 ) @class
 
 (interface_declaration 
-	name: (identifier) @interface_name
+	name: (identifier) @interface.name
 ) @interface
 
 (record_declaration 
-	name: (identifier) @record_name
+	name: (identifier) @record.name
 ) @record
 
 (record_declaration
 	(parameter_list
 		(parameter
-			name: (identifier) @property_name
+			name: (identifier) @property.name
 		) @property
 	)
 )
 
 (constructor_declaration
-	name: (identifier) @method_name
+	name: (identifier) @method.name
 ) @method
 
 (destructor_declaration
-	(identifier) @method_name
+	(identifier) @method.name
 ) @method
 
 (indexer_declaration
-	(bracketed_parameter_list) @method_name
+	(bracketed_parameter_list) @method.name
 ) @method
 
 (method_declaration
-	name: (identifier) @method_name
+	name: (identifier) @method.name
 ) @method
 
 (property_declaration
-	name: (identifier) @property_name
+	name: (identifier) @property.name
 ) @property
 
 (delegate_declaration
-	name: (identifier) @function_name
+	name: (identifier) @function.name
 ) @function
 
 (field_declaration
 	(variable_declaration
     	(variable_declarator
-        	(identifier) @field_name
+        	(identifier) @field.name
         )
     )
 ) @field
@@ -59,14 +59,14 @@ export = `
 (event_field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @event_name
+			(identifier) @event.name
 		)
 	)
 ) @event
 
 (global_attribute_list
 	(attribute
-		(identifier) @constant_name
+		(identifier) @constant.name
 	) @constant
 )
 
@@ -74,27 +74,27 @@ export = `
 	(local_declaration_statement
 		(variable_declaration
 			(variable_declarator
-				(identifier) @variable_name
+				(identifier) @variable.name
 			)
 		)
 	)
 )
 
 (enum_declaration name:
-	(identifier) @enum_name
+	(identifier) @enum.name
 ) @enum
 
 (struct_declaration
-	(identifier) @struct_name
+	(identifier) @struct.name
 ) @struct
 
 (namespace_declaration
 	[
-		name: (identifier) @module_name
-		name: (qualified_name) @module_name
+		name: (identifier) @module.name
+		name: (qualified_name) @module.name
 	]
 ) @module
 
 (enum_member_declaration
-	(identifier) @enumMember_name
+	(identifier) @enumMember.name
 ) @enumMember`;

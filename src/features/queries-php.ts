@@ -4,21 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 export = `(class_declaration
-	name: (name) @class_name
+	name: (name) @class.name
 ) @class
 
 (method_declaration
-  name: (name) @method_name
+  name: (name) @method.name
 ) @method
 
 (property_element
-	(variable_name) @property_name
+	(variable.name) @property.name
 ) @property
 
 (function_definition
-	name: (name) @function_name
+	name: (name) @function.name
 ) @function
 
 (trait_declaration
-	name: (name) @property_name
+	name: (name) @property.name
 ) @property`;

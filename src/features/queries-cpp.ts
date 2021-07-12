@@ -4,31 +4,31 @@
  *--------------------------------------------------------------------------------------------*/
 
 export = `(namespace_definition
-	name: (identifier) @module_name
+	name: (identifier) @module.name
 ) @module
 
 (declaration
     type: (primitive_type)
-    declarator: (identifier) @variable_name
+    declarator: (identifier) @variable.name
 ) @variable
 
 (friend_declaration
-	(type_identifier) @variable_name
+	(type_identifier) @variable.name
 ) @variable
 
 (function_declarator
-	[(identifier) @function_name (field_identifier) @function_name]
+	[(identifier) @function.name (field_identifier) @function.name]
 ) @function
 
 (struct_specifier
-	(type_identifier) @struct_name
+	(type_identifier) @struct.name
 ) @struct
 
 (field_declaration
-	(field_identifier) @field_name
+	(field_identifier) @field.name
 ) @field
 
 (class_specifier
-    (type_identifier) @class_name
+    (type_identifier) @class.name
 ) @class
 `;

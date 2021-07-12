@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 export = `(class_declaration
-	name: (identifier) @class_name
+	name: (identifier) @class.name
 ) @class
 
 (variable_declarator
-	name: (identifier) @class_name
+	name: (identifier) @class.name
 	value: (object_creation_expression
 		.
 		(_)*
@@ -17,19 +17,19 @@ export = `(class_declaration
 ) @class
 
 (interface_declaration
-	name: (identifier) @interface_name
+	name: (identifier) @interface.name
 ) @interface
 
 (enum_declaration
-	name: (identifier) @enum_name
+	name: (identifier) @enum.name
 ) @enum
 
 (method_declaration
-	name: (identifier) @method_name
+	name: (identifier) @method.name
 ) @method
 
 (field_declaration
 	declarator: ((variable_declarator 
-		name: (identifier) @field_name)
+		name: (identifier) @field.name)
 	)
 ) @field`;
