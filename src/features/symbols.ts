@@ -12,6 +12,7 @@ const _symbolQueries = new class {
 
     private readonly _data = new Map<string, Promise<{ default: string }> | Parser.Query>([
         ['typescript', import('./queries-typescript')],
+        ['php', import('./queries-php')],
         ['python', import('./queries-python')],
         ['java', import('./queries-java')],
         ['c', import('./queries-c')],
@@ -62,9 +63,6 @@ const _symbolQueries = new class {
 };
 
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
-
-
-
 
     constructor(private _trees: ITrees) { }
 
