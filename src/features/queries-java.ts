@@ -24,6 +24,14 @@ export = `(class_declaration
 	name: (identifier) @enum.name
 ) @enum
 
+(enum_constant
+	name: (identifier) @enumMember.name
+) @enumMember
+
+(constructor_declaration
+	name: (identifier) @method.name
+) @method
+
 (method_declaration
 	name: (identifier) @method.name
 ) @method
@@ -31,5 +39,13 @@ export = `(class_declaration
 (field_declaration
 	declarator: ((variable_declarator 
 		name: (identifier) @field.name)
-	)
-) @field`;
+	) @field
+)
+
+(module_declaration
+	[
+		(scoped_identifier) @module.name
+		(identifier) @module.name
+	]
+) @module
+`;
