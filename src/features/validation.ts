@@ -5,7 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch } from '../common';
+import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
 
 
 export class Validation {
@@ -29,7 +29,7 @@ export class Validation {
 	}
 
 	private async _triggerValidation(document: vscode.TextDocument): Promise<void> {
-		if (!vscode.languages.match([...this._trees.supportedLanguages], document)) {
+		if (!vscode.languages.match([...this._trees.supportedLanguages], document) || !isInteresting(document)) {
 			// unsupported
 			return;
 		}

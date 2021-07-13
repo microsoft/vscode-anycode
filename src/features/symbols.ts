@@ -5,7 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch } from '../common';
+import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
 
 
 const _symbolQueries = new class {
@@ -186,7 +186,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 			if (token.isCancellationRequested) {
 				break;
 			}
-			if (!_symbolQueries.isSupported(document.languageId)) {
+			if (!isInteresting(document) || !_symbolQueries.isSupported(document.languageId)) {
 				continue;
 			}
 			const tree = await this._trees.getParseTree(document, token);

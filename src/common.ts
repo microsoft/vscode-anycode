@@ -34,3 +34,9 @@ export class StopWatch {
 		console.info(`${msg}, ${du}ms`);
 	}
 }
+
+export function isInteresting(document: vscode.TextDocument): boolean {
+	return vscode.workspace.workspaceFile
+		? document.uri.scheme === vscode.workspace.workspaceFile.scheme
+		: true;
+}
