@@ -29,7 +29,7 @@ export class Validation {
 	}
 
 	private async _triggerValidation(document: vscode.TextDocument): Promise<void> {
-		if (!vscode.languages.match([...this._trees.supportedLanguages], document)) {
+		if (!vscode.languages.match([...this._trees.supportedLanguages].map(language => ({ language, scheme: vscode.workspace.workspaceFile?.scheme })), document)) {
 			// unsupported
 			return;
 		}
