@@ -58,7 +58,7 @@ class Utils {
 					} else if (--options.rounds <= 0) {
 						reject(new Error('timeout'));
 					} else {
-						setTimeout(() => parseStep(), options.timeout / 3);
+						setTimeout(() => parseStep(), 0);
 					}
 				}
 			})();
