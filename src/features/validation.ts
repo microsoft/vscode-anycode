@@ -18,8 +18,9 @@ export class Validation {
 		this._collection = vscode.languages.createDiagnosticCollection();
 
 		vscode.workspace.textDocuments.forEach(this._triggerValidation, this);
-		this._disposables.push(vscode.workspace.onDidOpenTextDocument(this._triggerValidation, this));
 		this._disposables.push(vscode.workspace.onDidChangeTextDocument(e => this._triggerValidation(e.document)));
+		this._disposables.push(vscode.workspace.onDidOpenTextDocument(this._triggerValidation, this));
+		this._disposables.push(vscode.workspace.onDidCloseTextDocument(e => this._collection.delete(e.uri)));
 	}
 
 	dispose(): void {
@@ -52,10 +53,11 @@ export class Validation {
 			const sw = new StopWatch();
 			// find MISSING nodes (those that got auto-inserted)
 			const cursor = tree.walk();
+			const seen = new Set<number>();
 			try {
 				let visitedChildren = false;
 				while (true) {
-					if (cursor.nodeIsMissing) {
+					if (cursor.nodeIsMissing && !seen.has(cursor.nodeId)) {
 						diags.push({
 							range: asCodeRange(cursor.currentNode()),
 							message: `Expected '${cursor.nodeType}'`,
@@ -63,6 +65,7 @@ export class Validation {
 							source: 'anycode',
 							code: 'missing',
 						});
+						seen.add(cursor.nodeId);
 					}
 
 					// depth first search

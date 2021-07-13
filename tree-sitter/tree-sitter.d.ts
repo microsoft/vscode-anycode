@@ -101,6 +101,7 @@ declare namespace TreeSitter {
     export interface TreeCursor {
       nodeType: string;
       nodeText: string;
+      nodeId: number;
       nodeIsNamed: boolean;
       nodeIsMissing: boolean;
       startPosition: Point;
