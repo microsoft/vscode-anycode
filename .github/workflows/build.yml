@@ -4,8 +4,14 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: mymindstorm/setup-emsdk@v9
-
       - name: Verify
         run: emcc -v
+      - uses: actions/setup-node@v2
+      - name: Install and Compile
+        with:
+          node-version: '14.x'
+        run: npm install
+        run: npm compile
