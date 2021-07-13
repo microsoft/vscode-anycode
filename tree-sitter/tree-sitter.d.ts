@@ -102,6 +102,7 @@ declare namespace TreeSitter {
       nodeType: string;
       nodeText: string;
       nodeIsNamed: boolean;
+      nodeIsMissing: boolean;
       startPosition: Point;
       endPosition: Point;
       startIndex: number;

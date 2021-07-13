@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { DocumentSymbolProvider, WorkspaceSymbolProvider } from './features/symbols';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
+import { Validation } from './features/validation';
 
 export async function activate(context: vscode.ExtensionContext) {
 	console.log('Congratulations, your extension "anylang" is now active!');
@@ -15,4 +16,5 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(new DocumentSymbolProvider(trees).register());
 	context.subscriptions.push(new WorkspaceSymbolProvider(trees).register());
 	context.subscriptions.push(new SelectionRangesProvider(trees).register());
+	context.subscriptions.push(new Validation(trees));
 }
