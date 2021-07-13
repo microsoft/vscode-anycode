@@ -82,7 +82,6 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 	constructor(private _trees: ITrees) { }
 
 	register(): vscode.Disposable {
-		// vscode.languages.registerDocumentSymbolProvider([...this._trees.supportedLanguages], new TreeOutline(this._trees));
 		return vscode.languages.registerDocumentSymbolProvider(_symbolQueries.languageIds, this);
 	}
 
@@ -145,32 +144,6 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 		}
 		sw.elapsed('make symbol TREE');
 		return symbolsTree;
-	}
-}
-
-class TreeOutline implements vscode.DocumentSymbolProvider {
-
-	constructor(private _trees: ITrees) { }
-
-	async provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken) {
-		const tree = await this._trees.getParseTree(document, token);
-		if (!tree) {
-			return undefined;
-		}
-
-		const result: vscode.DocumentSymbol[] = [];
-		function buildTree(node: Parser.SyntaxNode, bucket: vscode.DocumentSymbol[]) {
-			if (node.isNamed()) {
-				const symbol = new vscode.DocumentSymbol(node.type, node.text, vscode.SymbolKind.Struct, asCodeRange(node), asCodeRange(node));
-				bucket.push(symbol);
-				bucket = symbol.children;
-			}
-			for (let child of node.children) {
-				buildTree(child, bucket);
-			}
-		}
-		buildTree(tree.rootNode, result);
-		return result;
 	}
 }
 
