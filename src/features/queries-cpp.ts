@@ -31,4 +31,10 @@ export = `(namespace_definition
 (class_specifier
 	(type_identifier) @class.name
 ) @class
+
+;; todo@jrieken the struct-name is matched after its children and therefore not associated properly
+(type_definition
+	type: (_)
+	declarator: (type_identifier) @struct.name
+) @struct
 `;
