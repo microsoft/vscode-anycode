@@ -88,25 +88,25 @@ export class Validation {
 				cursor.delete();
 			}
 
-			// find "generic" error nodes
-			let query: Parser.Query | undefined;
-			try {
-				query = tree.getLanguage().query('(ERROR) @error');
-				const captures = query.captures(tree.rootNode);
-				for (let capture of captures) {
-					diags.push({
-						range: asCodeRange(capture.node),
-						message: 'Error',
-						severity: vscode.DiagnosticSeverity.Error,
-						source: 'anycode',
-						code: 'error',
-					});
-				}
-			} catch {
-				// ignore - parsing the query might fail
-			} finally {
-				query?.delete();
-			}
+			// // find "generic" error nodes
+			// let query: Parser.Query | undefined;
+			// try {
+			// 	query = tree.getLanguage().query('(ERROR) @error');
+			// 	const captures = query.captures(tree.rootNode);
+			// 	for (let capture of captures) {
+			// 		diags.push({
+			// 			range: asCodeRange(capture.node),
+			// 			message: 'Error',
+			// 			severity: vscode.DiagnosticSeverity.Error,
+			// 			source: 'anycode',
+			// 			code: 'error',
+			// 		});
+			// 	}
+			// } catch {
+			// 	// ignore - parsing the query might fail
+			// } finally {
+			// 	query?.delete();
+			// }
 			sw.elapsed('DIAGNOSTICS');
 		}
 		this._collection.set(document.uri, diags);
