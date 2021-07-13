@@ -12,8 +12,4 @@ jobs:
         with:
           node-version: '14.x'
       - run: npm install
-      - run: npx tree-sitter build-wasm ./node_modules/tree-sitter-c && npx tree-sitter build-wasm ./node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm ./node_modules/tree-sitter-cpp && npx tree-sitter build-wasm ./node_modules/tree-sitter-java && npx tree-sitter build-wasm ./node_modules/tree-sitter-python && npx tree-sitter build-wasm ./node_modules/tree-sitter-php npx tree-sitter build-wasm ./node_modules/tree-sitter-typescript/typescript
-      - run: mv *.wasm ./languages
-      - run: ls la .
-      - run: ls la ./languages
       - run: npm run compile
