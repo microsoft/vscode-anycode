@@ -7,11 +7,9 @@ jobs:
 
     steps:
       - uses: mymindstorm/setup-emsdk@v9
-      - name: Verify
-      # - run: emcc -v
-      - uses: actions/setup-node@v2
-      - name: Install and Compile
+      - name: npm i, compile
+        uses: actions/setup-node@v2
         with:
           node-version: '14.x'
-      run: npm install && npm compile
-      # - run: npm compile
+      - run: npm install
+      - run: npm compile
