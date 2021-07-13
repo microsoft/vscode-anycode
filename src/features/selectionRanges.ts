@@ -23,7 +23,7 @@ export class SelectionRangesProvider implements vscode.SelectionRangeProvider {
 		}
 
 		const sw = new StopWatch();
-		sw.start();
+		sw.reset();
 		const result: vscode.SelectionRange[] = [];
 
 		for (const position of positions) {

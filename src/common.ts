@@ -26,7 +26,7 @@ export function asTsPoint(position: vscode.Position): Parser.Point {
 export class StopWatch {
 	private t1: number = Date.now();
 
-	start() {
+	reset() {
 		this.t1 = Date.now();
 	}
 	elapsed(msg: string) {

@@ -46,7 +46,7 @@ class Utils {
 		return new Promise<Parser.Tree>((resolve, reject) => {
 
 			parser.setTimeoutMicros(1000 * options.timeout);
-			sw.start();
+			sw.reset();
 
 			(function parseStep() {
 				try {

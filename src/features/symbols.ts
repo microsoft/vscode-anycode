@@ -93,57 +93,79 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 		}
 
 		const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
-
 		if (!query) {
 			return undefined;
 		}
 
 		const sw = new StopWatch();
 
-		sw.start();
+		sw.reset();
 		const captures = query.captures(tree.rootNode);
 		sw.elapsed('CAPTURE query');
 
-		// make flat symbols from all captures
-		sw.start();
-		const symbolsFlat: vscode.DocumentSymbol[] = [];
-		for (let i = 0; i < captures.length; i++) {
-			const capture = captures[i];
-			let nameCapture = capture;
-			if (captures[i + 1]?.name === `${capture.name}.name`) {
-				nameCapture = captures[i + 1];
-				i++;
-			}
-			symbolsFlat.push(new vscode.DocumentSymbol(nameCapture.node.text, '',
-				_symbolQueries.getSymbolKind(capture.name),
-				asCodeRange(capture.node), asCodeRange(nameCapture.node)
-			));
-		}
-		sw.elapsed('MAKE document symbols');
 
-		// make tree from flat symbols
-		sw.start();
-		let symbolsTree: vscode.DocumentSymbol[] = [];
-		let stack: vscode.DocumentSymbol[] = [];
-		for (let symbol of symbolsFlat) {
+		class Node {
+			readonly range: vscode.Range;
+			readonly children: Node[] = [];
+			constructor(readonly capture: Parser.QueryCapture) {
+				this.range = asCodeRange(capture.node);
+			}
+		}
+		// build a Node-tree that is based on range containment. This includes true 
+		// children as well as the "name-child"
+		sw.reset();
+		const roots: Node[] = [];
+		const stack: Node[] = [];
+		for (const capture of captures) {
+			const node = new Node(capture);
 			let parent = stack.pop();
 			while (true) {
 				if (!parent) {
-					stack.push(symbol);
-					symbolsTree.push(symbol);
+					roots.push(node);
+					stack.push(node);
 					break;
 				}
-				if (parent.range.contains(symbol.range)) {
-					parent.children.push(symbol);
+				if (parent.range.contains(node.range)) {
+					parent.children.push(node);
 					stack.push(parent);
-					stack.push(symbol);
+					stack.push(node);
 					break;
 				}
 				parent = stack.pop();
 			}
 		}
-		sw.elapsed('make symbol TREE');
-		return symbolsTree;
+		sw.elapsed('make TREE');
+
+		// build DocumentSymbol-tree from Node-tree. Children of nodes that match
+		// the `<xyz>.name` capture name are used as identifier/name and aren't producing
+		// a dedicated document symbol
+		function build(node: Node, bucket: vscode.DocumentSymbol[]): void {
+			let children: vscode.DocumentSymbol[] = [];
+			let nameNode: Node | undefined;
+			for (let child of node.children) {
+				if (!nameNode && child.capture.name === `${node.capture.name}.name`) {
+					nameNode = child;
+				} else {
+					build(child, children);
+				}
+			}
+			if (!nameNode) {
+				nameNode = node;
+			}
+			const symbol = new vscode.DocumentSymbol(nameNode.capture.node.text, '', _symbolQueries.getSymbolKind(node.capture.name), node.range, nameNode.range);
+			symbol.children = children;
+
+			bucket.push(symbol);
+		}
+
+		sw.reset();
+		const result: vscode.DocumentSymbol[] = [];
+		for (let node of roots) {
+			build(node, result);
+		}
+		sw.elapsed('make SYMBOLS');
+
+		return result;
 	}
 }
 
