@@ -35,8 +35,8 @@ export class StopWatch {
 	}
 }
 
+const _disabledSchemes = new Set(['git', 'vsls']);
+
 export function isInteresting(document: vscode.TextDocument): boolean {
-	return vscode.workspace.workspaceFile
-		? document.uri.scheme === vscode.workspace.workspaceFile.scheme
-		: true;
+	return !_disabledSchemes.has(document.uri.scheme);
 }
