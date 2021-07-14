@@ -3,8 +3,8 @@
 A language extension that **inaccurately** implements the following features
 
 * expand/shrink selection 
-* outline, quick-outline, and breadcrumps
-* (limit) workspace symbol search
+* outline, quick-outline, and breadcrumbs
+* (limited) workspace symbol search
 * parse tree based diagnostics
 
 This extension should be used when running in enviroments that don't allow for running actual language services. 
