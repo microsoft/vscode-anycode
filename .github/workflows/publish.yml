@@ -1,0 +1,19 @@
+name "deploy"
+on:
+  push:
+    tags:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: mymindstorm/setup-emsdk@v9
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+      - run: npm install
+      - run: npm run compile
+      - run: npm deploy -- -p ${{secrets.MARKETPLACE_PAT}}
