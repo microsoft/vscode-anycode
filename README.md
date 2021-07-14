@@ -4,8 +4,8 @@ A language extension that **inaccurately** implements the following features
 
 * expand/shrink selection 
 * outline, quick-outline, and breadcrumbs
-* (limited) workspace symbol search
-* parse tree based diagnostics
+* syntax errors
+* workspace symbol search for open documents
 
 This extension should be used when running in enviroments that don't allow for running actual language services. 
 
@@ -13,9 +13,9 @@ Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`,
 
 ## Development
 
-To compile tree-sitter languages you need docker or emscripten, follow these steps:
+To **compile** tree-sitter languages you need docker or emscripten, follow these steps:
 
-* have `docker` or `emcc` on your path
+* have `emcc` on your path or `docker` running
 * run `npm install`
 
 There is a **watch** task to build TS, either `npm run watch` or "F1 > Run Task > npm: watch". The task will auto launch on next open if desired. 
