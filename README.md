@@ -11,6 +11,12 @@ This extension should be used when running in enviroments that don't allow for r
 
 Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `python`, `rust`
 
+---
+
+👉👉👉 Note that for this extension to work the `extensions.webWorker`-setting must be enabled.
+
+---
+
 ## Development
 
 To **compile** tree-sitter languages you need docker or emscripten, follow these steps:
