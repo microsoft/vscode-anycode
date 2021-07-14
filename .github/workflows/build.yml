@@ -1,4 +1,4 @@
-name: "emsdk"
+name: "build"
 on: [push]
 
 jobs:
