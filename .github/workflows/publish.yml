@@ -16,4 +16,4 @@ jobs:
           node-version: '14.x'
       - run: npm install
       - run: npm run compile
-      - run: npm deploy -- -p ${{secrets.MARKETPLACE_PAT}}
+      - run: npm run deploy -- -p ${{secrets.MARKETPLACE_PAT}}
