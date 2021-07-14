@@ -3,7 +3,7 @@
 	"displayName": "anycode",
 	"publisher": "ms-vscode",
 	"description": "",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
