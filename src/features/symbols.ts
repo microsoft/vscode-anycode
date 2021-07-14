@@ -18,6 +18,7 @@ const _symbolQueries = new class {
 		['c', import('./queries-c')],
 		['cpp', import('./queries-cpp')],
 		['csharp', import('./queries-c_sharp')],
+		['rust', import('./queries-rust')],
 	]);
 
 	private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([

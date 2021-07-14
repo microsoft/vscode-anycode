@@ -122,6 +122,7 @@ export class Trees implements ITrees {
 			['c', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm') }],
 			['cpp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-cpp.wasm') }],
 			['csharp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c_sharp.wasm') }],
+			['rust', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-rust.wasm') }],
 		]);
 
 		// remove closed documents
