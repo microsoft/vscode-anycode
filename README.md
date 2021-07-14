@@ -1,9 +1,29 @@
 ## Anycode 
 
-Implements the following features
+A language extension that **inaccurately** implements the following features
 
-* outline, quick-outline, and breadcrumps for `c`, `cpp`, `csharp`, `java`, `php`, `python`
-* expand/shrink selection for `c`, `cpp`, `csharp`, `java`, `php`, `python`
+* expand/shrink selection 
+* outline, quick-outline, and breadcrumps
+* (limit) workspace symbol search
+* parse tree based diagnostics
+
+This extension should be used when running in enviroments that don't allow for running actual language services. 
+
+Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `python`
+
+## Development
+
+To compile tree-sitter languages you need docker or emscripten, follow these steps:
+
+* have `docker` or `emcc` on your path
+* run `npm install`
+
+There is a **watch** task to build TS, either `npm run watch` or "F1 > Run Task > npm: watch". The task will auto launch on next open if desired. 
+
+Push a tag to **publish** a new version to the marketplace: 
+
+* run `npm version path` and then
+* run `git push && git push --tag`
 
 ## Contributing
 
@@ -18,11 +38,3 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
