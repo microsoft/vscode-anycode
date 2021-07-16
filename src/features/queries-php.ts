@@ -12,7 +12,7 @@ export = `(class_declaration
 ) @method
 
 (property_element
-	(variable.name) @property.name
+	(variable_name) @property.name
 ) @property
 
 (function_definition
