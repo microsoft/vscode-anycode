@@ -13,6 +13,9 @@ class LRUMap<K, V> extends Map<K, V> {
 	private readonly _cacheLimits = { max: 15, size: 10 };
 
 	get(key: K): V | undefined {
+		if (!this.has(key)) {
+			return undefined;
+		}
 		const result = super.get(key);
 		this.delete(key);
 		this.set(key, result!);
@@ -23,7 +26,7 @@ class LRUMap<K, V> extends Map<K, V> {
 		if (this.size < this._cacheLimits.max) {
 			return [];
 		}
-		const result = Array.from(this.entries()).slice(this._cacheLimits.size);
+		const result = Array.from(this.entries()).slice(0, this._cacheLimits.size);
 		for (let [key] of result) {
 			this.delete(key);
 		}
