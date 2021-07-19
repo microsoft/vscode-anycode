@@ -18,7 +18,11 @@ export const symbols =`(namespace_definition
 
 (function_definition
 	(function_declarator
-		[(identifier) @function.name (field_identifier) @function.name]
+		[
+			(identifier) @function.name
+			(field_identifier) @function.name
+			(scoped_identifier) @function.name
+		]
 	)
 ) @function
 
