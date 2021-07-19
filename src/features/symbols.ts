@@ -10,7 +10,7 @@ import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
 
 const _symbolQueries = new class {
 
-	private readonly _data = new Map<string, Promise<{ default: string }> | Parser.Query>([
+	private readonly _data = new Map<string, Promise<{ symbols: string }> | Parser.Query>([
 		['typescript', import('./queries-typescript')],
 		['php', import('./queries-php')],
 		['python', import('./queries-python')],
@@ -62,7 +62,7 @@ const _symbolQueries = new class {
 		let query = this._data.get(languageId);
 		if (query instanceof Promise) {
 			try {
-				query = language.query((await query).default);
+				query = language.query((await query).symbols);
 				this._data.set(languageId, query);
 			} catch (e) {
 				console.log(languageId, e);

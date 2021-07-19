@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export = `
+export const symbols = `
 (mod_item
 	name: (identifier) @module.name
 ) @module

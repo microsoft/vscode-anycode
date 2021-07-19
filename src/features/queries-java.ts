@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export = `(class_declaration
+export const symbols =`(class_declaration
 	name: (identifier) @class.name
 ) @class
 

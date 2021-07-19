@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export = `
+export const symbols = `
 (interface_declaration
 	name: (type_identifier) @interface.name
 ) @interface
