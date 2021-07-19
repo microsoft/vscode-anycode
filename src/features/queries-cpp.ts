@@ -26,13 +26,34 @@ export const symbols =`(namespace_definition
 	)
 ) @function
 
-(struct_specifier
-	(type_identifier) @struct.name
-) @struct
+(field_declaration
+	(function_declarator
+		[
+			(identifier) @function.name
+			(field_identifier) @function.name
+			(scoped_identifier) @function.name
+		]
+	)
+) @function
+
+(declaration
+	(function_declarator
+		[
+			(identifier) @function.name
+			(field_identifier) @function.name
+			(scoped_identifier) @function.name
+			(destructor_name) @function.name
+		]
+	)
+) @function
 
 (field_declaration
 	(field_identifier) @field.name
 ) @field
+
+(struct_specifier
+	(type_identifier) @struct.name
+) @struct
 
 (class_specifier
 	(type_identifier) @class.name
