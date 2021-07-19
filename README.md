@@ -4,8 +4,8 @@ A language extension that **inaccurately** implements the following features
 
 * expand/shrink selection 
 * outline, quick-outline, and breadcrumbs
-* syntax errors
 * workspace symbol search for open documents
+* (experimental) syntax errors via the `anycode.diagnostics`-setting
 
 This extension should be used when running in enviroments that don't allow for running actual language services. 
 

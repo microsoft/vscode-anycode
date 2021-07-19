@@ -29,7 +29,19 @@
 	],
 	"browser": "./dist/extension.js",
 	"main": "./dist/extension.js",
-	"contributes": {},
+	"contributes": {
+		"configuration": {
+			"title": "Anycode",
+			"properties": {
+				"anycode.diagnostics": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show parse errors as diagnostics (experimental).",
+					"scope": "language-overridable"
+				}
+			}
+		}
+	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./ && npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode",

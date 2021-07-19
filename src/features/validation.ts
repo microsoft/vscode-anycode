@@ -32,6 +32,12 @@ export class Validation {
 			return;
 		}
 
+		const enabled = vscode.workspace.getConfiguration('anycode', document).get('diagnostics', false);
+		if (!enabled) {
+			// disabled for this language
+			return;
+		}
+
 		// cancel pending validation
 		let cts = this._currentValidation.get(document);
 		cts?.cancel();
