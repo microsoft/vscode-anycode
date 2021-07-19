@@ -170,8 +170,53 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 	}
 }
 
+class WorkspaceIndex {
+
+	private readonly _ready: Promise<any>;
+
+	private readonly _map = new Map<string, vscode.Uri>();
+	private readonly _disposable: vscode.Disposable;
+
+	constructor() {
+		const sw = new StopWatch();
+		const glob = '{**/*.c,**/*.cpp,**/*.h,**/*.cs,**/*.rs,**/*.py,**/*.java,**/*.php}';
+		this._ready = Promise.resolve(vscode.workspace.findFiles(glob, undefined, 1000)).then(uris => {
+			for (const uri of uris) {
+				this._map.set(uri.toString(), uri);
+			}
+			sw.elapsed('all FILES: ' + this._map.size);
+		});
+
+		const watcher = vscode.workspace.createFileSystemWatcher(glob, undefined, true, undefined);
+		watcher.onDidDelete(uri => this._map.delete(uri.toString()));
+		watcher.onDidCreate(uri => this._map.set(uri.toString(), uri));
+
+		this._disposable = new vscode.Disposable(() => {
+			watcher.dispose();
+		});
+	}
+
+	dispose(): void {
+		this._disposable.dispose();
+	}
+
+	async *all() {
+		await this._ready;
+
+		const exclude = new Set<string>();
+		vscode.workspace.textDocuments.forEach(d => exclude.add(d.uri.toString()));
+
+		for (let [key, value] of this._map) {
+			if (!exclude.has(key)) {
+				yield value;
+			}
+		}
+	}
+}
 
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
+
+	private readonly _index = new WorkspaceIndex();
 
 	constructor(private _trees: ITrees) { }
 
@@ -219,6 +264,11 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 			});
 		}
 		sw.elapsed('WORKSPACE symbols');
+
+		sw.reset();
+		this._index.all();
+		sw.elapsed('INDEX symbol');
+
 		return result;
 	}
 
