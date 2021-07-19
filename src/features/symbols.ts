@@ -18,6 +18,7 @@ const _symbolQueries = new class {
 		['c', import('./queries-c')],
 		['cpp', import('./queries-cpp')],
 		['csharp', import('./queries-c_sharp')],
+		['go', import('./queries-go')],
 		['rust', import('./queries-rust')],
 	]);
 

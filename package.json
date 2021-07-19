@@ -24,6 +24,7 @@
 		"onLanguage:java",
 		"onLanguage:php",
 		"onLanguage:python",
+		"onLanguage:go",
 		"onLanguage:rust"
 	],
 	"browser": "./dist/extension.js",
@@ -46,7 +47,7 @@
 		"compile": "tsc -p ./ && npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode",
 		"watch": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
 		"lint": "eslint src --ext ts",
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
 		"deploy": "npx vsce publish"
 	},
 	"devDependencies": {
@@ -59,6 +60,7 @@
 		"tree-sitter-c-sharp": "^0.19.0",
 		"tree-sitter-cli": "^0.20.0",
 		"tree-sitter-cpp": "^0.19.0",
+		"tree-sitter-go": "^0.19.1",
 		"tree-sitter-java": "^0.19.1",
 		"tree-sitter-php": "^0.19.0",
 		"tree-sitter-python": "^0.19.0",
