@@ -24,8 +24,7 @@
 		"onLanguage:java",
 		"onLanguage:php",
 		"onLanguage:python",
-		"onLanguage:rust",
-		"onLanguage:typescript"
+		"onLanguage:rust"
 	],
 	"browser": "./dist/extension.js",
 	"main": "./dist/extension.js",
