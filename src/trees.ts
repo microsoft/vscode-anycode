@@ -159,7 +159,7 @@ export class Trees implements ITrees {
 	// --- languages
 
 	get supportedLanguages() {
-		return this._languages.keys();
+		return Array.from(this._languages.keys());
 	}
 
 	async getLanguage(langId: string): Promise<Parser.Language | undefined> {

@@ -7,7 +7,7 @@ import type { Parser } from '../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 
 export interface ITrees {
-	supportedLanguages: IterableIterator<string>;
+	supportedLanguages: readonly string[];
 	getParseTree(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined>;
 	getLanguage(langId: string): Promise<Parser.Language | undefined>
 }

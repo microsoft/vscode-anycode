@@ -9,7 +9,7 @@
 		"url": "https://github.com/microsoft/vscode-anycode"
 	},
 	"engines": {
-		"vscode": "^1.57.0"
+		"vscode": "^1.59.0"
 	},
 	"extensionKind": [
 		"web"
@@ -51,7 +51,6 @@
 		"deploy": "npx vsce publish"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.57.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
 		"esbuild": "^0.12.14",

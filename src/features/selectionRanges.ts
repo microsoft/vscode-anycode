@@ -12,7 +12,7 @@ export class SelectionRangesProvider implements vscode.SelectionRangeProvider {
 	constructor(private _trees: ITrees) { }
 
 	register(): vscode.Disposable {
-		return vscode.languages.registerSelectionRangeProvider(Array.from(this._trees.supportedLanguages), this);
+		return vscode.languages.registerSelectionRangeProvider(this._trees.supportedLanguages, this);
 	}
 
 	async provideSelectionRanges(document: vscode.TextDocument, positions: vscode.Position[], token: vscode.CancellationToken) {
