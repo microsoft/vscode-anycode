@@ -10,7 +10,7 @@ import { Trees } from './trees';
 import { Validation } from './features/validation';
 
 export async function activate(context: vscode.ExtensionContext) {
-	console.log('Congratulations, your extension "anylang" is now active!');
+
 	const trees = new Trees(context);
 	context.subscriptions.push(trees);
 	context.subscriptions.push(new DocumentSymbolProvider(trees).register());
