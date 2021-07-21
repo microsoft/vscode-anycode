@@ -12,10 +12,6 @@ export const symbols = `
 	name: (identifier) @function.name
 ) @function
 
-(struct_item
-	name: (type_identifier) @struct.name
-) @struct
-
 (union_item
 	name: (type_identifier) @struct.name
 ) @struct
