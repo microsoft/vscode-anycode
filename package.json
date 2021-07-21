@@ -4,6 +4,7 @@
 	"publisher": "ms-vscode",
 	"description": "",
 	"version": "0.0.13",
+	"enableProposedApi": true,
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
