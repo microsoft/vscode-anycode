@@ -36,7 +36,7 @@ class LRUMap<K, V> extends Map<K, V> {
 
 class Utils {
 
-	static parseAsync(parser: Parser, text: string, oldTree?: Parser.Tree, token?: vscode.CancellationToken): Promise<Parser.Tree> {
+	static parseAsync(parser: Parser, text: string, oldTree: Parser.Tree | undefined, token: vscode.CancellationToken): Promise<Parser.Tree> {
 		if (!parser.getLanguage()) {
 			throw new Error('no language');
 		}
@@ -57,7 +57,7 @@ class Utils {
 					resolve(tree);
 				} catch (err) {
 					if (token?.isCancellationRequested) {
-						reject(new Error('canelled'));
+						reject(new Error('cancelled'));
 					} else if (--options.rounds <= 0) {
 						reject(new Error('timeout'));
 					} else {
@@ -229,7 +229,7 @@ export class Trees implements ITrees {
 		deltas.forEach(tree.edit, tree);
 		entry.edits.length = 0;
 		entry.version = document.version;
-		entry.tree = Utils.parseAsync(parser, document.getText(), tree).finally(() => {
+		entry.tree = Utils.parseAsync(parser, document.getText(), tree, token).finally(() => {
 			// this is new an old tree and can be deleted
 			tree.delete();
 		});
