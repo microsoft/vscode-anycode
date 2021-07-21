@@ -23,10 +23,10 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(item);
 	let tooltip: vscode.MarkdownString;
 	if (vscode.extensions.getExtension('github.remotehub-insiders')) {
-		tooltip = new vscode.MarkdownString('Only _limited_ language support can be offered for this file. For better language support you can [continue working on](command:remoteHub.continueOn \'Continue working on this remote repository elsewhere\') this file elsewhere.');
+		tooltip = new vscode.MarkdownString('Only _basic_ language support can be offered for this file. For better language support you can [continue working on](command:remoteHub.continueOn \'Continue working on this remote repository elsewhere\') this file elsewhere.');
 		tooltip.isTrusted = true;
 	} else {
-		tooltip = new vscode.MarkdownString('Only _limited_ language support can be offered for this file.');
+		tooltip = new vscode.MarkdownString('Only _basic_ language support can be offered for this file.');
 	}
 	item.detail = tooltip;
 	item.text = `$(quote)`;
