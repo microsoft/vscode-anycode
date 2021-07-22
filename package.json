@@ -49,7 +49,7 @@
 		"watch": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
 		"lint": "eslint src --ext ts",
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
-		"deploy": "npx vsce publish"
+		"deploy": "npx vsce publish --noVerify"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
