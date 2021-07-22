@@ -222,6 +222,9 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		if (!query) {
 			return;
 		}
+		// todo@jrieken there is a chance that the tree got destroyed
+		// already because the tree-store just does that. instead some
+		// lifecycle is needed
 		query.captures(tree.rootNode).forEach((capture, index, array) => {
 			if (!capture.name.endsWith('.name')) {
 				return;
