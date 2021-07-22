@@ -248,7 +248,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		if (!/\w{1,}/.test(search)) {
 			return;
 		}
-		let regexp: RegExp | undefined;
+		let regexp!: RegExp;
 		try {
 			const fuzzyCharacters = search.split('').map(ch => `${ch}\\w*`);
 			const pattern = `(^|[\\s_-])${fuzzyCharacters.join('')}`;
@@ -263,29 +263,35 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		// find all files, precheck with regexp, then collect symbols
 		this._index = this._index ?? WorkspaceIndex.create();
 
-		for (const entry of (await this._index).all()) {
+
+		const chunkSize = 20;
+		const allUris = Array.from((await this._index).all());
+		for (let i = 0; i < allUris.length; i += chunkSize) {
 			if (token.isCancellationRequested) {
 				return;
 			}
-			const source = await entry.getText();
-			if (!regexp.test(source)) {
-				continue;
-			}
-
-			let languageId = '';
-			for (let [key, value] of WorkspaceIndex.languageMapping) {
-				if (value.some(suffix => entry.uri.path.endsWith(`.${suffix}`))) {
-					languageId = key;
-					break;
+			const chunk = allUris.slice(i, i + chunkSize);
+			const promises = chunk.map(async entry => {
+				const source = await entry.load();
+				if (!regexp.test(source)) {
+					return;
 				}
-			}
+				let languageId = '';
+				for (let [key, value] of WorkspaceIndex.languageMapping) {
+					if (value.some(suffix => entry.uri.path.endsWith(`.${suffix}`))) {
+						languageId = key;
+						break;
+					}
+				}
+				await this._collectMatches(search, {
+					version: 1,
+					uri: entry.uri,
+					languageId,
+					getText() { return source; },
+				}, token, bucket);
+			});
 
-			this._collectMatches(search, {
-				version: 1,
-				uri: entry.uri,
-				languageId,
-				getText() { return source; },
-			}, token, bucket);
+			await Promise.all(promises);
 		}
 	}
 }
@@ -305,7 +311,7 @@ abstract class WorkspaceIndex {
 		['rust', ['rs']],
 	]);
 
-	abstract all(): IterableIterator<{ uri: vscode.Uri, getText(): Promise<string> }>;
+	abstract all(): IterableIterator<{ uri: vscode.Uri, load(): Promise<string> }>;
 	abstract dispose(): void;
 
 	static async create(): Promise<WorkspaceIndex> {
@@ -318,7 +324,7 @@ abstract class WorkspaceIndex {
 			constructor(readonly uri: vscode.Uri) { }
 			private _text: string | undefined;
 
-			async getText() {
+			async load() {
 				if (!this._text) {
 					const stat = await vscode.workspace.fs.stat(this.uri);
 					if (stat.size > 1024 ** 2) {
@@ -334,8 +340,6 @@ abstract class WorkspaceIndex {
 			reset() {
 				this._text = undefined;
 			}
-
-
 		}
 
 		const all = new Map<string, Entry>();
