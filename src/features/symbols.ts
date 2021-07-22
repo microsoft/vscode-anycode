@@ -263,8 +263,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		// find all files, precheck with regexp, then collect symbols
 		this._index = this._index ?? WorkspaceIndex.create();
 
-
-		const chunkSize = 20;
+		const chunkSize = 50;
 		const allUris = Array.from((await this._index).all());
 		for (let i = 0; i < allUris.length; i += chunkSize) {
 			if (token.isCancellationRequested) {
