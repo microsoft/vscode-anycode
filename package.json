@@ -26,7 +26,8 @@
 		"onLanguage:php",
 		"onLanguage:python",
 		"onLanguage:go",
-		"onLanguage:rust"
+		"onLanguage:rust",
+		"onCommand:workbench.action.showAllSymbols"
 	],
 	"browser": "./dist/extension.js",
 	"main": "./dist/extension.js",
