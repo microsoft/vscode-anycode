@@ -10,7 +10,7 @@ import TreeSitter, { Parser } from '../tree-sitter/tree-sitter';
 // ghetto LRU that utilizes the fact that Map keeps things in insertion order
 class LRUMap<K, V> extends Map<K, V> {
 
-	private readonly _cacheLimits = { max: 15, size: 10 };
+	private readonly _cacheLimits = { max: 45, size: 30 };
 
 	get(key: K): V | undefined {
 		if (!this.has(key)) {
