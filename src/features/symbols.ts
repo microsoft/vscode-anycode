@@ -5,8 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
-
+import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument } from '../common';
 
 const _symbolQueries = new class {
 
@@ -171,50 +170,6 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 	}
 }
 
-// class WorkspaceIndex {
-
-// 	private readonly _ready: Promise<any>;
-
-// 	private readonly _map = new Map<string, vscode.Uri>();
-// 	private readonly _disposable: vscode.Disposable;
-
-// 	constructor() {
-// 		const sw = new StopWatch();
-// 		const glob = '{**/*.c,**/*.cpp,**/*.h,**/*.cs,**/*.rs,**/*.py,**/*.java,**/*.php}';
-// 		this._ready = Promise.resolve(vscode.workspace.findFiles(glob, undefined, 1000)).then(uris => {
-// 			for (const uri of uris) {
-// 				this._map.set(uri.toString(), uri);
-// 			}
-// 			sw.elapsed('all FILES: ' + this._map.size);
-// 		});
-
-// 		const watcher = vscode.workspace.createFileSystemWatcher(glob, undefined, true, undefined);
-// 		watcher.onDidDelete(uri => this._map.delete(uri.toString()));
-// 		watcher.onDidCreate(uri => this._map.set(uri.toString(), uri));
-
-// 		this._disposable = new vscode.Disposable(() => {
-// 			watcher.dispose();
-// 		});
-// 	}
-
-// 	dispose(): void {
-// 		this._disposable.dispose();
-// 	}
-
-// 	async *all() {
-// 		await this._ready;
-
-// 		const exclude = new Set<string>();
-// 		vscode.workspace.textDocuments.forEach(d => exclude.add(d.uri.toString()));
-
-// 		for (let [key, value] of this._map) {
-// 			if (!exclude.has(key)) {
-// 				yield value;
-// 			}
-// 		}
-// 	}
-// }
-
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
 	constructor(private _trees: ITrees) { }
@@ -224,62 +179,144 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 	}
 
 	async provideWorkspaceSymbols(search: string, token: vscode.CancellationToken) {
+
+		type Config = 'off' | 'workspace' | 'documents';
+		const value = vscode.workspace.getConfiguration('anycode').get<Config>('workspaceSymbols');
+
+		if (value === 'off') {
+			return;
+		}
+
 		const sw = new StopWatch();
 		const result: vscode.SymbolInformation[] = [];
 
+		// when enabled always search inside open text documents
 		for (const document of vscode.workspace.textDocuments) {
+			await this._collectMatches(search, document, token, result);
 			if (token.isCancellationRequested) {
-				break;
+				return undefined;
 			}
-			if (!isInteresting(document) || !_symbolQueries.isSupported(document.languageId)) {
-				continue;
-			}
-			const tree = await this._trees.getParseTree(document, token);
-			if (!tree) {
-				continue;
-			}
-			const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
-			if (!query) {
-				continue;
-			}
-			query.captures(tree.rootNode).forEach((capture, index, array) => {
-				if (!capture.name.endsWith('.name')) {
-					return;
-				}
-				if (search.length === 0 || WorkspaceSymbolProvider._matchesFuzzy(search, capture.node.text)) {
-					const symbol = new vscode.SymbolInformation(
-						capture.node.text,
-						vscode.SymbolKind.Struct,
-						'',
-						new vscode.Location(document.uri, asCodeRange(capture.node))
-					);
-					const containerCandidate = array[index - 1];
-					if (capture.name.startsWith(containerCandidate.name)) {
-						symbol.containerName = containerCandidate.name;
-						symbol.kind = _symbolQueries.getSymbolKind(containerCandidate.name);
-					}
-					result.push(symbol);
-				}
-			});
 		}
+
+		// optionally search everywhere
+		if (value === 'workspace') {
+			const uris = await this._findCandidateDocuments(search, token);
+			for (const uri of uris) {
+				if (token.isCancellationRequested) {
+					return undefined;
+				}
+				if (vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())) {
+					// we have seen this already
+					continue;
+				}
+				// search
+				const data = await vscode.workspace.fs.readFile(uri);
+				const source = new TextDecoder().decode(data);
+
+				// find language...
+				let languageId = '';
+				for (let [key, value] of WorkspaceSymbolProvider._languageMapping) {
+					if (value.some(suffix => uri.path.endsWith(`.${suffix}`))) {
+						languageId = key;
+						break;
+					}
+				}
+
+				this._collectMatches(search, {
+					version: 1,
+					uri,
+					languageId,
+					getText() { return source; },
+				}, token, result);
+			}
+		}
+
 		sw.elapsed('WORKSPACE symbols');
 		return result;
 	}
 
-	private static _matchesFuzzy(query: string, candidate: string) {
-		if (query.length > candidate.length) {
-			return false;
+	private async _collectMatches(search: string, document: IDocument, token: vscode.CancellationToken, bucket: vscode.SymbolInformation[]) {
+		if (!isInteresting(document) || !_symbolQueries.isSupported(document.languageId)) {
+			return;
 		}
-		query = query.toLowerCase();
-		candidate = candidate.toLowerCase();
-		let queryPos = 0;
-		let candidatePos = 0;
-		while (queryPos < query.length && candidatePos < candidate.length) {
-			if (query.charAt(queryPos) === candidate.charAt(candidatePos)) {
-				queryPos++;
+		const tree = await this._trees.getParseTree(document, token);
+		if (!tree) {
+			return;
+		}
+		const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
+		if (!query) {
+			return;
+		}
+		query.captures(tree.rootNode).forEach((capture, index, array) => {
+			if (!capture.name.endsWith('.name')) {
+				return;
 			}
-			candidatePos++;
-		}
-		return queryPos === query.length;
+			if (search.length === 0 || matchesFuzzy(search, capture.node.text)) {
+				const symbol = new vscode.SymbolInformation(
+					capture.node.text,
+					vscode.SymbolKind.Struct,
+					'',
+					new vscode.Location(document.uri, asCodeRange(capture.node))
+				);
+				const containerCandidate = array[index - 1];
+				if (capture.name.startsWith(containerCandidate.name)) {
+					symbol.containerName = containerCandidate.name;
+					symbol.kind = _symbolQueries.getSymbolKind(containerCandidate.name);
+				}
+				bucket.push(symbol);
+			}
+		});
 	}
+
+	private async _findCandidateDocuments(query: string, token: vscode.CancellationToken) {
+
+		if (!/\w{1,}/.test(query)) {
+			return [];
+		}
+
+		// make regex from query character
+		const fuzzyCharacters = query.split('').map(ch => `${ch}\\w*`);
+		const pattern = `(^|[\\s_-])${fuzzyCharacters.join('')}`;
+
+		const cts = new vscode.CancellationTokenSource();
+		token.onCancellationRequested(() => cts.cancel());
+
+		// run search
+		const results = new Map<string, vscode.Uri>();
+		await vscode.workspace.findTextInFiles({
+			pattern,
+			isRegExp: true,
+			isCaseSensitive: false,
+			isMultiline: false,
+			isWordMatch: false
+		}, {
+			previewOptions: { matchLines: 1, charsPerLine: 1 },
+			include: `**/*.{${Array.from(WorkspaceSymbolProvider._languageMapping.values()).flat().join(',')}}`,
+			useDefaultExcludes: true,
+			useGlobalIgnoreFiles: true,
+			useIgnoreFiles: true,
+		}, result => {
+			results.set(result.uri.toString(), result.uri);
+			if (results.size >= 500) {
+				console.warn('stopping _findCandidateDocuments because having 500 result');
+				cts.cancel();
+			}
+		}, cts.token);
+
+		cts.dispose();
+		return results.values();
+	}
+
+	// we should have API for this...
+	private static _languageMapping = new Map<string, string[]>([
+		['typescript', ['ts', 'tsx']],
+		['php', ['php', 'php4', 'php5', 'phtml', 'ctp']],
+		['python', ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy',]],
+		['go', ['go']],
+		['java', ['java']],
+		['c', ['c', 'i']],
+		['cpp', ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']],
+		['csharp', ['cs']],
+		['rust', ['rs']],
+	]);
 }

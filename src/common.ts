@@ -6,9 +6,16 @@
 import type { Parser } from '../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 
+export interface IDocument {
+	uri: vscode.Uri,
+	version: number;
+	languageId: string;
+	getText(): string;
+}
+
 export interface ITrees {
 	supportedLanguages: readonly string[];
-	getParseTree(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined>;
+	getParseTree(document: IDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined>;
 	getLanguage(langId: string): Promise<Parser.Language | undefined>
 }
 
@@ -37,6 +44,24 @@ export class StopWatch {
 
 const _disabledSchemes = new Set(['git', 'vsls']);
 
-export function isInteresting(document: vscode.TextDocument): boolean {
+export function isInteresting(document: IDocument): boolean {
 	return !_disabledSchemes.has(document.uri.scheme);
+}
+
+
+export function matchesFuzzy(query: string, candidate: string): boolean {
+	if (query.length > candidate.length) {
+		return false;
+	}
+	query = query.toLowerCase();
+	candidate = candidate.toLowerCase();
+	let queryPos = 0;
+	let candidatePos = 0;
+	while (queryPos < query.length && candidatePos < candidate.length) {
+		if (query.charAt(queryPos) === candidate.charAt(candidatePos)) {
+			queryPos++;
+		}
+		candidatePos++;
+	}
+	return queryPos === query.length;
 }

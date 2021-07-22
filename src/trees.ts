@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { asTsPoint, ITrees, StopWatch } from './common';
+import { asTsPoint, IDocument, ITrees, StopWatch } from './common';
 import TreeSitter, { Parser } from '../tree-sitter/tree-sitter';
 
 // ghetto LRU that utilizes the fact that Map keeps things in insertion order
@@ -97,7 +97,7 @@ class Entry {
 
 export class Trees implements ITrees {
 
-	private readonly _cache = new LRUMap<vscode.TextDocument, Entry>();
+	private readonly _cache = new LRUMap<IDocument, Entry>();
 
 	private readonly _languages = new Map<string, { uri: vscode.Uri, language?: Promise<Parser.Language> }>();
 	private readonly _listener: vscode.Disposable[] = [];
@@ -178,7 +178,7 @@ export class Trees implements ITrees {
 
 	// --- tree/parse
 
-	async getParseTree(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined> {
+	async getParseTree(document: IDocument, token: vscode.CancellationToken): Promise<Parser.Tree | undefined> {
 
 		const language = await this.getLanguage(document.languageId);
 		if (!language) {
@@ -218,7 +218,7 @@ export class Trees implements ITrees {
 		return info.tree.finally(() => parser.delete());
 	}
 
-	private async _updateTree(parser: Parser, entry: Entry, document: vscode.TextDocument, token: vscode.CancellationToken): Promise<Parser.Tree> {
+	private async _updateTree(parser: Parser, entry: Entry, document: IDocument, token: vscode.CancellationToken): Promise<Parser.Tree> {
 		const tree = await entry.tree;
 		if (entry.edits.length === 0) {
 			return tree;

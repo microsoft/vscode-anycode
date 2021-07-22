@@ -39,6 +39,21 @@
 					"default": false,
 					"description": "Show parse errors as diagnostics (experimental).",
 					"scope": "language-overridable"
+				},
+				"anycode.workspaceSymbols": {
+					"type": "string",
+					"enum": [
+						"off",
+						"documents",
+						"workspace"
+					],
+					"enumDescriptions": [
+						"Disable workspace symbols search",
+						"Only search in open documents",
+						"Search inside the workspace"
+					],
+					"default": "documents",
+					"description": "Controls how workspace symbol search should work."
 				}
 			}
 		}
