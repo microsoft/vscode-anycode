@@ -172,6 +172,8 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
 export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
+	private _index?: Promise<WorkspaceIndex>;
+
 	constructor(private _trees: ITrees) { }
 
 	register(): vscode.Disposable {
@@ -180,58 +182,31 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
 	async provideWorkspaceSymbols(search: string, token: vscode.CancellationToken) {
 
+		const result: vscode.SymbolInformation[] = [];
 		type Config = 'off' | 'workspace' | 'documents';
 		const value = vscode.workspace.getConfiguration('anycode').get<Config>('workspaceSymbols');
 
 		if (value === 'off') {
-			return;
+			return result;
 		}
 
-		const sw = new StopWatch();
-		const result: vscode.SymbolInformation[] = [];
-
 		// when enabled always search inside open text documents
+		const sw = new StopWatch();
 		for (const document of vscode.workspace.textDocuments) {
 			await this._collectMatches(search, document, token, result);
 			if (token.isCancellationRequested) {
 				return undefined;
 			}
 		}
+		sw.elapsed('DOCUMENT symbol search');
 
-		// optionally search everywhere
+		// experimental: use file index and search the whole workspace
 		if (value === 'workspace') {
-			const uris = await this._findCandidateDocuments(search, token);
-			for (const uri of uris) {
-				if (token.isCancellationRequested) {
-					return undefined;
-				}
-				if (vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString())) {
-					// we have seen this already
-					continue;
-				}
-				// search
-				const data = await vscode.workspace.fs.readFile(uri);
-				const source = new TextDecoder().decode(data);
-
-				// find language...
-				let languageId = '';
-				for (let [key, value] of WorkspaceSymbolProvider._languageMapping) {
-					if (value.some(suffix => uri.path.endsWith(`.${suffix}`))) {
-						languageId = key;
-						break;
-					}
-				}
-
-				this._collectMatches(search, {
-					version: 1,
-					uri,
-					languageId,
-					getText() { return source; },
-				}, token, result);
-			}
+			sw.reset();
+			await this._findWithIndex(search, result, token);
+			sw.elapsed('WORKSPACE symbol search');
 		}
 
-		sw.elapsed('WORKSPACE symbols');
 		return result;
 	}
 
@@ -268,47 +243,57 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		});
 	}
 
-	private async _findCandidateDocuments(query: string, token: vscode.CancellationToken) {
-
-		if (!/\w{1,}/.test(query)) {
-			return [];
+	private async _findWithIndex(search: string, bucket: vscode.SymbolInformation[], token: vscode.CancellationToken) {
+		// make regex from search characters: min 1 word-only character
+		if (!/\w{1,}/.test(search)) {
+			return;
+		}
+		let regexp: RegExp | undefined;
+		try {
+			const fuzzyCharacters = search.split('').map(ch => `${ch}\\w*`);
+			const pattern = `(^|[\\s_-])${fuzzyCharacters.join('')}`;
+			regexp = new RegExp(pattern, 'i');
+		} catch {
+			// ignore
+		}
+		if (!regexp) {
+			return;
 		}
 
-		// make regex from query character
-		const fuzzyCharacters = query.split('').map(ch => `${ch}\\w*`);
-		const pattern = `(^|[\\s_-])${fuzzyCharacters.join('')}`;
+		// find all files, precheck with regexp, then collect symbols
+		this._index = this._index ?? WorkspaceIndex.create();
 
-		const cts = new vscode.CancellationTokenSource();
-		token.onCancellationRequested(() => cts.cancel());
-
-		// run search
-		const results = new Map<string, vscode.Uri>();
-		await vscode.workspace.findTextInFiles({
-			pattern,
-			isRegExp: true,
-			isCaseSensitive: false,
-			isMultiline: false,
-			isWordMatch: false
-		}, {
-			previewOptions: { matchLines: 1, charsPerLine: 1 },
-			include: `**/*.{${Array.from(WorkspaceSymbolProvider._languageMapping.values()).flat().join(',')}}`,
-			useDefaultExcludes: true,
-			useGlobalIgnoreFiles: true,
-			useIgnoreFiles: true,
-		}, result => {
-			results.set(result.uri.toString(), result.uri);
-			if (results.size >= 500) {
-				console.warn('stopping _findCandidateDocuments because having 500 result');
-				cts.cancel();
+		for (const entry of (await this._index).all()) {
+			if (token.isCancellationRequested) {
+				return;
 			}
-		}, cts.token);
+			const source = await entry.getText();
+			if (!regexp.test(source)) {
+				continue;
+			}
 
-		cts.dispose();
-		return results.values();
+			let languageId = '';
+			for (let [key, value] of WorkspaceIndex.languageMapping) {
+				if (value.some(suffix => entry.uri.path.endsWith(`.${suffix}`))) {
+					languageId = key;
+					break;
+				}
+			}
+
+			this._collectMatches(search, {
+				version: 1,
+				uri: entry.uri,
+				languageId,
+				getText() { return source; },
+			}, token, bucket);
+		}
 	}
+}
+
+abstract class WorkspaceIndex {
 
 	// we should have API for this...
-	private static _languageMapping = new Map<string, string[]>([
+	static languageMapping = new Map<string, string[]>([
 		['typescript', ['ts', 'tsx']],
 		['php', ['php', 'php4', 'php5', 'phtml', 'ctp']],
 		['python', ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy',]],
@@ -319,4 +304,63 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		['csharp', ['cs']],
 		['rust', ['rs']],
 	]);
+
+	abstract all(): IterableIterator<{ uri: vscode.Uri, getText(): Promise<string> }>;
+	abstract dispose(): void;
+
+	static async create(): Promise<WorkspaceIndex> {
+		const sw = new StopWatch();
+		const pattern = `**/*.{${Array.from(WorkspaceIndex.languageMapping.values()).flat().join(',')}}`;
+
+		const uris = await vscode.workspace.findFiles(pattern, undefined, 2500);
+
+		class Entry {
+			constructor(readonly uri: vscode.Uri) { }
+			private _text: string | undefined;
+
+			async getText() {
+				if (!this._text) {
+					const stat = await vscode.workspace.fs.stat(this.uri);
+					if (stat.size > 1024 ** 2) {
+						// too large...
+						this._text = '';
+					} else {
+						this._text = new TextDecoder().decode(await vscode.workspace.fs.readFile(this.uri));
+					}
+				}
+				return this._text;
+			}
+
+			reset() {
+				this._text = undefined;
+			}
+
+
+		}
+
+		const all = new Map<string, Entry>();
+		for (let uri of uris) {
+			all.set(uri.toString(), new Entry(uri));
+		}
+
+		const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+		watcher.onDidDelete(uri => all.delete(uri.toString()));
+		watcher.onDidCreate(uri => all.set(uri.toString(), new Entry(uri)));
+		watcher.onDidChange(uri => all.get(uri.toString())?.reset());
+		sw.elapsed('INDEX created');
+		return {
+			*all() {
+				const exclude = new Set<string>();
+				vscode.workspace.textDocuments.forEach(doc => exclude.add(doc.uri.toString()));
+				for (const [key, uri] of all) {
+					if (!exclude.has(key)) {
+						yield uri;
+					}
+				}
+			},
+			dispose() {
+				watcher.dispose();
+			}
+		};
+	}
 }
