@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols =`(namespace_definition
+export const symbols =`
+(namespace_definition
 	name: (identifier) @module.name
 ) @module
 
@@ -46,6 +47,12 @@ export const symbols =`(namespace_definition
 		]
 	)
 ) @function
+
+(pointer_declarator
+	declarator: (function_declarator
+		declarator: (identifier) @function.name
+	) @function
+)
 
 (field_declaration
 	(field_identifier) @field.name
