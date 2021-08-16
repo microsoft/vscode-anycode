@@ -7,18 +7,29 @@ import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument } from '../common';
 
+import * as typescript from './queries-typescript';
+import * as php from './queries-php';
+import * as python from './queries-python';
+import * as java from './queries-java';
+import * as c from './queries-c';
+import * as cpp from './queries-cpp';
+import * as c_sharp from './queries-c_sharp';
+import * as go from './queries-go';
+import * as rust from './queries-rust';
+
+
 const _symbolQueries = new class {
 
-	private readonly _data = new Map<string, Promise<{ symbols: string }> | Parser.Query>([
-		['typescript', import('./queries-typescript')],
-		['php', import('./queries-php')],
-		['python', import('./queries-python')],
-		['java', import('./queries-java')],
-		['c', import('./queries-c')],
-		['cpp', import('./queries-cpp')],
-		['csharp', import('./queries-c_sharp')],
-		['go', import('./queries-go')],
-		['rust', import('./queries-rust')],
+	private readonly _data = new Map<string, string | Parser.Query>([
+		['typescript', typescript.symbols],
+		['php', php.symbols],
+		['python', python.symbols],
+		['java', java.symbols],
+		['c', c.symbols],
+		['cpp', cpp.symbols],
+		['csharp', c_sharp.symbols],
+		['go', go.symbols],
+		['rust', rust.symbols],
 	]);
 
 	private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
@@ -58,19 +69,19 @@ const _symbolQueries = new class {
 		return Array.from(this._data.keys());
 	}
 
-	async get(languageId: string, language: Parser.Language): Promise<Parser.Query | undefined> {
-		let query = this._data.get(languageId);
-		if (query instanceof Promise) {
+	get(languageId: string, language: Parser.Language): Parser.Query | undefined {
+		let queryOrStr = this._data.get(languageId);
+		if (typeof queryOrStr === 'string') {
 			try {
-				query = language.query((await query).symbols);
-				this._data.set(languageId, query);
+				queryOrStr = language.query(queryOrStr);
+				this._data.set(languageId, queryOrStr);
 			} catch (e) {
 				console.log(languageId, e);
 				this._data.delete(languageId);
-				query = undefined;
+				queryOrStr = undefined;
 			}
 		}
-		return query;
+		return queryOrStr;
 	}
 
 	getSymbolKind(symbolKind: string): vscode.SymbolKind {
@@ -93,7 +104,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 			return undefined;
 		}
 
-		const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
+		const query = _symbolQueries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return undefined;
 		}
@@ -218,13 +229,10 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		if (!tree) {
 			return;
 		}
-		const query = await _symbolQueries.get(document.languageId, tree.getLanguage());
+		const query = _symbolQueries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return;
 		}
-		// todo@jrieken there is a chance that the tree got destroyed
-		// already because the tree-store just does that. instead some
-		// lifecycle is needed
 		query.captures(tree.rootNode).forEach((capture, index, array) => {
 			if (!capture.name.endsWith('.name')) {
 				return;
