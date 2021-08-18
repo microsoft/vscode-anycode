@@ -7,15 +7,15 @@ import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument } from '../common';
 
-import * as typescript from './queries-typescript';
-import * as php from './queries-php';
-import * as python from './queries-python';
-import * as java from './queries-java';
-import * as c from './queries-c';
-import * as cpp from './queries-cpp';
-import * as c_sharp from './queries-c_sharp';
-import * as go from './queries-go';
-import * as rust from './queries-rust';
+import * as typescript from '../queries/typescript';
+import * as php from '../queries/php';
+import * as python from '../queries/python';
+import * as java from '../queries/java';
+import * as c from '../queries/c';
+import * as cpp from '../queries/cpp';
+import * as c_sharp from '../queries/c_sharp';
+import * as go from '../queries/go';
+import * as rust from '../queries/rust';
 
 
 const _symbolQueries = new class {
@@ -275,7 +275,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		this._index = this._index ?? WorkspaceIndex.create();
 
 		const chunkSize = 50;
-		const allUris = Array.from((await this._index).all());
+		const allUris = (await this._index).all();
 		for (let i = 0; i < allUris.length; i += chunkSize) {
 			if (token.isCancellationRequested) {
 				return;
@@ -321,14 +321,14 @@ abstract class WorkspaceIndex {
 		['rust', ['rs']],
 	]);
 
-	abstract all(): IterableIterator<{ uri: vscode.Uri, load(): Promise<string> }>;
+	abstract all(): { uri: vscode.Uri, load(): Promise<string> }[];
 	abstract dispose(): void;
 
 	static async create(): Promise<WorkspaceIndex> {
 		const sw = new StopWatch();
 		const pattern = `**/*.{${Array.from(WorkspaceIndex.languageMapping.values()).flat().join(',')}}`;
 
-		const uris = await vscode.workspace.findFiles(pattern, undefined, 2500);
+		const uris = await vscode.workspace.findFiles(pattern, undefined, 1500);
 
 		class Entry {
 			constructor(readonly uri: vscode.Uri) { }
@@ -363,14 +363,10 @@ abstract class WorkspaceIndex {
 		watcher.onDidChange(uri => all.get(uri.toString())?.reset());
 		sw.elapsed('INDEX created');
 		return {
-			*all() {
+			all() {
 				const exclude = new Set<string>();
 				vscode.workspace.textDocuments.forEach(doc => exclude.add(doc.uri.toString()));
-				for (const [key, uri] of all) {
-					if (!exclude.has(key)) {
-						yield uri;
-					}
-				}
+				return Array.from(all.entries()).filter(entry => !exclude.has(entry[0])).map(entry => entry[1]);
 			},
 			dispose() {
 				watcher.dispose();

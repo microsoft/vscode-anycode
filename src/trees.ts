@@ -12,6 +12,11 @@ class LRUMap<K, V> extends Map<K, V> {
 
 	private readonly _cacheLimits = { max: 45, size: 30 };
 
+	constructor(size: number = 30) {
+		super();
+		this._cacheLimits = { size, max: Math.round(size * 1.3) };
+	}
+
 	get(key: K): V | undefined {
 		if (!this.has(key)) {
 			return undefined;
@@ -97,7 +102,7 @@ class Entry {
 
 export class Trees implements ITrees {
 
-	private readonly _cache = new LRUMap<IDocument, Entry>();
+	private readonly _cache = new LRUMap<IDocument, Entry>(100);
 
 	private readonly _languages = new Map<string, { uri: vscode.Uri, language?: Promise<Parser.Language> }>();
 	private readonly _listener: vscode.Disposable[] = [];
@@ -118,8 +123,8 @@ export class Trees implements ITrees {
 		});
 
 		this._languages = new Map([
-			['java', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm') }],
 			// ['typescript', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-typescript.wasm') }],
+			['java', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm') }],
 			['php', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-php.wasm') }],
 			['python', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-python.wasm') }],
 			['c', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm') }],
@@ -230,7 +235,7 @@ export class Trees implements ITrees {
 		entry.edits.length = 0;
 		entry.version = document.version;
 		entry.tree = Utils.parseAsync(parser, document.getText(), tree, token).finally(() => {
-			// this is new an old tree and can be deleted
+			// this is now an old tree and can be deleted
 			tree.delete();
 		});
 
