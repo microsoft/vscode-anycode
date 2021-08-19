@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { DocumentSymbolProvider, WorkspaceSymbolProvider } from './features/symbols';
+import { DefinitionProvider, DocumentSymbolProvider, SymbolIndex, WorkspaceSymbolProvider } from './features/symbols';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
 import { Validation } from './features/validation';
@@ -12,11 +12,21 @@ import { Validation } from './features/validation';
 export async function activate(context: vscode.ExtensionContext) {
 
 	const trees = new Trees(context);
+	const index = new SymbolIndex(trees);
+
 	context.subscriptions.push(trees);
+	context.subscriptions.push(index);
+	context.subscriptions.push(new WorkspaceSymbolProvider(index).register());
+	context.subscriptions.push(new DefinitionProvider(trees, index).register());
 	context.subscriptions.push(new DocumentSymbolProvider(trees).register());
-	context.subscriptions.push(new WorkspaceSymbolProvider(trees).register());
 	context.subscriptions.push(new SelectionRangesProvider(trees).register());
 	context.subscriptions.push(new Validation(trees));
+
+
+	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, async task => {
+		await index.init;
+		await index.update();
+	});
 
 	// -- status (NEW proposal)
 	// const item = vscode.languages.createLanguageStatusItem(trees.supportedLanguages);

@@ -18,6 +18,7 @@
 	"categories": [
 		"Programming Languages"
 	],
+
 	"activationEvents": [
 		"onLanguage:csharp",
 		"onLanguage:c",
@@ -41,20 +42,11 @@
 					"description": "Show parse errors as diagnostics (experimental).",
 					"scope": "language-overridable"
 				},
-				"anycode.workspaceSymbols": {
-					"type": "string",
-					"enum": [
-						"off",
-						"documents",
-						"workspace"
-					],
-					"enumDescriptions": [
-						"Disable workspace symbols search",
-						"Only search in open documents",
-						"Search inside the workspace"
-					],
-					"default": "documents",
-					"description": "Controls how workspace symbol search should work."
+				"anycode.symbolIndexSize": {
+					"type": "number",
+					"default": 100,
+					"minimum": 0,
+					"description": "Size of the symbol index that is used for features like symbol search and go to definition."
 				}
 			}
 		}
