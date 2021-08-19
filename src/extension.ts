@@ -8,15 +8,19 @@ import { DefinitionProvider, DocumentSymbolProvider, SymbolIndex, WorkspaceSymbo
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
 import { Validation } from './features/validation';
+import { SupportedLanguages } from './supportedLanguages';
 
 
 export async function activate(context: vscode.ExtensionContext) {
 
-	const trees = new Trees(context);
-	const index = new SymbolIndex(trees);
+	const supportedLanguages = new SupportedLanguages(context);
+	const trees = new Trees(context, supportedLanguages);
+	const index = new SymbolIndex(trees, supportedLanguages);
 
 	context.subscriptions.push(trees);
 	context.subscriptions.push(index);
+
+	// todo@jrieken listen to supportedLanguages change and re-register features
 	context.subscriptions.push(new WorkspaceSymbolProvider(index).register());
 	context.subscriptions.push(new DefinitionProvider(trees, index).register());
 	context.subscriptions.push(new DocumentSymbolProvider(trees).register());

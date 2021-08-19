@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { asTsPoint, IDocument, ITrees, LRUMap, StopWatch } from './common';
 import TreeSitter, { Parser } from '../tree-sitter/tree-sitter';
-
+import { SupportedLanguages } from './supportedLanguages';
 
 class Utils {
 
@@ -78,7 +78,7 @@ export class Trees implements ITrees {
 
 	private readonly _ready: Promise<typeof Parser>;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor(context: vscode.ExtensionContext, languages: SupportedLanguages) {
 
 		this._ready = TreeSitter({
 			locateFile: () => {
@@ -91,17 +91,9 @@ export class Trees implements ITrees {
 			return data.Parser;
 		});
 
-		this._languages = new Map([
-			['c', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm') }],
-			['cpp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-cpp.wasm') }],
-			['csharp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c_sharp.wasm') }],
-			['go', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-go.wasm') }],
-			['java', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm') }],
-			['php', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-php.wasm') }],
-			['python', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-python.wasm') }],
-			['rust', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-rust.wasm') }],
-			['typescript', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-typescript.wasm') }],
-		]);
+		for (let item of languages.getSupportedLanguages()) {
+			this._languages.set(item.languageId, { uri: item.wasmUri });
+		}
 
 		// remove closed documents
 		vscode.workspace.onDidCloseTextDocument(doc => {

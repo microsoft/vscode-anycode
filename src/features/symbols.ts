@@ -15,6 +15,7 @@ import * as php from '../queries/php';
 import * as python from '../queries/python';
 import * as rust from '../queries/rust';
 import * as typescript from '../queries/typescript';
+import { SupportedLanguages } from '../supportedLanguages';
 
 const _symbolQueries = new class {
 
@@ -185,18 +186,6 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
 class FileQueueAndDocuments {
 
-	static languageMapping = new Map<string, string[]>([
-		['c', ['c', 'i']],
-		['cpp', ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']],
-		['csharp', ['cs']],
-		['go', ['go']],
-		['java', ['java']],
-		['php', ['php', 'php4', 'php5', 'phtml', 'ctp']],
-		['python', ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']],
-		['rust', ['rs']],
-		['typescript', ['ts', 'tsx']],
-	]);
-
 	private readonly _queue = new Map<string, vscode.Uri>();
 	private readonly _disposables: vscode.Disposable[] = [];
 
@@ -205,11 +194,10 @@ class FileQueueAndDocuments {
 
 	readonly init: Promise<void>;
 
-	constructor(size: number) {
+	constructor(private _languages: SupportedLanguages, size: number) {
 
-		const langIds = Array.from(FileQueueAndDocuments.languageMapping.keys());
 		const enqueueTextDocument = (document: vscode.TextDocument) => {
-			if (vscode.languages.match(langIds, document)) {
+			if (vscode.languages.match(_languages.getSupportedLanguagesAsSelector(), document)) {
 				this._enqueue(document.uri);
 			}
 		};
@@ -217,7 +205,7 @@ class FileQueueAndDocuments {
 		this._disposables.push(vscode.workspace.onDidOpenTextDocument(enqueueTextDocument));
 		this._disposables.push(vscode.workspace.onDidChangeTextDocument(e => enqueueTextDocument(e.document)));
 
-		const langPattern = `**/*.{${Array.from(FileQueueAndDocuments.languageMapping.values()).flat().join(',')}}`;
+		const langPattern = `**/*.{${Array.from(_languages.getSupportedLanguages().map(item => item.suffixes)).flat().join(',')}}`;
 
 		this.init = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, size).then(uris => {
 			uris.forEach(this._enqueue, this);
@@ -293,9 +281,9 @@ class FileQueueAndDocuments {
 
 		const text = this._decoder.decode(await vscode.workspace.fs.readFile(uri));
 		let languageId = '';
-		for (let [key, value] of FileQueueAndDocuments.languageMapping) {
-			if (value.some(suffix => uri.path.endsWith(`.${suffix}`))) {
-				languageId = key;
+		for (let item of this._languages.getSupportedLanguages()) {
+			if (item.suffixes.some(suffix => uri.path.endsWith(`.${suffix}`))) {
+				languageId = item.languageId;
 				break;
 			}
 		}
@@ -317,9 +305,9 @@ export class SymbolIndex {
 	private readonly _queue: FileQueueAndDocuments;
 	private _currentUpdate: Promise<void> | undefined;
 
-	constructor(private readonly _trees: ITrees) {
+	constructor(private readonly _trees: ITrees, languages: SupportedLanguages) {
 		const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
-		this._queue = new FileQueueAndDocuments(size);
+		this._queue = new FileQueueAndDocuments(languages, size);
 	}
 
 	dispose(): void {
