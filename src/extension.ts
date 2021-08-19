@@ -9,6 +9,7 @@ import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
 import { Validation } from './features/validation';
 
+
 export async function activate(context: vscode.ExtensionContext) {
 
 	const trees = new Trees(context);

@@ -6,24 +6,28 @@
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument, parallel, Trie, LRUMap } from '../common';
-import * as php from '../queries/php';
-import * as java from '../queries/java';
 import * as c from '../queries/c';
-import * as cpp from '../queries/cpp';
 import * as c_sharp from '../queries/c_sharp';
+import * as cpp from '../queries/cpp';
 import * as go from '../queries/go';
+import * as java from '../queries/java';
+import * as php from '../queries/php';
+import * as python from '../queries/python';
 import * as rust from '../queries/rust';
+import * as typescript from '../queries/typescript';
 
 const _symbolQueries = new class {
 
 	private readonly _data = new Map<string, string | Parser.Query>([
-		['php', php.symbols],
-		['java', java.symbols],
 		['c', c.symbols],
 		['cpp', cpp.symbols],
 		['csharp', c_sharp.symbols],
 		['go', go.symbols],
+		['java', java.symbols],
+		['php', php.symbols],
+		['python', python.symbols],
 		['rust', rust.symbols],
+		['typescript', typescript.symbols],
 	]);
 
 	private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
@@ -182,15 +186,15 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 class FileQueueAndDocuments {
 
 	static languageMapping = new Map<string, string[]>([
-		// ['typescript', ['ts', 'tsx']],
-		// ['python', ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy',]],
-		['php', ['php', 'php4', 'php5', 'phtml', 'ctp']],
-		['go', ['go']],
-		['java', ['java']],
 		['c', ['c', 'i']],
 		['cpp', ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']],
 		['csharp', ['cs']],
+		['go', ['go']],
+		['java', ['java']],
+		['php', ['php', 'php4', 'php5', 'phtml', 'ctp']],
+		['python', ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']],
 		['rust', ['rs']],
+		['typescript', ['ts', 'tsx']],
 	]);
 
 	private readonly _queue = new Map<string, vscode.Uri>();
