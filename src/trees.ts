@@ -92,10 +92,8 @@ export class Trees implements ITrees {
 		});
 
 		this._languages = new Map([
-			// ['typescript', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-typescript.wasm') }],
 			['java', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm') }],
 			['php', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-php.wasm') }],
-			['python', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-python.wasm') }],
 			['c', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm') }],
 			['cpp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-cpp.wasm') }],
 			['csharp', { uri: vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c_sharp.wasm') }],

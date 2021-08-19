@@ -6,10 +6,7 @@
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument, parallel, Trie, LRUMap } from '../common';
-
-import * as typescript from '../queries/typescript';
 import * as php from '../queries/php';
-import * as python from '../queries/python';
 import * as java from '../queries/java';
 import * as c from '../queries/c';
 import * as cpp from '../queries/cpp';
@@ -17,13 +14,10 @@ import * as c_sharp from '../queries/c_sharp';
 import * as go from '../queries/go';
 import * as rust from '../queries/rust';
 
-
 const _symbolQueries = new class {
 
 	private readonly _data = new Map<string, string | Parser.Query>([
-		['typescript', typescript.symbols],
 		['php', php.symbols],
-		['python', python.symbols],
 		['java', java.symbols],
 		['c', c.symbols],
 		['cpp', cpp.symbols],
@@ -456,6 +450,8 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 	}
 }
 
+// Find all symbols (that would be in outline) that have the same name as the word under the 
+// cursor. This works but doesn't find non-outline things like local variables etc.
 export class DefinitionProvider implements vscode.DefinitionProvider {
 
 	constructor(private _trees: ITrees, private _symbols: SymbolIndex) { }
