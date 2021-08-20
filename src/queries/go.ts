@@ -24,6 +24,15 @@ export const symbols = `
 	name: (field_identifier) @method.name
 ) @method
 
+;; variables defined in the package
+(source_file
+	(var_declaration
+		(var_spec
+			name: (identifier) @variable.name
+		) @variable
+	)
+)
+
 ;; lots of type_spec, must be mutually exclusive
 (type_spec 
 	name: (type_identifier) @interface.name
