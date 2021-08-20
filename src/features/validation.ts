@@ -8,22 +8,25 @@ import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
 
 export class Validation {
 
-	private readonly _disposables: vscode.Disposable[] = [];
 	private readonly _currentValidation = new Map<vscode.TextDocument, vscode.CancellationTokenSource>();
 	private readonly _collection: vscode.DiagnosticCollection;
 
 	constructor(private readonly _trees: ITrees) {
 		this._collection = vscode.languages.createDiagnosticCollection();
-
 		vscode.workspace.textDocuments.forEach(this._triggerValidation, this);
-		this._disposables.push(vscode.workspace.onDidChangeTextDocument(e => this._triggerValidation(e.document)));
-		this._disposables.push(vscode.workspace.onDidOpenTextDocument(this._triggerValidation, this));
-		this._disposables.push(vscode.workspace.onDidCloseTextDocument(e => this._collection.delete(e.uri)));
 	}
 
 	dispose(): void {
-		this._disposables.forEach(d => d.dispose());
 		this._collection.dispose();
+	}
+
+	register(): vscode.Disposable {
+		return vscode.Disposable.from(
+			new vscode.Disposable(() => this._collection.clear()),
+			vscode.workspace.onDidChangeTextDocument(e => this._triggerValidation(e.document)),
+			vscode.workspace.onDidOpenTextDocument(this._triggerValidation, this),
+			vscode.workspace.onDidCloseTextDocument(e => this._collection.delete(e.uri)),
+		);
 	}
 
 	private async _triggerValidation(document: vscode.TextDocument): Promise<void> {

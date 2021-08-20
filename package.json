@@ -47,6 +47,51 @@
 					"default": 100,
 					"minimum": 0,
 					"description": "Size of the symbol index that is used for features like symbol search and go to definition."
+				},
+				"anycode.language.c.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'c'-lang"
+				},
+				"anycode.language.cpp.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'cpp'-lang"
+				},
+				"anycode.language.csharp.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'csharp'-lang"
+				},
+				"anycode.language.go.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'go'-lang"
+				},
+				"anycode.language.java.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'java'-lang"
+				},
+				"anycode.language.php.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'php'-lang"
+				},
+				"anycode.language.python.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'python'-lang"
+				},
+				"anycode.language.rust.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable support for 'rust'-lang"
+				},
+				"anycode.language.typescript.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable support for 'typescript'-lang"
 				}
 			}
 		}

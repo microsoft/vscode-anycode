@@ -91,9 +91,17 @@ export class Trees implements ITrees {
 			return data.Parser;
 		});
 
+		// supported languages
 		for (let item of languages.getSupportedLanguages()) {
 			this._languages.set(item.languageId, { uri: item.wasmUri });
 		}
+		languages.onDidChange(() => {
+			const current = new Map(this._languages);
+			this._languages.clear();
+			for (let item of languages.getSupportedLanguages()) {
+				this._languages.set(item.languageId, { uri: item.wasmUri, language: current.get(item.languageId)?.language });
+			}
+		}, undefined, this._listener);
 
 		// remove closed documents
 		vscode.workspace.onDidCloseTextDocument(doc => {

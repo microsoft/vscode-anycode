@@ -13,20 +13,43 @@ import { SupportedLanguages } from './supportedLanguages';
 
 export async function activate(context: vscode.ExtensionContext) {
 
+	// --- tree and symbols management
+
 	const supportedLanguages = new SupportedLanguages(context);
 	const trees = new Trees(context, supportedLanguages);
 	const index = new SymbolIndex(trees, supportedLanguages);
 
+	context.subscriptions.push(supportedLanguages);
 	context.subscriptions.push(trees);
 	context.subscriptions.push(index);
 
-	// todo@jrieken listen to supportedLanguages change and re-register features
-	context.subscriptions.push(new WorkspaceSymbolProvider(index).register());
-	context.subscriptions.push(new DefinitionProvider(trees, index).register());
-	context.subscriptions.push(new DocumentSymbolProvider(trees).register());
-	context.subscriptions.push(new SelectionRangesProvider(trees).register());
-	context.subscriptions.push(new Validation(trees));
+	// --- features
 
+	const workspaceSymbols = new WorkspaceSymbolProvider(index);
+	const definitions = new DefinitionProvider(trees, index);
+	const documentSymbols = new DocumentSymbolProvider(trees);
+	const selectionRanges = new SelectionRangesProvider(trees);
+	const validation = new Validation(trees);
+
+	const featureDisposables: vscode.Disposable[] = [];
+	const registerFeatues = () => {
+		unregisterFeatues();
+		featureDisposables.push(workspaceSymbols.register());
+		featureDisposables.push(definitions.register());
+		featureDisposables.push(documentSymbols.register());
+		featureDisposables.push(selectionRanges.register());
+		featureDisposables.push(validation.register());
+	};
+	const unregisterFeatues = () => {
+		for (const item of featureDisposables) {
+			item.dispose();
+		}
+	};
+	registerFeatues();
+	context.subscriptions.push(supportedLanguages.onDidChange(registerFeatues));
+	context.subscriptions.push(new vscode.Disposable(unregisterFeatues));
+
+	// --- build index
 
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, async task => {
 		await index.init;
