@@ -477,13 +477,17 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 
 	private async _collectSymbolsWithSameName(name: string, language: string, uri: vscode.Uri, token: vscode.CancellationToken, bucket: vscode.Location[]) {
 		const document = await this._symbols.documents.getOrLoadDocument(uri);
-		if (document.languageId !== language) {
-			return;
-		}
+		const isSameLanguage = document.languageId !== language;
 		const captures = await this._symbols.symbolCaptures(document, token);
 		for (let capture of captures) {
-			if (capture.name.endsWith('.name') && capture.node.text === name) {
-				bucket.push(new vscode.Location(document.uri, asCodeRange(capture.node)));
+			if (!capture.name.endsWith('.name') || capture.node.text !== name) {
+				continue;
+			}
+			const location = new vscode.Location(document.uri, asCodeRange(capture.node));
+			if (isSameLanguage) {
+				bucket.unshift(location);
+			} else {
+				bucket.push(location);
 			}
 		}
 	}
