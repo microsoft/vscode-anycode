@@ -104,11 +104,16 @@ class FileQueueAndDocuments {
 
 		const langPattern = `**/*.{${Array.from(_languages.getSupportedLanguages().map(item => item.suffixes)).flat().join(',')}}`;
 
-		this.init = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, 0).then(uris => {
-			uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
-			console.info(`FOUND ${uris.length} files for ${langPattern}`);
-			uris.forEach(this._enqueue, this);
-		}));
+		if (size === 0) {
+			// when truned off don't do the search run
+			this.init = Promise.resolve();
+		} else {
+			this.init = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, 0).then(uris => {
+				uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
+				console.info(`FOUND ${uris.length} files for ${langPattern}`);
+				uris.forEach(this._enqueue, this);
+			}));
+		}
 
 		const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
 		this._disposables.push(watcher);
