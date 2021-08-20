@@ -42,7 +42,7 @@ export class StopWatch {
 	}
 }
 
-const _disabledSchemes = new Set(['git', 'vsls']);
+const _disabledSchemes = new Set(['git', 'github', 'vsls']);
 
 export function isInteresting(uri: vscode.Uri): boolean {
 	return !_disabledSchemes.has(uri.scheme);
