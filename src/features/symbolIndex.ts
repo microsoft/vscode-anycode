@@ -5,7 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument, parallel, Trie, LRUMap } from '../common';
+import { ITrees, asCodeRange, StopWatch, isInteresting, IDocument, parallel, Trie, LRUMap } from '../common';
 import * as c from '../queries/c';
 import * as c_sharp from '../queries/c_sharp';
 import * as cpp from '../queries/cpp';
@@ -198,7 +198,7 @@ class FileQueueAndDocuments {
 
 export class SymbolIndex {
 
-	readonly trie: Trie<Map<string, vscode.Uri>> = new Trie<Map<string, vscode.Uri>>('', undefined);
+	readonly trie: Trie<vscode.SymbolInformation[]> = new Trie<vscode.SymbolInformation[]>('', undefined);
 
 	private readonly _queue: FileQueueAndDocuments;
 	private _currentUpdate: Promise<void> | undefined;
@@ -227,13 +227,13 @@ export class SymbolIndex {
 	}
 
 	private async _doUpdate(): Promise<void> {
-		const sw = new StopWatch();
 		const uris = this._queue.consume();
 		if (uris.length > 0) {
+			const sw = new StopWatch();
 			const tasks = uris.map(this._createIndexTask, this);
 			await parallel(tasks, 50, new vscode.CancellationTokenSource().token);
+			sw.elapsed(`INDEX done with ${uris.length} files`);
 		}
-		sw.elapsed(`INDEX done with ${uris.length} files`);
 	}
 
 	private _createIndexTask(uri: vscode.Uri) {
@@ -250,16 +250,36 @@ export class SymbolIndex {
 				return;
 			}
 
-			for (let capture of query.captures(tree.rootNode)) {
-				if (capture.name.endsWith('.name')) {
-					let map = this.trie.get(capture.node.text);
-					if (!map) {
-						map = new Map();
-						this.trie.set(capture.node.text, map);
-					}
-					map.set(document.uri.toString(), document.uri);
+			query.captures(tree.rootNode).forEach((capture, index, array) => {
+				if (!capture.name.endsWith('.name')) {
+					return;
 				}
-			}
+				const symbol = new vscode.SymbolInformation(
+					capture.node.text,
+					vscode.SymbolKind.Struct,
+					'',
+					new vscode.Location(document.uri, asCodeRange(capture.node))
+				);
+				const containerCandidate = array[index - 1];
+				if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
+					symbol.containerName = containerCandidate.name;
+					symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
+				}
+
+				if (capture.name.endsWith('.name')) {
+					const containerCandidate = array[index - 1];
+					if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
+						symbol.containerName = containerCandidate.name;
+						symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
+					}
+					let all = this.trie.get(capture.node.text);
+					if (!all) {
+						this.trie.set(capture.node.text, [symbol]);
+					} else {
+						all.push(symbol);
+					}
+				}
+			});
 		};
 	}
 

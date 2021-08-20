@@ -48,23 +48,6 @@ export function isInteresting(uri: vscode.Uri): boolean {
 	return !_disabledSchemes.has(uri.scheme);
 }
 
-export function matchesFuzzy(query: string, candidate: string): boolean {
-	if (query.length > candidate.length) {
-		return false;
-	}
-	query = query.toLowerCase();
-	candidate = candidate.toLowerCase();
-	let queryPos = 0;
-	let candidatePos = 0;
-	while (queryPos < query.length && candidatePos < candidate.length) {
-		if (query.charAt(queryPos) === candidate.charAt(candidatePos)) {
-			queryPos++;
-		}
-		candidatePos++;
-	}
-	return queryPos === query.length;
-}
-
 export async function parallel<R>(tasks: ((token: vscode.CancellationToken) => Promise<R>)[], degree: number, token: vscode.CancellationToken): Promise<R[]> {
 	let result: R[] = [];
 	let pos = 0;

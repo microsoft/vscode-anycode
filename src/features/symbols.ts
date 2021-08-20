@@ -5,7 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting, matchesFuzzy, IDocument, parallel, Trie, LRUMap } from '../common';
+import { ITrees, asCodeRange, StopWatch } from '../common';
 import { SymbolIndex, symbolQueries } from './symbolIndex';
 
 
@@ -116,53 +116,20 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 
 	async provideWorkspaceSymbols(search: string, token: vscode.CancellationToken) {
 
-		const result: vscode.SymbolInformation[] = [];
+		const result: vscode.SymbolInformation[][] = [];
 
-		// always search in open documents
-		const seen = new Set<string>();
-		const sw = new StopWatch();
 		await this._symbols.update();
-		const all = this._symbols.trie.query(Array.from(search));
-		const promises: Promise<any>[] = [];
 
-		for (let [, map] of all) {
-			for (let [key, uri] of map) {
-				if (!seen.has(key)) {
-					promises.push(this._collectSymbolsWithMatchingName(search, uri, token, result));
-					seen.add(key);
-				}
-			}
+		const sw = new StopWatch();
+		const all = this._symbols.trie.query(Array.from(search));
+		for (let [, symbols] of all) {
+			result.push(symbols);
 		}
-		await Promise.all(promises);
 		sw.elapsed('WORKSPACE symbol search');
 
-		return result;
+		return result.flat();
 	}
 
-	private async _collectSymbolsWithMatchingName(search: string, uri: vscode.Uri, token: vscode.CancellationToken, bucket: vscode.SymbolInformation[]) {
-
-		const document = await this._symbols.documents.getOrLoadDocument(uri);
-		const captures = await this._symbols.symbolCaptures(document, token);
-		captures.forEach((capture, index, array) => {
-			if (!capture.name.endsWith('.name')) {
-				return;
-			}
-			if (matchesFuzzy(search, capture.node.text)) {
-				const symbol = new vscode.SymbolInformation(
-					capture.node.text,
-					vscode.SymbolKind.Struct,
-					'',
-					new vscode.Location(document.uri, asCodeRange(capture.node))
-				);
-				const containerCandidate = array[index - 1];
-				if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
-					symbol.containerName = containerCandidate.name;
-					symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
-				}
-				bucket.push(symbol);
-			}
-		});
-	}
 }
 
 // Find all symbols (that would be in outline) that have the same name as the word under the 
@@ -188,8 +155,8 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 			return [];
 		}
 		const promises: Promise<any>[] = [];
-		for (const [, uri] of all) {
-			promises.push(this._collectSymbolsWithSameName(text, document.languageId, uri, token, result));
+		for (const symbol of all) {
+			promises.push(this._collectSymbolsWithSameName(text, document.languageId, symbol.location.uri, token, result));
 
 		}
 		await Promise.all(promises);

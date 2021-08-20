@@ -24,9 +24,25 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 
 		const result: vscode.CompletionItem[] = [];
 		const all = this._symbols.trie.query([...prefix]);
-		for (let [key] of all) {
-			result.push(new vscode.CompletionItem(key));
+		for (let [key, symbols] of all) {
+			const [first] = symbols;
+			const item = new vscode.CompletionItem(key, CompletionItemProvider._kindMapping.get(first.kind));
+			result.push(item);
 		}
 		return result;
 	}
+
+	private static _kindMapping = new Map<vscode.SymbolKind, vscode.CompletionItemKind>([
+		[vscode.SymbolKind.Class, vscode.CompletionItemKind.Class],
+		[vscode.SymbolKind.Interface, vscode.CompletionItemKind.Interface],
+		[vscode.SymbolKind.Field, vscode.CompletionItemKind.Field],
+		[vscode.SymbolKind.Property, vscode.CompletionItemKind.Property],
+		[vscode.SymbolKind.Event, vscode.CompletionItemKind.Event],
+		[vscode.SymbolKind.Constructor, vscode.CompletionItemKind.Constructor],
+		[vscode.SymbolKind.Method, vscode.CompletionItemKind.Method],
+		[vscode.SymbolKind.Enum, vscode.CompletionItemKind.Enum],
+		[vscode.SymbolKind.EnumMember, vscode.CompletionItemKind.EnumMember],
+		[vscode.SymbolKind.Function, vscode.CompletionItemKind.Function],
+		[vscode.SymbolKind.Variable, vscode.CompletionItemKind.Variable],
+	]);
 }
