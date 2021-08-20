@@ -119,13 +119,17 @@ export class LRUMap<K, V> extends Map<K, V> {
 
 // --- trie
 
+class Entry<E> {
+	constructor(readonly key: string, public value: E) { }
+}
+
 export class Trie<E> {
 
 	private readonly _children = new Map<string, Trie<E>>();
 
-	constructor(readonly ch: string, public element: E | undefined) { }
+	constructor(readonly ch: string, public element: Entry<E> | undefined) { }
 
-	set(str: string, element: E) {
+	set(str: string, element: E): void {
 		let chars = Array.from(str);
 		let node: Trie<E> = this;
 		for (let pos = 0; pos < chars.length; pos++) {
@@ -137,7 +141,7 @@ export class Trie<E> {
 			}
 			node = child;
 		}
-		node.element = element;
+		node.element = new Entry(str, element);
 	}
 
 	get(str: string): E | undefined {
@@ -151,36 +155,20 @@ export class Trie<E> {
 			}
 			node = child;
 		}
-		return node.element;
+		return node.element?.value;
 	}
 
-	delete(str: string): boolean {
-		let chars = Array.from(str);
-		let node: Trie<E> = this;
-		for (let pos = 0; pos < chars.length; pos++) {
-			const ch = chars[pos];
-			let child = node._children.get(ch);
-			if (!child) {
-				return false;
-			}
-			node = child;
+	*query(str: string[]): IterableIterator<[string, E]> {
+		let bucket: IterableIterator<[string, E]>[] = [];
+		this._query(str, 0, bucket);
+		for (let item of bucket) {
+			yield* item;
 		}
-		if (node.element === undefined) {
-			return false;
-		}
-		node.element = undefined;
-		return true;
 	}
 
-	query(str: string[]) {
-		let result: E[] = [];
-		this._query(str, 0, result);
-		return result;
-	}
-
-	private _query(str: string[], pos: number, bucket: E[]) {
+	private _query(str: string[], pos: number, bucket: IterableIterator<[string, E]>[]) {
 		if (pos >= str.length) {
-			this._collect(bucket);
+			bucket.push(this._entries());
 			return;
 		}
 		for (let [ch, child] of this._children) {
@@ -196,12 +184,12 @@ export class Trie<E> {
 		}
 	}
 
-	private _collect(bucket: E[]): void {
+	private *_entries(): IterableIterator<[string, E]> {
 		if (this.element) {
-			bucket.push(this.element);
+			yield [this.element.key, this.element.value];
 		}
 		for (let child of this._children.values()) {
-			child._collect(bucket);
+			yield* child._entries();
 		}
 	}
 }

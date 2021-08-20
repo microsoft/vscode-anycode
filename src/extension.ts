@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { DefinitionProvider, DocumentSymbolProvider, SymbolIndex, WorkspaceSymbolProvider } from './features/symbols';
+import { DefinitionProvider, DocumentSymbolProvider, WorkspaceSymbolProvider } from './features/symbols';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { Trees } from './trees';
 import { Validation } from './features/validation';
 import { SupportedLanguages } from './supportedLanguages';
+import { SymbolIndex } from './features/symbolIndex';
+import { CompletionItemProvider } from './features/completions';
 
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -29,6 +31,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const definitions = new DefinitionProvider(trees, index);
 	const documentSymbols = new DocumentSymbolProvider(trees);
 	const selectionRanges = new SelectionRangesProvider(trees);
+	const completions = new CompletionItemProvider(supportedLanguages, index);
 	const validation = new Validation(trees);
 
 	const featureDisposables: vscode.Disposable[] = [];
@@ -38,6 +41,7 @@ export async function activate(context: vscode.ExtensionContext) {
 		featureDisposables.push(definitions.register());
 		featureDisposables.push(documentSymbols.register());
 		featureDisposables.push(selectionRanges.register());
+		featureDisposables.push(completions.register());
 		featureDisposables.push(validation.register());
 	};
 	const unregisterFeatues = () => {
