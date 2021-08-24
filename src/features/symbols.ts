@@ -123,7 +123,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		const sw = new StopWatch();
 		const all = this._symbols.trie.query(Array.from(search));
 		for (let [, symbols] of all) {
-			result.push(symbols);
+			result.push(Array.from(symbols));
 		}
 		sw.elapsed('WORKSPACE symbol search');
 

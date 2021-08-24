@@ -203,7 +203,7 @@ class FileQueueAndDocuments {
 
 export class SymbolIndex {
 
-	readonly trie: Trie<vscode.SymbolInformation[]> = new Trie<vscode.SymbolInformation[]>('', undefined);
+	readonly trie: Trie<Set<vscode.SymbolInformation>> = new Trie('', undefined);
 
 	private readonly _queue: FileQueueAndDocuments;
 	private _currentUpdate: Promise<void> | undefined;
@@ -235,9 +235,23 @@ export class SymbolIndex {
 		const uris = this._queue.consume();
 		if (uris.length > 0) {
 			const sw = new StopWatch();
+			const remove = new Set(uris.map(u => u.toString()));
+			for (const [key, value] of this.trie) {
+				for (let item of value) {
+					if (remove.has(item.location.uri.toString())) {
+						value.delete(item);
+					}
+				}
+				if (value.size === 0) {
+					this.trie.delete(key);
+				}
+			}
+			sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
+
+			sw.reset();
 			const tasks = uris.map(this._createIndexTask, this);
 			await parallel(tasks, 50, new vscode.CancellationTokenSource().token);
-			sw.elapsed(`INDEX done with ${uris.length} files`);
+			sw.elapsed(`INDEX ADDED with ${uris.length} files`);
 		}
 	}
 
@@ -279,9 +293,9 @@ export class SymbolIndex {
 					}
 					let all = this.trie.get(capture.node.text);
 					if (!all) {
-						this.trie.set(capture.node.text, [symbol]);
+						this.trie.set(capture.node.text, new Set([symbol]));
 					} else {
-						all.push(symbol);
+						all.add(symbol);
 					}
 				}
 			});

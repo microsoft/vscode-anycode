@@ -141,6 +141,32 @@ export class Trie<E> {
 		return node.element?.value;
 	}
 
+	delete(str: string): void {
+		let chars = Array.from(str);
+		let node: Trie<E> = this;
+		let path: [string, Trie<E>][] = [];
+		for (let pos = 0; pos < chars.length; pos++) {
+			const ch = chars[pos];
+			let child = node._children.get(ch);
+			if (!child) {
+				return undefined;
+			}
+			path.push([ch, node]);
+			node = child;
+		}
+
+		// unset element
+		node.element = undefined;
+
+		// cleanup parents
+		while (node._children.size === 0 && !node.element) {
+			// parent
+			const tuple = path.pop()!;
+			tuple[1]._children.delete(tuple[0]);
+			node = tuple[1];
+		}
+	}
+
 	*query(str: string[]): IterableIterator<[string, E]> {
 		let bucket: IterableIterator<[string, E]>[] = [];
 		this._query(str, 0, bucket);
@@ -174,5 +200,9 @@ export class Trie<E> {
 		for (let child of this._children.values()) {
 			yield* child._entries();
 		}
+	}
+
+	[Symbol.iterator](): IterableIterator<[string, E]> {
+		return this._entries();
 	}
 }
