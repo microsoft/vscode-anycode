@@ -83,9 +83,7 @@ export class Trees implements ITrees {
 		this._ready = TreeSitter({
 			locateFile: () => {
 				const uri = vscode.Uri.joinPath(context.extensionUri, 'tree-sitter/tree-sitter.wasm');
-				return vscode.env.uiKind === vscode.UIKind.Desktop //todo@jrieken FISHY
-					? uri.fsPath
-					: uri.toString(true);
+				return uri.toString(true);
 			}
 		}).then(data => {
 			return data.Parser;
