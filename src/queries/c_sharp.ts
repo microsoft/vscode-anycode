@@ -25,8 +25,8 @@ export const symbols = `
 )
 
 (constructor_declaration
-	name: (identifier) @method.name
-) @method
+	name: (identifier) @constructor.name
+) @constructor
 
 (destructor_declaration
 	(identifier) @method.name
