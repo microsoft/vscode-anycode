@@ -181,7 +181,7 @@ export class Trie<E> {
 			return;
 		}
 		for (let [ch, child] of this._children) {
-			if (ch === str[pos]) {
+			if (ch.toLowerCase() === str[pos].toLowerCase()) {
 				child._query(str, pos + 1, bucket);
 			}
 
