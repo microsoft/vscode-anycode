@@ -32,6 +32,12 @@ export const symbols = `
 	) @function
 )
 
+(declaration
+	declarator: (function_declarator
+		declarator: (identifier) @function.name
+	) @function
+)
+
 (type_definition
 	type: (_)
 	declarator: (type_identifier) @struct.name
