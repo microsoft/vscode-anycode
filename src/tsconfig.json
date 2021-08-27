@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"composite": true,
+		"esModuleInterop": true,
+		"module": "commonjs",
+		"target": "es2020",
+		"outDir": "../out/src",
+		"lib": [
+			"es2020",
+			"WebWorker"
+		],
+		"sourceMap": true,
+		"rootDir": ".",
+		"strict": true,
+		"types": []
+	},
+	"exclude": [
+		"node_modules",
+		".vscode-test"
+	]
+}

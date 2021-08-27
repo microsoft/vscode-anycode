@@ -5,7 +5,7 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting, IDocument, parallel, Trie, LRUMap } from '../common';
+import { ITrees, asCodeRange, StopWatch, isInteresting, IDocument, parallel, LRUMap } from '../common';
 import * as c from '../queries/c';
 import * as c_sharp from '../queries/c_sharp';
 import * as cpp from '../queries/cpp';
@@ -16,8 +16,14 @@ import * as python from '../queries/python';
 import * as rust from '../queries/rust';
 import * as typescript from '../queries/typescript';
 import { SupportedLanguages } from '../supportedLanguages';
+import { Trie } from '../util/trie';
 
-export const symbolQueries = new class {
+interface SymbolQueries {
+	getSymbolKind(symbolKind: string): vscode.SymbolKind;
+	get(languageId: string, language: Parser.Language): Parser.Query | undefined;
+}
+
+export const symbolQueries: SymbolQueries = new class {
 
 	private readonly _data = new Map<string, string | Parser.Query>([
 		['c', c.symbols],
@@ -203,7 +209,7 @@ class FileQueueAndDocuments {
 
 export class SymbolIndex {
 
-	readonly trie: Trie<Set<vscode.SymbolInformation>> = new Trie('', undefined);
+	readonly trie: Trie<Set<vscode.SymbolInformation>> = Trie.create();
 
 	private readonly _queue: FileQueueAndDocuments;
 	private _currentUpdate: Promise<void> | undefined;

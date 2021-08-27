@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"outDir": "../../out/test/unit",
+		"rootDir": ".",
+		"target": "ES6",
+		"module": "CommonJS"
+	},
+	"references": [
+		{
+			"path": "../../src/tsconfig.json",
+		}
+	]
+}

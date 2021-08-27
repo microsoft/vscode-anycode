@@ -98,17 +98,22 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./ && npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode",
+		"compile": "tsc -b tsconfig.json && npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode",
 		"watch": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
 		"lint": "eslint src --ext ts",
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
-		"deploy": "npx vsce publish --noVerify"
+		"deploy": "npx vsce publish --noVerify",
+		"pretest": "npm run compile",
+		"test": "mocha out/test/unit/**/*.test.js"
 	},
 	"devDependencies": {
+		"@types/mocha": "^9.0.0",
+		"@types/node": "^16.7.3",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
 		"esbuild": "^0.12.14",
 		"eslint": "^7.19.0",
+		"mocha": "^9.1.0",
 		"tree-sitter-c": "^0.19.0",
 		"tree-sitter-c-sharp": "^0.19.0",
 		"tree-sitter-cli": "^0.20.0",
