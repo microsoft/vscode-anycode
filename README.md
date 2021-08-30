@@ -9,11 +9,7 @@ A language extension that **inaccurately** implements the following features
 
 This extension should be used when running in enviroments that don't allow for running actual language services. 
 
-Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `rust`, `go`
-
----
-
-👉👉👉 Note that for this extension to work the `extensions.webWorker`-setting must be enabled.
+Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `rust`, `go`, `python`
 
 ---
 
