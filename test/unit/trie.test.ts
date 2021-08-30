@@ -1,3 +1,7 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
 import { suite, test } from 'mocha';
@@ -60,6 +64,7 @@ suite('trie', function () {
 		trie.set('Abc', 2);
 		trie.set('Ab', 3);
 		trie.set('Afoobfooc', 4);
+		trie.set('fooAfoobfooc', 5); // first must match
 
 		const actual = Array.from(trie.query(['A', 'C'])).map(e => e[1]).sort();
 		assert.deepStrictEqual(actual, [1, 2, 4]);

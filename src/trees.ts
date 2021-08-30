@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { asTsPoint, IDocument, ITrees, LRUMap, StopWatch } from './common';
+import { asTsPoint, IDocument, ITrees, StopWatch } from './common';
+import { LRUMap } from "./util/lruMap";
 import TreeSitter, { Parser } from '../tree-sitter/tree-sitter';
 import { SupportedLanguages } from './supportedLanguages';
 

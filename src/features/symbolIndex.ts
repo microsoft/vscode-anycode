@@ -5,7 +5,8 @@
 
 import { Parser } from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting, IDocument, parallel, LRUMap } from '../common';
+import { ITrees, asCodeRange, StopWatch, isInteresting, IDocument, parallel } from '../common';
+import { LRUMap } from "../util/lruMap";
 import * as c from '../queries/c';
 import * as c_sharp from '../queries/c_sharp';
 import * as cpp from '../queries/cpp';
