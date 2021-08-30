@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { asTsPoint, IDocument, ITrees, StopWatch } from './common';
 import { LRUMap } from "./util/lruMap";
-import TreeSitter, { Parser } from '../tree-sitter/tree-sitter';
+import Parser from '../tree-sitter/tree-sitter';
 import { SupportedLanguages } from './supportedLanguages';
 
 class Utils {
@@ -77,20 +77,7 @@ export class Trees implements ITrees {
 	private readonly _languages = new Map<string, { uri: vscode.Uri, language?: Promise<Parser.Language> }>();
 	private readonly _listener: vscode.Disposable[] = [];
 
-	private readonly _ready: Promise<typeof Parser>;
-
-	constructor(context: vscode.ExtensionContext, languages: SupportedLanguages) {
-
-		this._ready = TreeSitter({
-			locateFile: () => {
-				const uri = vscode.Uri.joinPath(context.extensionUri, 'tree-sitter/tree-sitter.wasm');
-				return vscode.env.uiKind === vscode.UIKind.Desktop //todo@jrieken FISHY
-					? uri.fsPath
-					: uri.toString(true);
-			}
-		}).then(data => {
-			return data.Parser;
-		});
+	constructor(languages: SupportedLanguages) {
 
 		// supported languages
 		for (let item of languages.getSupportedLanguages()) {
@@ -143,10 +130,8 @@ export class Trees implements ITrees {
 			return undefined;
 		}
 		if (!entry.language) {
-			entry.language = this._ready.then(async parser => {
-				const data = await vscode.workspace.fs.readFile(entry.uri);
-				return parser.Language.load(data);
-			});
+			entry.language = Promise.resolve(vscode.workspace.fs.readFile(entry.uri)).then(data => Parser.Language.load(data));
+
 		}
 		return entry.language;
 	}
@@ -159,9 +144,6 @@ export class Trees implements ITrees {
 		if (!language) {
 			return undefined;
 		}
-
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		const Parser = await this._ready;
 
 		let info = this._cache.get(document);
 		if (info?.version === document.version) {

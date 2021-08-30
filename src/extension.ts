@@ -11,14 +11,23 @@ import { Validation } from './features/validation';
 import { SupportedLanguages } from './supportedLanguages';
 import { SymbolIndex } from './features/symbolIndex';
 import { CompletionItemProvider } from './features/completions';
-
+import Parser from '../tree-sitter/tree-sitter';
 
 export async function activate(context: vscode.ExtensionContext) {
+
+	await Parser.init({
+		locateFile() {
+			const uri = vscode.Uri.joinPath(context.extensionUri, 'tree-sitter/tree-sitter.wasm');
+			return vscode.env.uiKind === vscode.UIKind.Desktop //todo@jrieken FISHY
+				? uri.fsPath
+				: uri.toString(true);
+		}
+	});
 
 	// --- tree and symbols management
 
 	const supportedLanguages = new SupportedLanguages(context);
-	const trees = new Trees(context, supportedLanguages);
+	const trees = new Trees(supportedLanguages);
 	const index = new SymbolIndex(trees, supportedLanguages);
 
 	context.subscriptions.push(supportedLanguages);

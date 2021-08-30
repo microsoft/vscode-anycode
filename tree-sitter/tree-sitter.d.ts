@@ -1,19 +1,18 @@
-
-declare namespace TreeSitter {
-
-  class Parser {
-    static init(): Promise<void>;
+// declare module 'web-tree-sitter' {
+declare class Parser {
+  static init(module?: object): Promise<void>;
     delete(): void;
     parse(input: string | Parser.Input, previousTree?: Parser.Tree, options?: Parser.Options): Parser.Tree;
-    getLanguage(): any;
-    setLanguage(language: any): void;
+  reset(): void;
+  getLanguage(): Parser.Language;
+  setLanguage(language?: Parser.Language | undefined | null): void;
     getLogger(): Parser.Logger;
-    setLogger(logFunc: Parser.Logger): void;
+  setLogger(logFunc?: Parser.Logger | undefined | null): void;
     setTimeoutMicros(value: number): void;
     getTimeoutMicros(): number;
   }
 
-  namespace Parser {
+declare namespace Parser {
     export type Options = {
       includedRanges?: Range[];
     };
@@ -100,6 +99,7 @@ declare namespace TreeSitter {
 
     export interface TreeCursor {
       nodeType: string;
+      nodeTypeId: number;
       nodeText: string;
       nodeId: number;
       nodeIsNamed: boolean;
@@ -171,14 +171,7 @@ declare namespace TreeSitter {
       captures(node: SyntaxNode, startPosition?: Point, endPosition?: Point): QueryCapture[];
       predicatesForPattern(patternIndex: number): PredicateResult[];
     }
-  }
 }
 
-interface TreeSitterModule {
-  Parser: typeof TreeSitter.Parser;
-  [key: string]: any;
-}
-
-declare function TreeSitter(module?: object): Promise<TreeSitterModule>;
-
-export = TreeSitter
+export = Parser
+// }
