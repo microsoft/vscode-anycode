@@ -12,9 +12,6 @@
 	"engines": {
 		"vscode": "^1.60.0"
 	},
-	"extensionKind": [
-		"web"
-	],
 	"categories": [
 		"Programming Languages"
 	],
@@ -31,7 +28,6 @@
 		"onCommand:workbench.action.showAllSymbols"
 	],
 	"browser": "./dist/extension.js",
-	"main": "./dist/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "Anycode",
