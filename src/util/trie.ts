@@ -14,9 +14,14 @@ export class Trie<E> {
 		return new Trie('', undefined);
 	}
 
+	private _size: number = 0;
 	private readonly _children = new Map<string, Trie<E>>();
 
 	private constructor(readonly ch: string, public element: Entry<E> | undefined) { }
+
+	get size() {
+		return this._size;
+	}
 
 	set(str: string, element: E): void {
 		let chars = Array.from(str);
@@ -30,7 +35,12 @@ export class Trie<E> {
 			}
 			node = child;
 		}
-		node.element = new Entry(str, element);
+		if (!node.element) {
+			this._size += 1;
+			node.element = new Entry(str, element);
+		} else {
+			node.element.value = element;
+		}
 	}
 
 	get(str: string): E | undefined {
@@ -62,7 +72,10 @@ export class Trie<E> {
 		}
 
 		// unset element
-		node.element = undefined;
+		if (node.element) {
+			node.element = undefined;
+			this._size -= 1;
+		}
 
 		// cleanup parents
 		while (node._children.size === 0 && !node.element && path.length > 0) {

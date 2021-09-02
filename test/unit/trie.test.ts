@@ -12,7 +12,7 @@ suite('trie', function () {
 	function assertTrie<E>(trie: Trie<E>, expected: [key: string, value: E][]) {
 
 		const map = new Map(expected);
-
+		assert.strictEqual(trie.size, map.size);
 		for (let item of trie) {
 			const expected = map.get(item[0]);
 			assert.strictEqual(expected, item[1]);
