@@ -64,3 +64,18 @@ export const symbols = `
 	type: (channel_type)
 ) @event
 `;
+
+export const usages = `
+(call_expression
+	function: [
+		(identifier) @usage.function
+		(selector_expression (field_identifier) @usage.function) 
+	]
+)
+
+(selector_expression
+	field: (field_identifier) @usage.field
+)
+
+(type_identifier) @usage
+`;

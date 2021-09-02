@@ -23,7 +23,7 @@ export class CompletionItemProvider implements vscode.CompletionItemProvider {
 		await this._symbols.update();
 
 		const result: vscode.CompletionItem[] = [];
-		const all = this._symbols.trie.query([...prefix]);
+		const all = this._symbols.symbols.query([...prefix]);
 		for (let [key, symbols] of all) {
 			const [first] = symbols;
 			const item = new vscode.CompletionItem(key, CompletionItemProvider._kindMapping.get(first.kind));

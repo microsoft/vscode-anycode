@@ -29,8 +29,8 @@ export const symbols =`(class_declaration
 ) @enumMember
 
 (constructor_declaration
-	name: (identifier) @method.name
-) @method
+	name: (identifier) @constructor.name
+) @constructor
 
 (method_declaration
 	name: (identifier) @method.name
@@ -48,4 +48,45 @@ export const symbols =`(class_declaration
 		(identifier) @module.name
 	]
 ) @module
+`;
+
+export const usage = `
+(field_access
+	field: (identifier) @usage.field
+)
+
+(method_invocation
+	name: (identifier) @usage.call
+)
+
+(object_creation_expression
+	type: [
+		(type_identifier) @usage.constructor
+		(generic_type (type_identifier)) @usage.contructor
+	]
+)
+
+(interface_type_list
+	(type_identifier) @usage.interface
+)
+
+(superclass
+	(type_identifier) @usage.class
+)
+
+(formal_parameter
+	type: (type_identifier) @usage
+)
+
+(local_variable_declaration
+	type: (type_identifier) @usage
+)
+
+(type_arguments
+	(type_identifier) @usage
+)
+
+(wildcard
+	(type_identifier) @usage
+)
 `;

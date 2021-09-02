@@ -30,6 +30,10 @@ export function asTsPoint(position: vscode.Position): Parser.Point {
 	};
 }
 
+export function containsLocation(loc: vscode.Location, uri: vscode.Uri, position: vscode.Position) {
+	return loc.uri.toString() === uri.toString() && loc.range.contains(position);
+}
+
 export class StopWatch {
 	private t1: number = Date.now();
 

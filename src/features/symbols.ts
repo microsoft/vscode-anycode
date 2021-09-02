@@ -5,8 +5,8 @@
 
 import type Parser from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch } from '../common';
-import { SymbolIndex, symbolQueries } from './symbolIndex';
+import { ITrees, asCodeRange, StopWatch, containsLocation } from '../common';
+import { SymbolIndex, symbolQueries, Usage } from './symbolIndex';
 
 
 // --- document symbols
@@ -121,7 +121,7 @@ export class WorkspaceSymbolProvider implements vscode.WorkspaceSymbolProvider {
 		await this._symbols.update();
 
 		const sw = new StopWatch();
-		const all = this._symbols.trie.query(Array.from(search));
+		const all = this._symbols.symbols.query(Array.from(search));
 		for (let [, symbols] of all) {
 			result.push(Array.from(symbols));
 		}
@@ -149,8 +149,9 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 		}
 		const text = document.getText(range);
 		await this._symbols.update();
+
 		const result: vscode.Location[] = [];
-		const all = this._symbols.trie.get(text);
+		const all = this._symbols.symbols.get(text);
 		if (!all) {
 			return [];
 		}
@@ -177,6 +178,76 @@ export class DefinitionProvider implements vscode.DefinitionProvider {
 			} else {
 				bucket.push(location);
 			}
+		}
+	}
+}
+
+//
+export class ReferencesProvider implements vscode.ReferenceProvider {
+
+	constructor(private _trees: ITrees, private _symbols: SymbolIndex) { }
+
+	register(): vscode.Disposable {
+		return vscode.languages.registerReferenceProvider(this._trees.supportedLanguages, this);
+	}
+
+	async provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): Promise<vscode.Location[]> {
+		const range = document.getWordRangeAtPosition(position);
+		if (!range) {
+			return [];
+		}
+		const text = document.getText(range);
+		await this._symbols.update();
+
+		const usages = this._symbols.usages.get(text);
+		const symbols = this._symbols.symbols.get(text);
+		if (!usages && !symbols) {
+			return [];
+		}
+
+		const locationsByKind = new Map<number, vscode.Location[]>();
+		let thisKind: number | undefined;
+		if (usages) {
+			for (let usage of usages) {
+				if (thisKind === undefined) {
+					if (containsLocation(usage.location, document.uri, position)) {
+						thisKind = usage.kind;
+					}
+				}
+				const array = locationsByKind.get(usage.kind ?? -1);
+				if (!array) {
+					locationsByKind.set(usage.kind ?? -1, [usage.location]);
+				} else {
+					array.push(usage.location);
+				}
+			}
+		}
+
+		if (symbols) {
+			for (let symbol of symbols) {
+				if (thisKind === undefined) {
+					if (containsLocation(symbol.location, document.uri, position)) {
+						thisKind = symbol.kind;
+					}
+				}
+				if (context.includeDeclaration) {
+					const array = locationsByKind.get(symbol.kind);
+					if (!array) {
+						locationsByKind.set(symbol.kind, [symbol.location]);
+					} else {
+						array.push(symbol.location);
+					}
+				}
+			}
+		}
+
+		if (thisKind === undefined) {
+			return Array.from(locationsByKind.values()).flat();
+
+		} else {
+			const sameKind = locationsByKind.get(thisKind) ?? [];
+			const unknownKind = locationsByKind.get(-1) ?? [];
+			return [sameKind, unknownKind].flat();
 		}
 	}
 }

@@ -42,7 +42,7 @@ class Utils {
 			})();
 
 		}).finally(() => {
-			sw.elapsed(`new TREE, ${options.rounds} rounds left`);
+			// sw.elapsed(`new TREE, ${options.rounds} rounds left`);
 		});
 	}
 
