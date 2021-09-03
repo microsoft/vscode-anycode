@@ -69,7 +69,17 @@ export const usages = `
 (call_expression
 	function: [
 		(identifier) @usage.function
-		(selector_expression (field_identifier) @usage.function) 
+		(selector_expression
+			field: (field_identifier) @usage.function
+		)
+		(parenthesized_expression
+			(identifier) @usage.function
+		)
+		(parenthesized_expression
+			(selector_expression
+				field: (field_identifier) @usage.function
+			)
+		)
 	]
 )
 
