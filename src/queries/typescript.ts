@@ -3,61 +3,61 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols = `
+export const queries = `
 (interface_declaration
-	name: (type_identifier) @interface.name
-) @interface
+	name: (type_identifier) @symbol.interface.name
+) @symbol.interface
 
 (property_signature
-	name: (property_identifier) @field.name
-) @field
+	name: (property_identifier) @symbol.field.name
+) @symbol.field
 
 (method_signature
-	name: (property_identifier) @method.name
-) @method
+	name: (property_identifier) @symbol.method.name
+) @symbol.method
 
 (class_declaration
-	name: (type_identifier) @class.name
-) @class
+	name: (type_identifier) @symbol.class.name
+) @symbol.class
 
 (new_expression
 	constructor: (class 
 		body: (class_body) 
-	) @class
+	) @symbol.class
 )
 
 (method_definition
 	name: [
-		(property_identifier) @method.name
-		(computed_property_name (string) @method.name)
+		(property_identifier) @symbol.method.name
+		(computed_property_name (string) @symbol.method.name)
 	]
-) @method
+) @symbol.method
 
 (public_field_definition
 	name: [
-		(property_identifier) @field.name
-		(computed_property_name (string) @field.name)
+		(property_identifier) @symbol.field.name
+		(computed_property_name (string) @symbol.field.name)
 	]
-) @field
+) @symbol.field
 
 (enum_declaration
-	name: (identifier) @enum.name
-) @enum
+	name: (identifier) @symbol.enum.name
+) @symbol.enum
 
 (enum_body [
-	(property_identifier) @enumMember
-	(enum_assignment (property_identifier) @enumMember)
+	(property_identifier) @symbol.enumMember
+	(enum_assignment (property_identifier) @symbol.enumMember)
 ])
 
 (function_declaration
-	name: (identifier) @function.name
-) @function
+	name: (identifier) @symbol.function.name
+) @symbol.function
 
 (variable_declarator
-	name: (identifier) @variable.name
-) @variable
+	name: (identifier) @symbol.variable.name
+) @symbol.variable
 
 (module
-	name: [(identifier)@module.name (string) @module.name]
-) @module
+	name: [(identifier)@symbol.module.name (string) @symbol.module.name]
+) @symbol.module
 `;

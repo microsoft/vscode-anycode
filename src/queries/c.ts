@@ -3,57 +3,57 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols = `
+export const queries = `
 (struct_specifier
-	name: (type_identifier) @struct.name
-) @struct
+	name: (type_identifier) @symbol.struct.name
+) @symbol.struct
 
 (union_specifier
-	name: (type_identifier) @struct.name
-) @struct
+	name: (type_identifier) @symbol.struct.name
+) @symbol.struct
 
 (enum_specifier
-	name: (type_identifier) @enum.name
-) @enum
+	name: (type_identifier) @symbol.enum.name
+) @symbol.enum
 
 (enumerator
-	name: (identifier) @enumMember.name
-) @enumMember
+	name: (identifier) @symbol.enumMember.name
+) @symbol.enumMember
 
 (function_definition
 	declarator: (function_declarator
-		declarator: (identifier) @function.name
+		declarator: (identifier) @symbol.function.name
 	)
-) @function
+) @symbol.function
 
 (pointer_declarator
 	declarator: (function_declarator
-		declarator: (identifier) @function.name
-	) @function
+		declarator: (identifier) @symbol.function.name
+	) @symbol.function
 )
 
 (declaration
 	declarator: (function_declarator
-		declarator: (identifier) @function.name
-	) @function
+		declarator: (identifier) @symbol.function.name
+	) @symbol.function
 )
 
 (type_definition
 	type: (_)
-	declarator: (type_identifier) @struct.name
-) @struct
+	declarator: (type_identifier) @symbol.struct.name
+) @symbol.struct
 
 (linkage_specification
-	value: (string_literal) @struct.name
-) @struct
+	value: (string_literal) @symbol.struct.name
+) @symbol.struct
 
 (field_declaration_list
 	(field_declaration
 		[
-			declarator: (field_identifier) @field.name
+			declarator: (field_identifier) @symbol.field.name
 			(array_declarator
-				declarator: (field_identifier) @field.name
+				declarator: (field_identifier) @symbol.field.name
 			)
 		]
-	) @field
+	) @symbol.field
 )`;

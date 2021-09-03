@@ -6,14 +6,14 @@
 import type Parser from '../../tree-sitter/tree-sitter';
 import * as vscode from 'vscode';
 import { ITrees, asCodeRange, StopWatch, containsLocation } from '../common';
-import { SymbolIndex, symbolQueries, Usage } from './symbolIndex';
+import { SymbolIndex, symbolMapping } from './symbolIndex';
 
 
 // --- document symbols
 
 export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
-	constructor(private _trees: ITrees) { }
+	constructor(private _trees: ITrees, private _symbols: SymbolIndex) { }
 
 	register(): vscode.Disposable {
 		return vscode.languages.registerDocumentSymbolProvider(this._trees.supportedLanguages, this);
@@ -21,20 +21,8 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 
 	async provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken) {
 
-		const tree = await this._trees.getParseTree(document, token);
-		if (!tree) {
-			return undefined;
-		}
-
-		const query = symbolQueries.get(document.languageId, tree.getLanguage());
-		if (!query) {
-			return undefined;
-		}
-
 		const sw = new StopWatch();
-
-		sw.reset();
-		const captures = query.captures(tree.rootNode);
+		const captures = await this._symbols.symbolCaptures(document, token);
 		sw.elapsed('CAPTURE query');
 
 
@@ -86,7 +74,7 @@ export class DocumentSymbolProvider implements vscode.DocumentSymbolProvider {
 			if (!nameNode) {
 				nameNode = node;
 			}
-			const symbol = new vscode.DocumentSymbol(nameNode.capture.node.text, '', symbolQueries.getSymbolKind(node.capture.name), node.range, nameNode.range);
+			const symbol = new vscode.DocumentSymbol(nameNode.capture.node.text, '', symbolMapping.getSymbolKind(node.capture.name), node.range, nameNode.range);
 			symbol.children = children;
 
 			bucket.push(symbol);

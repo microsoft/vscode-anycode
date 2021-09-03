@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	const workspaceSymbols = new WorkspaceSymbolProvider(index);
 	const definitions = new DefinitionProvider(trees, index);
 	const references = new ReferencesProvider(trees, index);
-	const documentSymbols = new DocumentSymbolProvider(trees);
+	const documentSymbols = new DocumentSymbolProvider(trees, index);
 	const selectionRanges = new SelectionRangesProvider(trees);
 	const completions = new CompletionItemProvider(supportedLanguages, index);
 	const validation = new Validation(trees);

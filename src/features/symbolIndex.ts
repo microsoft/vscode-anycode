@@ -20,26 +20,10 @@ import { SupportedLanguages } from '../supportedLanguages';
 import { Trie } from '../util/trie';
 import { QueryCapture } from '../../tree-sitter/tree-sitter';
 
-interface SymbolQueries {
+export const symbolMapping: {
 	getSymbolKind(symbolKind: string, strict: boolean): vscode.SymbolKind | undefined;
 	getSymbolKind(symbolKind: string): vscode.SymbolKind;
-	get(languageId: string, language: Parser.Language): Parser.Query | undefined;
-}
-
-export const symbolQueries: SymbolQueries = new class {
-
-	private readonly _data = new Map<string, string | Parser.Query>([
-		['c', c.symbols],
-		['cpp', cpp.symbols],
-		['csharp', c_sharp.symbols],
-		['go', go.symbols],
-		['java', java.symbols],
-		['php', php.symbols],
-		['python', python.symbols],
-		['rust', rust.symbols],
-		['typescript', typescript.symbols],
-	]);
-
+} = new class {
 	private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
 		['file', vscode.SymbolKind.File],
 		['module', vscode.SymbolKind.Module],
@@ -69,21 +53,6 @@ export const symbolQueries: SymbolQueries = new class {
 		['typeParameter', vscode.SymbolKind.TypeParameter],
 	]);
 
-	get(languageId: string, language: Parser.Language): Parser.Query | undefined {
-		let queryOrStr = this._data.get(languageId);
-		if (typeof queryOrStr === 'string') {
-			try {
-				queryOrStr = language.query(queryOrStr);
-				this._data.set(languageId, queryOrStr);
-			} catch (e) {
-				console.log(languageId, e);
-				this._data.delete(languageId);
-				queryOrStr = undefined;
-			}
-		}
-		return queryOrStr;
-	}
-
 	getSymbolKind(symbolKind: string): vscode.SymbolKind;
 	getSymbolKind(symbolKind: string, strict: true): vscode.SymbolKind | undefined;
 	getSymbolKind(symbolKind: string, strict?: true): vscode.SymbolKind | undefined {
@@ -95,18 +64,18 @@ export const symbolQueries: SymbolQueries = new class {
 	}
 };
 
-export const usageQueries: { get(languageId: string, language: Parser.Language): Parser.Query | undefined } = new class {
+const _queries = new class {
 
 	private readonly _data = new Map<string, string | Parser.Query>([
-		// ['c', c.symbols],
-		// ['cpp', cpp.symbols],
-		// ['csharp', c_sharp.symbols],
-		['go', go.usages],
-		['java', java.usage],
-		// ['php', php.symbols],
-		// ['python', python.symbols],
-		// ['rust', rust.symbols],
-		// ['typescript', typescript.symbols],
+		['c', c.queries],
+		['cpp', cpp.queries],
+		['csharp', c_sharp.queries],
+		['go', go.queries],
+		['java', java.queries],
+		['php', php.queries],
+		['python', python.queries],
+		['rust', rust.queries],
+		['typescript', typescript.queries],
 	]);
 
 	get(languageId: string, language: Parser.Language): Parser.Query | undefined {
@@ -339,57 +308,63 @@ export class SymbolIndex {
 		}
 
 		// symbols
-		const query = symbolQueries.get(document.languageId, tree.getLanguage());
-		if (query) {
-			query.captures(tree.rootNode).forEach((capture, index, array) => {
-				if (!capture.name.endsWith('.name')) {
-					return;
-				}
-				const symbol = new vscode.SymbolInformation(
-					capture.node.text,
-					vscode.SymbolKind.Struct,
-					'',
-					new vscode.Location(document.uri, asCodeRange(capture.node))
-				);
-				const containerCandidate = array[index - 1];
-				if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
-					symbol.containerName = containerCandidate.name;
-					symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
-				}
-
-				if (capture.name.endsWith('.name')) {
-					const containerCandidate = array[index - 1];
-					if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
-						symbol.containerName = containerCandidate.name;
-						symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
-					}
-					let all = this.symbols.get(capture.node.text);
-					if (!all) {
-						this.symbols.set(capture.node.text, new Set([symbol]));
-					} else {
-						all.add(symbol);
-					}
-				}
-			});
+		const query = _queries.get(document.languageId, tree.getLanguage());
+		if (!query) {
+			return;
 		}
 
-		// usages
-		const usageQuery = usageQueries.get(document.languageId, tree.getLanguage());
-		if (usageQuery) {
-			const captures = usageQuery.captures(tree.rootNode);
-			for (let i = 0; i < captures.length; i++) {
-				const usage = captures[i];
-				const idx = usage.name.lastIndexOf('.');
-				const loc = new Usage(
-					new vscode.Location(document.uri, asCodeRange(usage.node)),
-					symbolQueries.getSymbolKind(usage.name.substring(idx + 1), true)
-				);
-				let all = this.usages.get(usage.node.text);
-				if (!all) {
-					this.usages.set(usage.node.text, new Set([loc]));
-				} else {
-					all.add(loc);
+		const captures = query.captures(tree.rootNode);
+
+		// --- symbols
+
+		for (let i = 0; i < captures.length; i++) {
+			const capture = captures[i];
+			if (!capture.name.startsWith('symbol.') || !capture.name.endsWith('.name')) {
+				continue;
+			}
+			const symbol = new vscode.SymbolInformation(
+				capture.node.text,
+				vscode.SymbolKind.Struct,
+				'',
+				new vscode.Location(document.uri, asCodeRange(capture.node))
+			);
+			const containerCandidate = captures[i - 1];
+			if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
+				symbol.containerName = containerCandidate.name;
+				symbol.kind = symbolMapping.getSymbolKind(containerCandidate.name);
+			}
+			if (capture.name.endsWith('.name')) {
+				const containerCandidate = captures[i - 1];
+				if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
+					symbol.containerName = containerCandidate.name;
+					symbol.kind = symbolMapping.getSymbolKind(containerCandidate.name);
 				}
+				let all = this.symbols.get(capture.node.text);
+				if (!all) {
+					this.symbols.set(capture.node.text, new Set([symbol]));
+				} else {
+					all.add(symbol);
+				}
+			}
+		}
+
+		// --- usages
+
+		for (let i = 0; i < captures.length; i++) {
+			const capture = captures[i];
+			if (!capture.name.startsWith('usage.')) {
+				continue;
+			}
+			const idx = capture.name.lastIndexOf('.');
+			const loc = new Usage(
+				new vscode.Location(document.uri, asCodeRange(capture.node)),
+				symbolMapping.getSymbolKind(capture.name.substring(idx + 1), true)
+			);
+			let all = this.usages.get(capture.node.text);
+			if (!all) {
+				this.usages.set(capture.node.text, new Set([loc]));
+			} else {
+				all.add(loc);
 			}
 		}
 	}
@@ -401,10 +376,10 @@ export class SymbolIndex {
 		if (!tree) {
 			return [];
 		}
-		const query = symbolQueries.get(document.languageId, tree.getLanguage());
+		const query = _queries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return [];
 		}
-		return query.captures(tree.rootNode);
+		return query.captures(tree.rootNode).filter(item => item.name.startsWith('symbol.'));
 	}
 }

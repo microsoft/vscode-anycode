@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols = `(class_definition
-	name: (identifier) @class.name
-) @class
+export const queries = `(class_definition
+	name: (identifier) @symbol.class.name
+) @symbol.class
 
 (function_definition
-	name: (identifier) @function.name
-) @function`;
+	name: (identifier) @symbol.function.name
+) @symbol.function`;
