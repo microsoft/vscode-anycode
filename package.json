@@ -10,7 +10,7 @@
 		"url": "https://github.com/microsoft/vscode-anycode"
 	},
 	"engines": {
-		"vscode": "^1.60.0"
+		"vscode": "^1.61.0"
 	},
 	"categories": [
 		"Programming Languages"

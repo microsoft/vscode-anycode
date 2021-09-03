@@ -162,7 +162,7 @@ declare module 'vscode' {
 		 *
 		 * Defaults to false.
 		 */
-		forceRecreate?: boolean;
+		forceNewSession?: boolean | { detail: string };
 	}
 
 	export namespace authentication {
@@ -179,7 +179,7 @@ declare module 'vscode' {
 		 * @param options The {@link AuthenticationGetSessionOptions} to use
 		 * @returns A thenable that resolves to an authentication session
 		 */
-		export function getSession(providerId: string, scopes: readonly string[], options: AuthenticationGetSessionOptions & { forceRecreate: true }): Thenable<AuthenticationSession>;
+		export function getSession(providerId: string, scopes: readonly string[], options: AuthenticationGetSessionOptions & { forceNewSession: true | { detail: string } }): Thenable<AuthenticationSession>;
 	}
 
 	export namespace workspace {
@@ -422,7 +422,7 @@ declare module 'vscode' {
 	export interface TextSearchComplete {
 		/**
 		 * Whether the search hit the limit on the maximum number of search results.
-		 * `maxResults` on {@link TextSearchOptions `TextSearchOptions`} specifies the max number of results.
+		 * `maxResults` on {@linkcode TextSearchOptions} specifies the max number of results.
 		 * - If exactly that number of matches exist, this should be false.
 		 * - If `maxResults` matches are returned and more exist, this should be true.
 		 * - If search hits an internal limit which is less than `maxResults`, this should be true.
@@ -729,6 +729,11 @@ declare module 'vscode' {
 			 */
 			simple?: boolean;
 		}
+
+		/**
+		 * When true, a save will not be triggered for open editors when starting a debug session, regardless of the value of the `debug.saveBeforeStart` setting.
+		 */
+		suppressSaveBeforeStart?: boolean;
 	}
 
 	//#endregion
@@ -783,7 +788,7 @@ declare module 'vscode' {
 		/**
 		 * The validation message to display.
 		 */
-		readonly message: string;
+		readonly message: string | MarkdownString;
 
 		/**
 		 * The validation type.
@@ -799,7 +804,7 @@ declare module 'vscode' {
 		/**
 		 * Shows a transient contextual message on the input.
 		 */
-		showValidationMessage(message: string, type: SourceControlInputBoxValidationType): void;
+		showValidationMessage(message: string | MarkdownString, type: SourceControlInputBoxValidationType): void;
 
 		/**
 		 * A validation function for the input box. It's possible to change
@@ -886,6 +891,85 @@ declare module 'vscode' {
 
 	//#endregion
 
+	//#region Terminal state event https://github.com/microsoft/vscode/issues/127717
+
+	/**
+	 * Represents the state of a {@link Terminal}.
+	 */
+	export interface TerminalState {
+		/**
+		 * Whether the {@link Terminal} has been interacted with. Interaction means that the
+		 * terminal has sent data to the process which depending on the terminal's _mode_. By
+		 * default input is sent when a key is pressed or when a command or extension sends text,
+		 * but based on the terminal's mode it can also happen on:
+		 *
+		 * - a pointer click event
+		 * - a pointer scroll event
+		 * - a pointer move event
+		 * - terminal focus in/out
+		 *
+		 * For more information on events that can send data see "DEC Private Mode Set (DECSET)" on
+		 * https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+		 */
+		readonly interactedWith: boolean;
+	}
+
+	export interface Terminal {
+		/**
+		 * The current state of the {@link Terminal}.
+		 */
+		readonly state: TerminalState;
+	}
+
+	export namespace window {
+		/**
+		 * An {@link Event} which fires when a {@link Terminal.state terminal's state} has changed.
+		 */
+		export const onDidChangeTerminalState: Event<Terminal>;
+	}
+
+	//#endregion
+
+	//#region Terminal location https://github.com/microsoft/vscode/issues/45407
+
+	export interface TerminalOptions {
+		location?: TerminalLocation | TerminalEditorLocationOptions | TerminalSplitLocationOptions;
+	}
+
+	export interface ExtensionTerminalOptions {
+		location?: TerminalLocation | TerminalEditorLocationOptions | TerminalSplitLocationOptions;
+	}
+
+	export enum TerminalLocation {
+		Panel = 1,
+		Editor = 2,
+	}
+
+	export interface TerminalEditorLocationOptions {
+		/**
+		 * A view column in which the {@link Terminal terminal} should be shown in the editor area.
+		 * Use {@link ViewColumn.Active active} to open in the active editor group, other values are
+		 * adjusted to be `Min(column, columnCount + 1)`, the
+		 * {@link ViewColumn.Active active}-column is not adjusted. Use
+		 * {@linkcode ViewColumn.Beside} to open the editor to the side of the currently active one.
+		 */
+		viewColumn: ViewColumn;
+		/**
+		 * An optional flag that when `true` will stop the {@link Terminal} from taking focus.
+		 */
+		preserveFocus?: boolean;
+	}
+
+	export interface TerminalSplitLocationOptions {
+		/**
+		 * The parent terminal to split this terminal beside. This works whether the parent terminal
+		 * is in the panel or the editor area.
+		 */
+		parentTerminal: Terminal;
+	}
+
+	//#endregion
+
 	//#region Terminal name change event https://github.com/microsoft/vscode/issues/114898
 
 	export interface Pseudoterminal {
@@ -906,22 +990,6 @@ declare module 'vscode' {
 		 * ```
 		 */
 		onDidChangeName?: Event<string>;
-	}
-
-	//#endregion
-
-	//#region Terminal color support https://github.com/microsoft/vscode/issues/128228
-	export interface TerminalOptions {
-		/**
-		 * Supports all ThemeColor keys, terminal.ansi* is recommended for contrast/consistency
-		 */
-		color?: ThemeColor;
-	}
-	export interface ExtensionTerminalOptions {
-		/**
-		 * Supports all ThemeColor keys, terminal.ansi* is recommended for contrast/consistency
-		 */
-		color?: ThemeColor;
 	}
 
 	//#endregion
@@ -971,16 +1039,29 @@ declare module 'vscode' {
 		 * The type for tree elements is text/treeitem.
 		 * For example, you can reconstruct the your tree elements:
 		 * ```ts
-		 * JSON.parse(await (items.get('text/treeitems')!.asString()))
+		 * JSON.parse(await (items.get('text/treeitem')!.asString()))
 		 * ```
 		 */
-		// todo@API no Map
-		// @ts-ignore
-		items: Map<string, TreeDataTransferItem>;
+		items: { get: (mimeType: string) => TreeDataTransferItem | undefined };
 	}
 
 	export interface DragAndDropController<T> extends Disposable {
 		readonly supportedTypes: string[];
+
+		/**
+		 * todo@API maybe
+		 *
+		 * When the user drops an item from this DragAndDropController on **another tree item** in **the same tree**,
+		 * `onWillDrop` will be called with the dropped tree item. This is the DragAndDropController's opportunity to
+		 * package the data from the dropped tree item into whatever format they want the target tree item to receive.
+		 *
+		 * The returned `TreeDataTransfer` will be merged with the original`TreeDataTransfer` for the operation.
+		 *
+		 * Note for implementation later: This means that the `text/treeItem` mime type will go away.
+		 *
+		 * @param source
+		 */
+		// onWillDrop?(source: T): Thenable<TreeDataTransfer>;
 
 		/**
 		 * Extensions should fire `TreeDataProvider.onDidChangeTreeData` for any elements that need to be refreshed.
@@ -998,6 +1079,11 @@ declare module 'vscode' {
 		 * Controls whether the task is executed in a specific terminal group using split panes.
 		 */
 		group?: string;
+
+		/**
+		 * Controls whether the terminal is closed after executing the task.
+		 */
+		close?: boolean;
 	}
 	//#endregion
 
@@ -1032,6 +1118,11 @@ declare module 'vscode' {
 		 * An optional flag to sort the final results by index of first query match in label. Defaults to true.
 		 */
 		sortByLabel: boolean;
+
+		/*
+		 * An optional flag that can be set to true to maintain the scroll position of the quick pick when the quick pick items are updated. Defaults to false.
+		 */
+		keepScrollPosition?: boolean;
 	}
 
 	//#endregion
@@ -1791,6 +1882,64 @@ declare module 'vscode' {
 	}
 	//#endregion
 
+	//#region non-error test output https://github.com/microsoft/vscode/issues/129201
+	interface TestRun {
+		/**
+		 * Appends raw output from the test runner. On the user's request, the
+		 * output will be displayed in a terminal. ANSI escape sequences,
+		 * such as colors and text styles, are supported.
+		 *
+		 * @param output Output text to append.
+		 * @param location Indicate that the output was logged at the given
+		 * location.
+		 * @param test Test item to associate the output with.
+		 */
+		appendOutput(output: string, location?: Location, test?: TestItem): void;
+	}
+	//#endregion
+
+	//#region test tags https://github.com/microsoft/vscode/issues/129456
+	/**
+	 * Tags can be associated with {@link TestItem TestItems} and
+	 * {@link TestRunProfile TestRunProfiles}. A profile with a tag can only
+	 * execute tests that include that tag in their {@link TestItem.tags} array.
+	 */
+	export class TestTag {
+		/**
+		 * ID of the test tag. `TestTag` instances with the same ID are considered
+		 * to be identical.
+		 */
+		readonly id: string;
+
+		/**
+		 * Creates a new TestTag instance.
+		 * @param id ID of the test tag.
+		 */
+		constructor(id: string);
+	}
+
+	export interface TestRunProfile {
+		/**
+		 * Associated tag for the profile. If this is set, only {@link TestItem}
+		 * instances with the same tag will be eligible to execute in this profile.
+		 */
+		tag?: TestTag;
+	}
+
+	export interface TestItem {
+		/**
+		 * Tags associated with this test item. May be used in combination with
+		 * {@link TestRunProfile.tags}, or simply as an organizational feature.
+		 */
+		tags: readonly TestTag[];
+	}
+
+	export interface TestController {
+		createRunProfile(label: string, kind: TestRunProfileKind, runHandler: (request: TestRunRequest, token: CancellationToken) => Thenable<void> | void, isDefault?: boolean, tag?: TestTag): TestRunProfile;
+	}
+
+	//#endregion
+
 	//#region proposed test APIs https://github.com/microsoft/vscode/issues/107467
 	export namespace tests {
 		/**
@@ -1884,18 +2033,18 @@ declare module 'vscode' {
 		/**
 		 * Unix milliseconds timestamp at which the test run was completed.
 		 */
-		completedAt: number;
+		readonly completedAt: number;
 
 		/**
 		 * Optional raw output from the test run.
 		 */
-		output?: string;
+		readonly output?: string;
 
 		/**
 		 * List of test results. The items in this array are the items that
 		 * were passed in the {@link tests.runTests} method.
 		 */
-		results: ReadonlyArray<Readonly<TestResultSnapshot>>;
+		readonly results: ReadonlyArray<Readonly<TestResultSnapshot>>;
 	}
 
 	/**
@@ -1940,7 +2089,7 @@ declare module 'vscode' {
 		 * State of the test in each task. In the common case, a test will only
 		 * be executed in a single task and the length of this array will be 1.
 		 */
-		readonly taskStates: ReadonlyArray<TestSnapshoptTaskState>;
+		readonly taskStates: ReadonlyArray<TestSnapshotTaskState>;
 
 		/**
 		 * Optional list of nested tests for this item.
@@ -1948,7 +2097,7 @@ declare module 'vscode' {
 		readonly children: Readonly<TestResultSnapshot>[];
 	}
 
-	export interface TestSnapshoptTaskState {
+	export interface TestSnapshotTaskState {
 		/**
 		 * Current result of the test.
 		 */
@@ -1965,407 +2114,6 @@ declare module 'vscode' {
 		 * failure information if the test fails.
 		 */
 		readonly messages: ReadonlyArray<TestMessage>;
-	}
-
-	//#endregion
-
-	//#region test APIs to finalize https://github.com/microsoft/vscode/issues/122208
-
-	export namespace tests {
-		/**
-		 * Creates a new test controller.
-		 *
-		 * @param id Identifier for the controller, must be globally unique.
-		*/
-		export function createTestController(id: string, label: string): TestController;
-	}
-
-	/**
-	 * The kind of executions that {@link TestRunProfile | TestRunProfiles} control.
-	 */
-	export enum TestRunProfileKind {
-		Run = 1,
-		Debug = 2,
-		Coverage = 3,
-	}
-
-	/**
-	 * A TestRunProfile describes one way to execute tests in a {@link TestController}.
-	 */
-	export interface TestRunProfile {
-		/**
-		 * Label shown to the user in the UI.
-		 *
-		 * Note that the label has some significance if the user requests that
-		 * tests be re-run in a certain way. For example, if tests were run
-		 * normally and the user requests to re-run them in debug mode, the editor
-		 * will attempt use a configuration with the same label in the `Debug`
-		 * group. If there is no such configuration, the default will be used.
-		 */
-		label: string;
-
-		/**
-		 * Configures what kind of execution this profile controls. If there
-		 * are no profiles for a kind, it will not be available in the UI.
-		 */
-		readonly kind: TestRunProfileKind;
-
-		/**
-		 * Controls whether this profile is the default action that will
-		 * be taken when its group is actions. For example, if the user clicks
-		 * the generic "run all" button, then the default profile for
-		 * {@link TestRunProfileKind.Run} will be executed.
-		 */
-		isDefault: boolean;
-
-		/**
-		 * If this method is present, a configuration gear will be present in the
-		 * UI, and this method will be invoked when it's clicked. When called,
-		 * you can take other editor actions, such as showing a quick pick or
-		 * opening a configuration file.
-		 */
-		configureHandler?: () => void;
-
-		/**
-		 * Handler called to start a test run. When invoked, the function should
-		 * {@link TestController.createTestRun} at least once, and all tasks
-		 * associated with the run should be created before the function returns
-		 * or the reutrned promise is resolved.
-		 *
-		 * @param request Request information for the test run
-		 * @param cancellationToken Token that signals the used asked to abort the
-		 * test run. If cancellation is requested on this token, all {@link TestRun}
-		 * instances associated with the request will be
-		 * automatically cancelled as well.
-		 */
-		runHandler: (request: TestRunRequest, token: CancellationToken) => Thenable<void> | void;
-
-		/**
-		 * Deletes the run profile.
-		 */
-		dispose(): void;
-	}
-
-	/**
-	 * Entry point to discover and execute tests. It contains {@link items} which
-	 * are used to populate the editor UI, and is associated with
-	 * {@link createRunProfile run profiles} to allow
-	 * for tests to be executed.
-	 */
-	export interface TestController {
-		/**
-		 * The ID of the controller, passed in {@link vscode.tests.createTestController}.
-		 * This must be globally unique,
-		 */
-		readonly id: string;
-
-		/**
-		 * Human-readable label for the test controller.
-		 */
-		label: string;
-
-		/**
-		 * Available test items. Tests in the workspace should be added in this
-		 * collection. The extension controls when to add these, although the
-		 * editor may request children using the {@link resolveChildrenHandler},
-		 * and the extension should add tests for a file when
-		 * {@link vscode.workspace.onDidOpenTextDocument} fires in order for
-		 * decorations for tests within the file to be visible.
-		 *
-		 * Tests in this collection should be watched and updated by the extension
-		 * as files change. See {@link resolveChildrenHandler} for details around
-		 * for the lifecycle of watches.
-		 */
-		readonly items: TestItemCollection;
-
-		/**
-		 * Creates a profile used for running tests. Extensions must create
-		 * at least one profile in order for tests to be run.
-		 * @param label Human-readable label for this profile
-		 * @param group Configures where this profile is grouped in the UI.
-		 * @param runHandler Function called to start a test run
-		 * @param isDefault Whether this is the default action for the group
-		 */
-		createRunProfile(label: string, group: TestRunProfileKind, runHandler: (request: TestRunRequest, token: CancellationToken) => Thenable<void> | void, isDefault?: boolean): TestRunProfile;
-
-		/**
-		 * A function provided by the extension that the editor may call to request
-		 * children of a test item, if the {@link TestItem.canResolveChildren} is
-		 * `true`. When called, the item should discover children and call
-		 * {@link vscode.tests.createTestItem} as children are discovered.
-		 *
-		 * The item in the explorer will automatically be marked as "busy" until
-		 * the function returns or the returned thenable resolves.
-		 *
-		 * The handler will be called `undefined` to resolve the controller's
-		 * initial children.
-		 *
-		 * @param item An unresolved test item for which
-		 * children are being requested
-		 */
-		// todo@API resolveHandler
-		resolveChildrenHandler?: (item: TestItem | undefined) => Thenable<void> | void;
-
-		/**
-		 * Creates a {@link TestRun<T>}. This should be called by the
-		 * {@link TestRunner} when a request is made to execute tests, and may also
-		 * be called if a test run is detected externally. Once created, tests
-		 * that are included in the results will be moved into the
-		 * {@link TestResultState.Queued} state.
-		 *
-		 * All runs created using the same `request` instance will be grouped
-		 * together. This is useful if, for example, a single suite of tests is
-		 * run on multiple platforms.
-		 *
-		 * @param request Test run request. Only tests inside the `include` may be
-		 * modified, and tests in its `exclude` are ignored.
-		 * @param name The human-readable name of the run. This can be used to
-		 * disambiguate multiple sets of results in a test run. It is useful if
-		 * tests are run across multiple platforms, for example.
-		 * @param persist Whether the results created by the run should be
-		 * persisted in the editor. This may be false if the results are coming from
-		 * a file already saved externally, such as a coverage information file.
-		 */
-		createTestRun(request: TestRunRequest, name?: string, persist?: boolean): TestRun;
-
-		/**
-		 * Creates a new managed {@link TestItem} instance. It can be added into
-		 * the {@link TestItem.children} of an existing item, or into the
-		 * {@link TestController.items}.
-		 * @param id Identifier for the TestItem. The test item's ID must be unique
-		 * in the {@link TestItemCollection} it's added to.
-		 * @param label Human-readable label of the test item.
-		 * @param uri URI this TestItem is associated with. May be a file or directory.
-		 */
-		createTestItem(id: string, label: string, uri?: Uri): TestItem;
-
-		/**
-		 * Unregisters the test controller, disposing of its associated tests
-		 * and unpersisted results.
-		 */
-		dispose(): void;
-	}
-
-	/**
-	 * Options given to {@link tests.runTests}.
-	 */
-	export class TestRunRequest {
-		/**
-		 * Filter for specific tests to run. If given, the extension should run all
-		 * of the given tests and all children of the given tests, excluding
-		 * any tests that appear in {@link TestRunRequest.exclude}. If this is
-		 * not given, then the extension should simply run all tests.
-		 *
-		 * The process of running tests should resolve the children of any test
-		 * items who have not yet been resolved.
-		 */
-		include?: TestItem[];
-
-		/**
-		 * An array of tests the user has marked as excluded from the test included
-		 * in this run; exclusions should apply after inclusions.
-		 *
-		 * May be omitted if no exclusions were requested. Test controllers should
-		 * not run excluded tests or any children of excluded tests.
-		 */
-		exclude?: TestItem[];
-
-		/**
-		 * The profile used for this request. This will always be defined
-		 * for requests issued from the editor UI, though extensions may
-		 * programmatically create requests not associated with any profile.
-		 */
-		profile?: TestRunProfile;
-
-		/**
-		 * @param tests Array of specific tests to run, or undefined to run all tests
-		 * @param exclude Tests to exclude from the run
-		 * @param profile The run profile used for this request.
-		 */
-		constructor(include?: readonly TestItem[], exclude?: readonly TestItem[], profile?: TestRunProfile);
-	}
-
-	/**
-	 * Options given to {@link TestController.runTests}
-	 */
-	export interface TestRun {
-		/**
-		 * The human-readable name of the run. This can be used to
-		 * disambiguate multiple sets of results in a test run. It is useful if
-		 * tests are run across multiple platforms, for example.
-		 */
-		readonly name?: string;
-
-		/**
-		 * A cancellation token which will be triggered when the test run is
-		 * canceled from the UI.
-		 */
-		readonly token: CancellationToken;
-
-		/**
-		 * Whether the test run will be persisteded across reloads by the editor UI.
-		 */
-		readonly isPersisted: boolean;
-
-		/**
-		 * Updates the state of the test in the run. Calling with method with nodes
-		 * outside the {@link TestRunRequest.tests} or in the {@link TestRunRequest.exclude}
-		 * array will no-op. This will usually be called multiple times for a test
-		 * as it is queued, enters the running state, and then passes or fails.
-		 *
-		 * @param test The test to update
-		 * @param state The state to assign to the test
-		 */
-		setState(test: TestItem, state: TestResultState): void;
-
-		/**
-		 * Updates the state of the test in the run. Calling with method with nodes
-		 * outside the {@link TestRunRequest.tests} or in the {@link TestRunRequest.exclude}
-		 * array will no-op. This override moves the test into a terminal state and
-		 * indicates how long it ran for.
-		 *
-		 * @param test The terminal test state
-		 * @param state The state to assign to the test
-		 * @param duration Optionally sets how long the test took to run, in milliseconds
-		 */
-		setState(test: TestItem, state: TestResultState.Passed | TestResultState.Failed | TestResultState.Errored, duration: number): void;
-
-		/**
-		 * Appends a message, such as an assertion error, to the test item.
-		 *
-		 * Calling with method with nodes outside the {@link TestRunRequest.tests}
-		 * or in the {@link TestRunRequest.exclude} array will no-op.
-		 *
-		 * @param test The test to update
-		 * @param message The message to add
-		 */
-		appendMessage(test: TestItem, message: TestMessage): void;
-
-		/**
-		 * Appends raw output from the test runner. On the user's request, the
-		 * output will be displayed in a terminal. ANSI escape sequences,
-		 * such as colors and text styles, are supported.
-		 *
-		 * @param output Output text to append
-		 */
-		appendOutput(output: string): void;
-
-		/**
-		 * Signals that the end of the test run. Any tests included in the run whose
-		 * states have not been updated will have their state reset.
-		 */
-		end(): void;
-	}
-
-	/**
-	 * Collection of test items, found in {@link TestItem.children} and
-	 * {@link TestController.items}.
-	 */
-	export interface TestItemCollection {
-		/**
-		 * Replaces the items stored by the collection.
-		 * @param items Items to store, can be an array or other iterable.
-		 */
-		replace(items: readonly TestItem[]): void;
-
-		/**
-		 * Iterate over each entry in this collection.
-		 *
-		 * @param callback Function to execute for each entry.
-		 * @param thisArg The `this` context used when invoking the handler function.
-		 */
-		forEach(callback: (item: TestItem, collection: TestItemCollection) => unknown, thisArg?: unknown): void;
-
-		/**
-		 * Adds the test item to the children. If an item with the same ID already
-		 * exists, it'll be replaced.
-		 * @param items Item to add.
-		 */
-		add(item: TestItem): void;
-
-		/**
-		 * Removes the a single test item from the collection.
-		 * @param itemId Item ID to delete.
-		 */
-		delete(itemId: string): void;
-
-		/**
-		 * Efficiently gets a test item by ID, if it exists, in the children.
-		 * @param itemId Item ID to get.
-		 */
-		get(itemId: string): TestItem | undefined;
-	}
-
-	/**
-	 * A test item is an item shown in the "test explorer" view. It encompasses
-	 * both a suite and a test, since they have almost or identical capabilities.
-	 */
-	export interface TestItem {
-		/**
-		 * Identifier for the TestItem. This is used to correlate
-		 * test results and tests in the document with those in the workspace
-		 * (test explorer). This cannot change for the lifetime of the TestItem,
-		 * and must be unique among its parent's direct children.
-		 */
-		readonly id: string;
-
-		/**
-		 * URI this TestItem is associated with. May be a file or directory.
-		 */
-		readonly uri?: Uri;
-
-		/**
-		 * A mapping of children by ID to the associated TestItem instances.
-		 */
-		readonly children: TestItemCollection;
-
-		/**
-		 * The parent of this item. It's is undefined top-level items in the
-		 * {@link TestController.items} and for items that aren't yet included in
-		 * another item's {@link children}.
-		 */
-		readonly parent?: TestItem;
-
-		/**
-		 * Indicates whether this test item may have children discovered by resolving.
-		 * If so, it will be shown as expandable in the Test Explorer view, and
-		 * expanding the item will cause {@link TestController.resolveChildrenHandler}
-		 * to be invoked with the item.
-		 *
-		 * Default to false.
-		 */
-		// todo@API better names: isLeaf, isLeaf{Type|Node}, canHaveChildren
-		canResolveChildren: boolean;
-
-		/**
-		 * Controls whether the item is shown as "busy" in the Test Explorer view.
-		 * This is useful for showing status while discovering children. Defaults
-		 * to false.
-		 */
-		busy: boolean;
-
-		/**
-		 * Display name describing the test case.
-		 */
-		label: string;
-
-		/**
-		 * Optional description that appears next to the label.
-		 */
-		description?: string;
-
-		/**
-		 * Location of the test item in its `uri`. This is only meaningful if the
-		 * `uri` points to a file.
-		 */
-		range?: Range;
-
-		/**
-		 * May be set to an error associated with loading the test. Note that this
-		 * is not a test result and should only be used to represent errors in
-		 * discovery, such as syntax errors.
-		 */
-		error?: string | MarkdownString;
 	}
 
 	/**
@@ -2386,45 +2134,6 @@ declare module 'vscode' {
 		Errored = 6
 	}
 
-	/**
-	 * Message associated with the test state. Can be linked to a specific
-	 * source range -- useful for assertion failures, for example.
-	 */
-	export class TestMessage {
-		/**
-		 * Human-readable message text to display.
-		 */
-		message: string | MarkdownString;
-
-		/**
-		 * Expected test output. If given with `actualOutput`, a diff view will be shown.
-		 */
-		expectedOutput?: string;
-
-		/**
-		 * Actual test output. If given with `expectedOutput`, a diff view will be shown.
-		 */
-		actualOutput?: string;
-
-		/**
-		 * Associated file location.
-		 */
-		location?: Location;
-
-		/**
-		 * Creates a new TestMessage that will present as a diff in the editor.
-		 * @param message Message to display to the user.
-		 * @param expected Expected output.
-		 * @param actual Actual output.
-		 */
-		static diff(message: string | MarkdownString, expected: string, actual: string): TestMessage;
-
-		/**
-		 * Creates a new TestMessage instance.
-		 * @param message The message to show to the user.
-		 */
-		constructor(message: string | MarkdownString);
-	}
 	//#endregion
 
 	//#region Opener service (https://github.com/microsoft/vscode/issues/109277)
@@ -2587,18 +2296,68 @@ declare module 'vscode' {
 
 	//#region https://github.com/Microsoft/vscode/issues/15178
 
-	// TODO@API must be a class
-	export interface OpenEditorInfo {
-		name: string;
-		resource: Uri;
-		isActive: boolean;
+	/**
+	 * Represents a tab within the window
+	 */
+	export interface Tab {
+		/**
+		 * The text displayed on the tab
+		 */
+		readonly label: string;
+
+		/**
+		 * The position of the tab
+		 */
+		readonly viewColumn: ViewColumn;
+
+		/**
+		 * The resource represented by the tab if availble.
+		 * If the tab contains more than one resource then primary will represent the left resource, and secondary the right one.
+		 * Note: Not all editor types have a resource associated with them
+		 */
+		readonly resource?: Uri | { primary?: Uri, secondary?: Uri };
+
+		/**
+		 * The identifier of the editor which the tab should contain, because
+		 * not all tabs represent editors this may be undefined.
+		 * This is equivalent to `viewType` for custom editors and notebooks.
+		 * The built-in text editor has an id of 'default' for all configurations.
+		 * Note: Tabs are not guaranteed to contain editors but this id represents what editor the tab will resolve if available
+		 */
+		readonly editorId?: string;
+
+		/**
+		 * Whether or not the tab is currently active
+		 * Dictated by being the selected tab in the active group
+		 */
+		readonly isActive: boolean;
 	}
 
 	export namespace window {
-		export const openEditors: ReadonlyArray<OpenEditorInfo>;
+		/**
+		 * A list of all opened tabs
+		 * Ordered from left to right
+		 */
+		export const tabs: readonly Tab[];
 
-		// todo@API proper event type
-		export const onDidChangeOpenEditors: Event<void>;
+		/**
+		 * The currently active tab
+		 * Undefined if no tabs are currently opened
+		 */
+		export const activeTab: Tab | undefined;
+
+		/**
+		 * An {@link Event} which fires when the array of {@link window.tabs tabs}
+		 * has changed.
+		 */
+		export const onDidChangeTabs: Event<readonly Tab[]>;
+
+		/**
+		 * An {@link Event} which fires when the {@link window.activeTab activeTab}
+		 * has changed.
+		 */
+		export const onDidChangeActiveTab: Event<Tab | undefined>;
+
 	}
 
 	//#endregion
@@ -2718,6 +2477,25 @@ declare module 'vscode' {
 		 * How the completion was triggered.
 		 */
 		readonly triggerKind: InlineCompletionTriggerKind;
+
+		/**
+		 * Provides information about the currently selected item in the autocomplete widget if it is visible.
+		 *
+		 * If set, provided inline completions must extend the text of the selected item
+		 * and use the same range, otherwise they are not shown as preview.
+		 * As an example, if the document text is `console.` and the selected item is `.log` replacing the `.` in the document,
+		 * the inline completion must also replace `.` and start with `.log`, for example `.log()`.
+		 *
+		 * Inline completion providers are requested again whenever the selected item changes.
+		 *
+		 * The user must configure `"editor.suggest.preview": true` for this feature.
+		*/
+		readonly selectedCompletionInfo: SelectedCompletionInfo | undefined;
+	}
+
+	export interface SelectedCompletionInfo {
+		range: Range;
+		text: string;
 	}
 
 	/**
@@ -2745,9 +2523,9 @@ declare module 'vscode' {
 
 	export class InlineCompletionItem {
 		/**
-		 * The text to insert.
-		 * If the text contains a line break, the range must end at the end of a line.
-		 * If existing text should be replaced, the existing text must be a prefix of the text to insert.
+		 * The text to replace the range with.
+		 *
+		 * The text the range refers to should be a prefix of this value and must be a subword (`AB` and `BEF` are subwords of `ABCDEF`, but `Ab` is not).
 		*/
 		text: string;
 
@@ -2755,8 +2533,8 @@ declare module 'vscode' {
 		 * The range to replace.
 		 * Must begin and end on the same line.
 		 *
-		 * Prefer replacements over insertions to avoid cache invalidation.
-		 * Instead of reporting a completion that extends a word,
+		 * Prefer replacements over insertions to avoid cache invalidation:
+		 * Instead of reporting a completion that inserts an extension at the end of a word,
 		 * the whole word should be replaced with the extended word.
 		*/
 		range?: Range;
@@ -2793,35 +2571,6 @@ declare module 'vscode' {
 	 */
 	export interface InlineCompletionItemDidShowEvent<T extends InlineCompletionItem> {
 		completionItem: T;
-	}
-
-	//#endregion
-
-	//#region FileSystemProvider stat readonly - https://github.com/microsoft/vscode/issues/73122
-
-	export enum FilePermission {
-		/**
-		 * The file is readonly.
-		 *
-		 * *Note:* All `FileStat` from a `FileSystemProvider` that is registered  with
-		 * the option `isReadonly: true` will be implicitly handled as if `FilePermission.Readonly`
-		 * is set. As a consequence, it is not possible to have a readonly file system provider
-		 * registered where some `FileStat` are not readonly.
-		 */
-		Readonly = 1
-	}
-
-	/**
-	 * The `FileStat`-type represents metadata about a file
-	 */
-	export interface FileStat {
-
-		/**
-		 * The permissions of the file, e.g. whether the file is readonly.
-		 *
-		 * *Note:* This value might be a bitmask, e.g. `FilePermission.Readonly | FilePermission.Other`.
-		 */
-		permissions?: FilePermission;
 	}
 
 	//#endregion
@@ -3167,15 +2916,34 @@ declare module 'vscode' {
 	}
 
 	interface LanguageStatusItem {
+		readonly id: string;
 		selector: DocumentSelector;
-		text: string;
-		detail: string | MarkdownString
+		// todo@jrieken replace with boolean ala needsAttention
 		severity: LanguageStatusSeverity;
+		name: string | undefined;
+		text: string;
+		detail?: string;
+		command: Command | undefined;
+		accessibilityInformation?: AccessibilityInformation;
 		dispose(): void;
 	}
 
 	namespace languages {
-		export function createLanguageStatusItem(selector: DocumentSelector): LanguageStatusItem;
+		export function createLanguageStatusItem(id: string, selector: DocumentSelector): LanguageStatusItem;
+	}
+
+	//#endregion
+
+	//#region https://github.com/microsoft/vscode/issues/88716
+	export interface QuickPickItem {
+		buttons?: QuickInputButton[];
+	}
+	export interface QuickPick<T extends QuickPickItem> extends QuickInput {
+		readonly onDidTriggerItemButton: Event<QuickPickItemButtonEvent<T>>;
+	}
+	export interface QuickPickItemButtonEvent<T extends QuickPickItem> {
+		button: QuickInputButton;
+		item: T;
 	}
 
 	//#endregion
