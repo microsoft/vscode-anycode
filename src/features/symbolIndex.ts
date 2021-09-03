@@ -18,26 +18,12 @@ import * as rust from '../queries/rust';
 import * as typescript from '../queries/typescript';
 import { SupportedLanguages } from '../supportedLanguages';
 import { Trie } from '../util/trie';
+import { QueryCapture } from '../../tree-sitter/tree-sitter';
 
-interface SymbolQueries {
+export const symbolMapping: {
+	getSymbolKind(symbolKind: string, strict: boolean): vscode.SymbolKind | undefined;
 	getSymbolKind(symbolKind: string): vscode.SymbolKind;
-	get(languageId: string, language: Parser.Language): Parser.Query | undefined;
-}
-
-export const symbolQueries: SymbolQueries = new class {
-
-	private readonly _data = new Map<string, string | Parser.Query>([
-		['c', c.symbols],
-		['cpp', cpp.symbols],
-		['csharp', c_sharp.symbols],
-		['go', go.symbols],
-		['java', java.symbols],
-		['php', php.symbols],
-		['python', python.symbols],
-		['rust', rust.symbols],
-		['typescript', typescript.symbols],
-	]);
-
+} = new class {
 	private readonly _symbolKindMapping = new Map<string, vscode.SymbolKind>([
 		['file', vscode.SymbolKind.File],
 		['module', vscode.SymbolKind.Module],
@@ -67,6 +53,31 @@ export const symbolQueries: SymbolQueries = new class {
 		['typeParameter', vscode.SymbolKind.TypeParameter],
 	]);
 
+	getSymbolKind(symbolKind: string): vscode.SymbolKind;
+	getSymbolKind(symbolKind: string, strict: true): vscode.SymbolKind | undefined;
+	getSymbolKind(symbolKind: string, strict?: true): vscode.SymbolKind | undefined {
+		const res = this._symbolKindMapping.get(symbolKind);
+		if (!res && strict) {
+			return undefined;
+		}
+		return res ?? vscode.SymbolKind.Variable;
+	}
+};
+
+const _queries = new class {
+
+	private readonly _data = new Map<string, string | Parser.Query>([
+		['c', c.queries],
+		['cpp', cpp.queries],
+		['csharp', c_sharp.queries],
+		['go', go.queries],
+		['java', java.queries],
+		['php', php.queries],
+		['python', python.queries],
+		['rust', rust.queries],
+		['typescript', typescript.queries],
+	]);
+
 	get(languageId: string, language: Parser.Language): Parser.Query | undefined {
 		let queryOrStr = this._data.get(languageId);
 		if (typeof queryOrStr === 'string') {
@@ -81,12 +92,7 @@ export const symbolQueries: SymbolQueries = new class {
 		}
 		return queryOrStr;
 	}
-
-	getSymbolKind(symbolKind: string): vscode.SymbolKind {
-		return this._symbolKindMapping.get(symbolKind) ?? vscode.SymbolKind.Variable;
-	}
 };
-
 
 class FileQueueAndDocuments {
 
@@ -208,9 +214,21 @@ class FileQueueAndDocuments {
 	}
 }
 
+export class Usage {
+	constructor(
+		readonly location: vscode.Location,
+		readonly kind: vscode.SymbolKind | undefined
+	) { }
+
+	matches(kind: vscode.SymbolKind): boolean {
+		return this.kind === undefined || this.kind === kind;
+	}
+}
+
 export class SymbolIndex {
 
-	readonly trie: Trie<Set<vscode.SymbolInformation>> = Trie.create();
+	readonly symbols: Trie<Set<vscode.SymbolInformation>> = Trie.create();
+	readonly usages: Trie<Set<Usage>> = Trie.create();
 
 	private readonly _queue: FileQueueAndDocuments;
 	private _currentUpdate: Promise<void> | undefined;
@@ -243,14 +261,28 @@ export class SymbolIndex {
 		if (uris.length > 0) {
 			const sw = new StopWatch();
 			const remove = new Set(uris.map(u => u.toString()));
-			for (const [key, value] of this.trie) {
+
+			// symbols
+			for (const [key, value] of this.symbols) {
 				for (let item of value) {
 					if (remove.has(item.location.uri.toString())) {
 						value.delete(item);
 					}
 				}
 				if (value.size === 0) {
-					this.trie.delete(key);
+					this.symbols.delete(key);
+				}
+			}
+
+			// usages
+			for (const [key, value] of this.usages) {
+				for (let item of value) {
+					if (remove.has(item.location.uri.toString())) {
+						value.delete(item);
+					}
+				}
+				if (value.size === 0) {
+					this.usages.delete(key);
 				}
 			}
 			sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
@@ -258,55 +290,83 @@ export class SymbolIndex {
 			sw.reset();
 			const tasks = uris.map(this._createIndexTask, this);
 			await parallel(tasks, 50, new vscode.CancellationTokenSource().token);
-			sw.elapsed(`INDEX ADDED with ${uris.length} files`);
+			sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.symbols.size}, usages: ${this.usages.size}`);
 		}
 	}
 
 	private _createIndexTask(uri: vscode.Uri) {
 		return async (token: vscode.CancellationToken) => {
 			const document = await this._queue.getOrLoadDocument(uri);
+			await this._doIndex(document, token);
+		};
+	}
 
-			const tree = await this._trees.getParseTree(document, token);
-			if (!tree) {
-				return;
+	private async _doIndex(document: IDocument, token: vscode.CancellationToken): Promise<void> {
+		const tree = await this._trees.getParseTree(document, token);
+		if (!tree) {
+			return;
+		}
+
+		// symbols
+		const query = _queries.get(document.languageId, tree.getLanguage());
+		if (!query) {
+			return;
+		}
+
+		const captures = query.captures(tree.rootNode);
+
+		// --- symbols
+
+		for (let i = 0; i < captures.length; i++) {
+			const capture = captures[i];
+			if (!capture.name.startsWith('symbol.') || !capture.name.endsWith('.name')) {
+				continue;
 			}
-
-			const query = symbolQueries.get(document.languageId, tree.getLanguage());
-			if (!query) {
-				return;
+			const symbol = new vscode.SymbolInformation(
+				capture.node.text,
+				vscode.SymbolKind.Struct,
+				'',
+				new vscode.Location(document.uri, asCodeRange(capture.node))
+			);
+			const containerCandidate = captures[i - 1];
+			if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
+				symbol.containerName = containerCandidate.name;
+				symbol.kind = symbolMapping.getSymbolKind(containerCandidate.name);
 			}
-
-			query.captures(tree.rootNode).forEach((capture, index, array) => {
-				if (!capture.name.endsWith('.name')) {
-					return;
-				}
-				const symbol = new vscode.SymbolInformation(
-					capture.node.text,
-					vscode.SymbolKind.Struct,
-					'',
-					new vscode.Location(document.uri, asCodeRange(capture.node))
-				);
-				const containerCandidate = array[index - 1];
+			if (capture.name.endsWith('.name')) {
+				const containerCandidate = captures[i - 1];
 				if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
 					symbol.containerName = containerCandidate.name;
-					symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
+					symbol.kind = symbolMapping.getSymbolKind(containerCandidate.name);
 				}
+				let all = this.symbols.get(capture.node.text);
+				if (!all) {
+					this.symbols.set(capture.node.text, new Set([symbol]));
+				} else {
+					all.add(symbol);
+				}
+			}
+		}
 
-				if (capture.name.endsWith('.name')) {
-					const containerCandidate = array[index - 1];
-					if (containerCandidate && capture.name.startsWith(containerCandidate.name)) {
-						symbol.containerName = containerCandidate.name;
-						symbol.kind = symbolQueries.getSymbolKind(containerCandidate.name);
-					}
-					let all = this.trie.get(capture.node.text);
-					if (!all) {
-						this.trie.set(capture.node.text, new Set([symbol]));
-					} else {
-						all.add(symbol);
-					}
-				}
-			});
-		};
+		// --- usages
+
+		for (let i = 0; i < captures.length; i++) {
+			const capture = captures[i];
+			if (!capture.name.startsWith('usage.')) {
+				continue;
+			}
+			const idx = capture.name.lastIndexOf('.');
+			const loc = new Usage(
+				new vscode.Location(document.uri, asCodeRange(capture.node)),
+				symbolMapping.getSymbolKind(capture.name.substring(idx + 1), true)
+			);
+			let all = this.usages.get(capture.node.text);
+			if (!all) {
+				this.usages.set(capture.node.text, new Set([loc]));
+			} else {
+				all.add(loc);
+			}
+		}
 	}
 
 	//
@@ -316,10 +376,10 @@ export class SymbolIndex {
 		if (!tree) {
 			return [];
 		}
-		const query = symbolQueries.get(document.languageId, tree.getLanguage());
+		const query = _queries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return [];
 		}
-		return query.captures(tree.rootNode);
+		return query.captures(tree.rootNode).filter(item => item.name.startsWith('symbol.'));
 	}
 }

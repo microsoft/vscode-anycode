@@ -3,98 +3,98 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols = `
+export const queries = `
 (class_declaration
-	name: (identifier) @class.name
-) @class
+	name: (identifier) @symbol.class.name
+) @symbol.class
 
 (interface_declaration 
-	name: (identifier) @interface.name
-) @interface
+	name: (identifier) @symbol.interface.name
+) @symbol.interface
 
 (record_declaration 
-	name: (identifier) @record.name
-) @record
+	name: (identifier) @symbol.record.name
+) @symbol.record
 
 (record_declaration
 	(parameter_list
 		(parameter
-			name: (identifier) @property.name
-		) @property
+			name: (identifier) @symbol.property.name
+		) @symbol.property
 	)
 )
 
 (constructor_declaration
-	name: (identifier) @constructor.name
-) @constructor
+	name: (identifier) @symbol.constructor.name
+) @symbol.constructor
 
 (destructor_declaration
-	(identifier) @method.name
-) @method
+	(identifier) @symbol.method.name
+) @symbol.method
 
 (indexer_declaration
-	(bracketed_parameter_list) @method.name
-) @method
+	(bracketed_parameter_list) @symbol.method.name
+) @symbol.method
 
 (method_declaration
-	name: (identifier) @method.name
-) @method
+	name: (identifier) @symbol.method.name
+) @symbol.method
 
 (property_declaration
-	name: (identifier) @property.name
-) @property
+	name: (identifier) @symbol.property.name
+) @symbol.property
 
 (delegate_declaration
-	name: (identifier) @function.name
-) @function
+	name: (identifier) @symbol.function.name
+) @symbol.function
 
 (field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @field.name
+			(identifier) @symbol.field.name
 		)
 	)
-) @field
+) @symbol.field
 
 (event_field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @event.name
+			(identifier) @symbol.event.name
 		)
 	)
-) @event
+) @symbol.event
 
 (global_attribute_list
 	(attribute
-		(identifier) @constant.name
-	) @constant
+		(identifier) @symbol.constant.name
+	) @symbol.constant
 )
 
 (global_statement
 	(local_declaration_statement
 		(variable_declaration
 			(variable_declarator
-				(identifier) @variable.name
+				(identifier) @symbol.variable.name
 			)
 		)
 	)
 )
 
 (enum_declaration name:
-	(identifier) @enum.name
-) @enum
+	(identifier) @symbol.enum.name
+) @symbol.enum
 
 (struct_declaration
-	(identifier) @struct.name
-) @struct
+	(identifier) @symbol.struct.name
+) @symbol.struct
 
 (namespace_declaration
 	[
-		name: (identifier) @module.name
-		name: (qualified_name) @module.name
+		name: (identifier) @symbol.module.name
+		name: (qualified_name) @symbol.module.name
 	]
-) @module
+) @symbol.module
 
 (enum_member_declaration
-	(identifier) @enumMember.name
-) @enumMember`;
+	(identifier) @symbol.enumMember.name
+) @symbol.enumMember`;

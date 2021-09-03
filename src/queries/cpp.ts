@@ -3,71 +3,71 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const symbols =`
+export const queries =`
 (namespace_definition
-	name: (identifier) @module.name
-) @module
+	name: (identifier) @symbol.module.name
+) @symbol.module
 
 (declaration
 	type: (primitive_type)
-	declarator: (identifier) @variable.name
-) @variable
+	declarator: (identifier) @symbol.variable.name
+) @symbol.variable
 
 (friend_declaration
-	(type_identifier) @variable.name
-) @variable
+	(type_identifier) @symbol.variable.name
+) @symbol.variable
 
 (function_definition
 	(function_declarator
 		[
-			(identifier) @function.name
-			(field_identifier) @function.name
-			(scoped_identifier) @function.name
+			(identifier) @symbol.function.name
+			(field_identifier) @symbol.function.name
+			(scoped_identifier) @symbol.function.name
 		]
 	)
-) @function
+) @symbol.function
 
 (field_declaration
 	(function_declarator
 		[
-			(identifier) @function.name
-			(field_identifier) @function.name
-			(scoped_identifier) @function.name
+			(identifier) @symbol.function.name
+			(field_identifier) @symbol.function.name
+			(scoped_identifier) @symbol.function.name
 		]
 	)
-) @function
+) @symbol.function
 
 (declaration
 	(function_declarator
 		[
-			(identifier) @function.name
-			(field_identifier) @function.name
-			(scoped_identifier) @function.name
-			(destructor_name) @function.name
+			(identifier) @symbol.function.name
+			(field_identifier) @symbol.function.name
+			(scoped_identifier) @symbol.function.name
+			(destructor_name) @symbol.function.name
 		]
 	)
-) @function
+) @symbol.function
 
 (pointer_declarator
 	declarator: (function_declarator
-		declarator: (identifier) @function.name
-	) @function
+		declarator: (identifier) @symbol.function.name
+	) @symbol.function
 )
 
 (field_declaration
-	(field_identifier) @field.name
-) @field
+	(field_identifier) @symbol.field.name
+) @symbol.field
 
 (struct_specifier
-	(type_identifier) @struct.name
-) @struct
+	(type_identifier) @symbol.struct.name
+) @symbol.struct
 
 (class_specifier
-	(type_identifier) @class.name
-) @class
+	(type_identifier) @symbol.class.name
+) @symbol.class
 
 (type_definition
 	type: (_)
-	declarator: (type_identifier) @struct.name
-) @struct
+	declarator: (type_identifier) @symbol.struct.name
+) @symbol.struct
 `;
