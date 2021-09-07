@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 export class LanguageInfo {
 	constructor(
 		readonly languageId: string,
-		readonly wasmUri: vscode.Uri,
+		readonly wasmUri: string,
 		readonly suffixes: string[],
 	) { }
 }
@@ -25,15 +25,16 @@ export class SupportedLanguages {
 
 	constructor(context: vscode.ExtensionContext) {
 		this._all = [
-			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm'), ['c', 'i']),
-			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-cpp.wasm'), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
-			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c_sharp.wasm'), ['cs']),
-			new LanguageInfo('go', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-go.wasm'), ['go']),
-			new LanguageInfo('java', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm'), ['java']),
-			new LanguageInfo('php', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-php.wasm'), ['php', 'php4', 'php5', 'phtml', 'ctp']),
-			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-python.wasm'), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']),
-			new LanguageInfo('rust', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-rust.wasm'), ['rs']),
-			new LanguageInfo('typescript', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-typescript.wasm'), ['ts', 'tsx']),
+			// todo@jrieken same, same but different bug
+			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['c', 'i']),
+			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-cpp.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
+			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-c_sharp.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['cs']),
+			new LanguageInfo('go', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-go.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['go']),
+			new LanguageInfo('java', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-java.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['java']),
+			new LanguageInfo('php', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-php.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['php', 'php4', 'php5', 'phtml', 'ctp']),
+			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-python.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']),
+			new LanguageInfo('rust', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-rust.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['rs']),
+			new LanguageInfo('typescript', vscode.Uri.joinPath(context.extensionUri, 'tree-sitter-typescript.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'), ['ts', 'tsx']),
 		];
 
 		// reset when extension or configuration changes
@@ -82,7 +83,7 @@ export class SupportedLanguages {
 		return this._filteredAll;
 	}
 
-	getSupportedLanguagesAsSelector(): vscode.DocumentSelector {
+	getSupportedLanguagesAsSelector(): string[] {
 		return this.getSupportedLanguages().map(item => item.languageId);
 	}
 }

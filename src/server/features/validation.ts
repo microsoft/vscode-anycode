@@ -3,43 +3,42 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { ITrees, asCodeRange, StopWatch, isInteresting } from '../common';
+import { CancellationTokenSource, Connection, Diagnostic, DiagnosticSeverity, TextDocuments } from 'vscode-languageserver';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { asCodeRange, StopWatch, isInteresting } from '../common';
+import { Trees } from '../trees';
 
 export class Validation {
 
-	private readonly _currentValidation = new Map<vscode.TextDocument, vscode.CancellationTokenSource>();
-	private readonly _collection: vscode.DiagnosticCollection;
+	private readonly _currentValidation = new Map<TextDocument, CancellationTokenSource>();
 
-	constructor(private readonly _trees: ITrees) {
-		this._collection = vscode.languages.createDiagnosticCollection();
-		vscode.workspace.textDocuments.forEach(this._triggerValidation, this);
+	constructor(
+		private readonly _connection: Connection,
+		private readonly _documents: TextDocuments<TextDocument>,
+		private readonly _trees: Trees
+	) {
+		// this._collection = vscode.languages.createDiagnosticCollection();
+		_documents.all().forEach(this._triggerValidation, this);
+		_documents.onDidChangeContent(e => this._triggerValidation(e.document));
+		_documents.onDidOpen(e => this._triggerValidation(e.document));
+
+		_documents.onDidClose(e => {
+			_connection.sendDiagnostics({ uri: e.document.uri, diagnostics: [] });
+		});
 	}
 
-	dispose(): void {
-		this._collection.dispose();
-	}
-
-	register(): vscode.Disposable {
-		return vscode.Disposable.from(
-			new vscode.Disposable(() => this._collection.clear()),
-			vscode.workspace.onDidChangeTextDocument(e => this._triggerValidation(e.document)),
-			vscode.workspace.onDidOpenTextDocument(this._triggerValidation, this),
-			vscode.workspace.onDidCloseTextDocument(e => this._collection.delete(e.uri)),
-		);
-	}
-
-	private async _triggerValidation(document: vscode.TextDocument): Promise<void> {
-		if (!vscode.languages.match(this._trees.supportedLanguages, document) || !isInteresting(document.uri)) {
+	private async _triggerValidation(document: TextDocument): Promise<void> {
+		if (!isInteresting(document.uri)) {
 			// unsupported
 			return;
 		}
 
-		const enabled = vscode.workspace.getConfiguration('anycode', document).get('diagnostics', false);
-		if (!enabled) {
-			// disabled for this language
-			return;
-		}
+		// todo@jrieken
+		// const enabled = vscode.workspace.getConfiguration('anycode', document).get('diagnostics', false);
+		// if (!enabled) {
+		// 	// disabled for this language
+		// 	return;
+		// }
 
 		// cancel pending validation
 		let cts = this._currentValidation.get(document);
@@ -47,15 +46,15 @@ export class Validation {
 		cts?.dispose();
 
 		// schedule new validation
-		cts = new vscode.CancellationTokenSource();
+		cts = new CancellationTokenSource();
 		this._currentValidation.set(document, cts);
-		const handle = setTimeout(() => this._createDiagnostics(document, cts!.token), 500);
+		const handle = setTimeout(() => this._createDiagnostics(document), 500);
 		cts.token.onCancellationRequested(() => clearTimeout(handle));
 	}
 
-	private async _createDiagnostics(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<void> {
-		const tree = await this._trees.getParseTree(document, token);
-		const diags: vscode.Diagnostic[] = [];
+	private async _createDiagnostics(document: TextDocument): Promise<void> {
+		const tree = await this._trees.getParseTree(document);
+		const diagnostics: Diagnostic[] = [];
 		if (tree) {
 			const sw = new StopWatch();
 			// find MISSING nodes (those that got auto-inserted)
@@ -65,10 +64,10 @@ export class Validation {
 				let visitedChildren = false;
 				while (true) {
 					if (cursor.nodeIsMissing && !seen.has(cursor.nodeId)) {
-						diags.push({
+						diagnostics.push({
 							range: asCodeRange(cursor.currentNode()),
 							message: `Expected '${cursor.nodeType}'`,
-							severity: vscode.DiagnosticSeverity.Error,
+							severity: DiagnosticSeverity.Error,
 							source: 'anycode',
 							code: 'missing',
 						});
@@ -116,6 +115,7 @@ export class Validation {
 			// }
 			sw.elapsed('DIAGNOSTICS');
 		}
-		this._collection.set(document.uri, diags);
+
+		this._connection.sendDiagnostics({ uri: document.uri, diagnostics });
 	}
 }

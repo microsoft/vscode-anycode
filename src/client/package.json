@@ -1,0 +1,8 @@
+{
+	"name": "anycode-client",
+	"license": "MIT",
+	"publisher": "ms-vscode",
+	"dependencies": {
+		"vscode-languageclient": "^7.0.0"
+	}
+}

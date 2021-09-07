@@ -3,30 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type Parser from '../../tree-sitter/tree-sitter';
-import * as vscode from 'vscode';
-import { ITrees, asCodeRange as asCodeRange, StopWatch } from '../common';
+import type Parser from '../../../tree-sitter/tree-sitter';
+import { Connection, SelectionRange, SelectionRangeParams, TextDocuments } from 'vscode-languageserver';
+import { asCodeRange as asCodeRange, StopWatch } from '../common';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Trees } from '../trees';
 
-export class SelectionRangesProvider implements vscode.SelectionRangeProvider {
+export class SelectionRangesProvider {
 
-	constructor(private _trees: ITrees) { }
+	constructor(private _documents: TextDocuments<TextDocument>, private _trees: Trees) { }
 
-	register(): vscode.Disposable {
-		return vscode.languages.registerSelectionRangeProvider(this._trees.supportedLanguages, this);
+	register(connection: Connection) {
+		connection.onSelectionRanges(this.provideSelectionRanges.bind(this));
 	}
 
-	async provideSelectionRanges(document: vscode.TextDocument, positions: vscode.Position[], token: vscode.CancellationToken) {
+	async provideSelectionRanges(params: SelectionRangeParams) {
 
-		const tree = await this._trees.getParseTree(document, token);
+		const document = this._documents.get(params.textDocument.uri)!;
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return undefined;
 		}
 
 		const sw = new StopWatch();
 		sw.reset();
-		const result: vscode.SelectionRange[] = [];
+		const result: SelectionRange[] = [];
 
-		for (const position of positions) {
+		for (const position of params.positions) {
 			const stack: Parser.SyntaxNode[] = [];
 			const offset = document.offsetAt(position);
 
@@ -46,9 +49,9 @@ export class SelectionRangesProvider implements vscode.SelectionRangeProvider {
 				break;
 			}
 
-			let parent: vscode.SelectionRange | undefined;
+			let parent: SelectionRange | undefined;
 			for (let node of stack) {
-				let range = new vscode.SelectionRange(asCodeRange(node), parent);
+				let range = SelectionRange.create(asCodeRange(node), parent);
 				parent = range;
 			}
 			if (parent) {
