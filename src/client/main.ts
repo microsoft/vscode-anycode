@@ -44,8 +44,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
-			// todo@jrieken same, same but different bug
-			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, 'tree-sitter/tree-sitter.wasm').toString().replace(/^file:\/\//, 'vscode-file://vscode-app'),
+			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, 'tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages: supportedLanguages.getSupportedLanguages()
 		}
 	};
