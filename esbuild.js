@@ -13,7 +13,7 @@ if (process.argv.includes('--watch')) {
 			if (error) {
 				console.error('watch build failed:', error);
 			} else {
-				console.log('watch build succeeded:', result);
+				console.log('watch build succeeded');
 			}
 		}
 	}
