@@ -2,8 +2,23 @@
 	"name": "anycode-client",
 	"license": "MIT",
 	"publisher": "ms-vscode",
+	"scripts": {
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript"
+	},
 	"dependencies": {
 		"vscode-languageserver": "^7.0.0",
 		"vscode-languageserver-textdocument": "^1.0.1"
+	},
+	"devDependencies": {
+		"tree-sitter-c": "^0.19.0",
+		"tree-sitter-c-sharp": "^0.19.0",
+		"tree-sitter-cli": "^0.20.0",
+		"tree-sitter-cpp": "^0.19.0",
+		"tree-sitter-go": "^0.19.1",
+		"tree-sitter-java": "^0.19.1",
+		"tree-sitter-php": "^0.19.0",
+		"tree-sitter-python": "^0.19.0",
+		"tree-sitter-rust": "^0.19.1",
+		"tree-sitter-typescript": "^0.19.0"
 	}
 }

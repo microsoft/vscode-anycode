@@ -1,6 +1,9 @@
 .vscode/**
 .vscode-test/**
+.github/**
+esbuild.js
 src/**
+!src/**/*.wasm
 .gitignore
 **/tsconfig.json
 **/.eslintrc.json
