@@ -10,6 +10,7 @@ import { SupportedLanguages } from './supportedLanguages';
 
 export function activate(context: vscode.ExtensionContext) {
 
+	// todo@jrieken restart server when supported languages change
 	const supportedLanguages = new SupportedLanguages(context);
 
 	// -- setup server
@@ -29,12 +30,6 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const disposable = client.start();
 	context.subscriptions.push(disposable);
-	context.subscriptions.push({
-		dispose() {
-			// todo@jrieken what's the difference between Disposable returned from start()?
-			client.stop();
-		}
-	});
 
 	client.onReady().then(() => {
 
@@ -63,7 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
 			client.sendNotification('file-cache/remove', uri.toString());
 		}));
 
-
+		// serve fileRead request		
 		client.onRequest('file/read', async raw => {
 			const uri = vscode.Uri.parse(raw);
 			let languageId = '';
@@ -76,7 +71,6 @@ export function activate(context: vscode.ExtensionContext) {
 			const data = await vscode.workspace.fs.readFile(uri);
 			return { data, languageId };
 		});
-
 	});
 
 	// -- status (NEW proposal)
