@@ -5,7 +5,7 @@
 
 import { Connection, SymbolInformation, WorkspaceSymbolParams } from 'vscode-languageserver';
 import { StopWatch } from '../common';
-import { SymbolIndex } from '../symbolIndex';
+import { SymbolIndex } from './symbolIndex';
 
 export class WorkspaceSymbol {
 

@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type Parser from '../../../tree-sitter/tree-sitter';
-import { Connection, SelectionRange, SelectionRangeParams, TextDocuments } from 'vscode-languageserver';
+import { Connection, SelectionRange, SelectionRangeParams } from 'vscode-languageserver';
 import { asCodeRange as asCodeRange, StopWatch } from '../common';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 

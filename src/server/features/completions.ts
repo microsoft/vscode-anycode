@@ -3,10 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CompletionItem, CompletionItemKind, CompletionParams, Connection, SymbolKind, TextDocuments } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-
-import { SymbolIndex } from '../symbolIndex';
+import { CompletionItem, CompletionItemKind, CompletionParams, Connection, SymbolKind } from 'vscode-languageserver';
+import { SymbolIndex } from './symbolIndex';
 
 export class CompletionItemProvider {
 

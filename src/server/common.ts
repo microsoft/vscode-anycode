@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationToken, DocumentUri, Range, Position, Location } from 'vscode-languageserver';
+import { CancellationToken, Range, Position, Location } from 'vscode-languageserver';
 import type Parser from '../../tree-sitter/tree-sitter';
 
 export function asCodeRange(node: Parser.SyntaxNode): Range {

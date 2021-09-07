@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CancellationTokenSource, Connection, Diagnostic, DiagnosticSeverity, TextDocuments } from 'vscode-languageserver';
+import { CancellationTokenSource, Connection, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { asCodeRange, StopWatch, isInteresting } from '../common';
 import { DocumentStore } from '../documentStore';

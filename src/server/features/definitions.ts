@@ -6,7 +6,7 @@
 import { Connection, DefinitionParams, Location } from 'vscode-languageserver';
 import { asCodeRange, nodeAtPosition } from '../common';
 import { DocumentStore } from '../documentStore';
-import { SymbolIndex } from '../symbolIndex';
+import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 
 export class DefinitionProvider {

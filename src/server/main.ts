@@ -8,7 +8,7 @@ import { InitializeParams, InitializeResult, ServerCapabilities, TextDocumentSyn
 import Parser from '../../tree-sitter/tree-sitter';
 import { Trees } from './trees';
 import { DocumentSymbols } from './features/documentSymbols';
-import { SymbolIndex } from './symbolIndex';
+import { SymbolIndex } from './features/symbolIndex';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { CompletionItemProvider } from './features/completions';
 import { WorkspaceSymbol } from './features/workspaceSymbols';
@@ -44,7 +44,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	new WorkspaceSymbol(symbolIndex).register(connection);
 	new DocumentSymbols(documents, symbolIndex).register(connection);
 	new DefinitionProvider(documents, trees, symbolIndex).register(connection);
-	new ReferencesProvider(documents, trees, symbolIndex).register(connection);
+	new ReferencesProvider(trees, symbolIndex).register(connection);
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
 	new Validation(connection, documents, trees);

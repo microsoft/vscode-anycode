@@ -3,22 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type Parser from '../../tree-sitter/tree-sitter';
-import { asCodeRange, StopWatch, parallel, isInteresting } from './common';
-import * as c from './queries/c';
-import * as c_sharp from './queries/c_sharp';
-import * as cpp from './queries/cpp';
-import * as go from './queries/go';
-import * as java from './queries/java';
-import * as php from './queries/php';
-import * as python from './queries/python';
-import * as rust from './queries/rust';
-import * as typescript from './queries/typescript';
-import { Trie } from './util/trie';
+import type Parser from '../../../tree-sitter/tree-sitter';
+import { asCodeRange, StopWatch, parallel, isInteresting } from '../common';
+import * as c from '../queries/c';
+import * as c_sharp from '../queries/c_sharp';
+import * as cpp from '../queries/cpp';
+import * as go from '../queries/go';
+import * as java from '../queries/java';
+import * as php from '../queries/php';
+import * as python from '../queries/python';
+import * as rust from '../queries/rust';
+import * as typescript from '../queries/typescript';
+import { Trie } from '../util/trie';
 import { CancellationTokenSource, Location, SymbolInformation, SymbolKind } from 'vscode-languageserver';
-import { Trees } from './trees';
+import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DocumentStore } from './documentStore';
+import { DocumentStore } from '../documentStore';
 
 export const symbolMapping: {
 	getSymbolKind(symbolKind: string, strict: boolean): SymbolKind | undefined;

@@ -5,7 +5,7 @@
 
 import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-languageserver';
 import { asCodeRange, containsRange, StopWatch } from '../common';
-import { SymbolIndex, symbolMapping } from '../symbolIndex';
+import { SymbolIndex, symbolMapping } from './symbolIndex';
 import type Parser from '../../../tree-sitter/tree-sitter';
 import { DocumentStore } from '../documentStore';
 

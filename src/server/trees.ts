@@ -8,22 +8,8 @@ import Parser from '../../tree-sitter/tree-sitter';
 import { Disposable } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
-import { asTsPoint, StopWatch } from "./common";
+import { asTsPoint } from "./common";
 
-
-class Utils {
-
-	static asEdits(event: TextDocumentChange2): Parser.Edit[] {
-		return event.changes.map(change => ({
-			startPosition: asTsPoint(change.range.start),
-			oldEndPosition: asTsPoint(change.range.end),
-			newEndPosition: asTsPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
-			startIndex: change.rangeOffset,
-			oldEndIndex: change.rangeOffset + change.rangeLength,
-			newEndIndex: change.rangeOffset + change.text.length
-		}));
-	}
-}
 
 class Entry {
 	constructor(
@@ -31,10 +17,6 @@ class Entry {
 		public tree: Parser.Tree,
 		public edits: Parser.Edit[][]
 	) { }
-
-	dispose() {
-		this.tree.delete();
-	}
 }
 
 export class Trees {
@@ -43,7 +25,7 @@ export class Trees {
 		size: 100,
 		dispose(entries) {
 			for (let [, value] of entries) {
-				value.dispose();
+				value.tree.delete();
 			}
 		}
 	});
@@ -64,7 +46,7 @@ export class Trees {
 		this._listener.push(_documents.onDidChangeContent2(e => {
 			const info = this._cache.get(e.document.uri);
 			if (info) {
-				info.edits.push(Utils.asEdits(e));
+				info.edits.push(Trees._asEdits(e));
 			}
 		}));
 	}
@@ -72,7 +54,7 @@ export class Trees {
 	dispose(): void {
 		this._parser.delete();
 		for (let item of this._cache.values()) {
-			item.dispose();
+			item.tree.delete();
 		}
 		for (let item of this._listener) {
 			item.dispose();
@@ -81,11 +63,7 @@ export class Trees {
 
 	// --- languages
 
-	get supportedLanguages() {
-		return Array.from(this._languages.keys());
-	}
-
-	async getLanguage(langId: string): Promise<Parser.Language | undefined> {
+	private async _getLanguage(langId: string): Promise<Parser.Language | undefined> {
 		const entry = this._languages.get(langId);
 		if (!entry) {
 			return undefined;
@@ -105,7 +83,7 @@ export class Trees {
 			documentOrUri = await this._documents.retrieve(documentOrUri);
 		}
 
-		const language = await this.getLanguage(documentOrUri.languageId);
+		const language = await this._getLanguage(documentOrUri.languageId);
 		if (!language) {
 			throw new Error(`UNKNOWN languages ${documentOrUri.languageId}`);
 		}
@@ -146,5 +124,16 @@ export class Trees {
 			this._cache.delete(documentOrUri.uri);
 			throw e;
 		}
+	}
+
+	private static _asEdits(event: TextDocumentChange2): Parser.Edit[] {
+		return event.changes.map(change => ({
+			startPosition: asTsPoint(change.range.start),
+			oldEndPosition: asTsPoint(change.range.end),
+			newEndPosition: asTsPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
+			startIndex: change.rangeOffset,
+			oldEndIndex: change.rangeOffset + change.rangeLength,
+			newEndIndex: change.rangeOffset + change.text.length
+		}));
 	}
 };

@@ -5,14 +5,12 @@
 
 import { Connection, Location, ReferenceParams } from 'vscode-languageserver';
 import { containsLocation, nodeAtPosition } from '../common';
-import { DocumentStore } from '../documentStore';
-import { SymbolIndex } from '../symbolIndex';
+import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 
 export class ReferencesProvider {
 
 	constructor(
-		private readonly _documents: DocumentStore,
 		private readonly _trees: Trees,
 		private _symbols: SymbolIndex
 	) { }
