@@ -8,7 +8,7 @@ import Parser from '../../tree-sitter/tree-sitter';
 import { Disposable } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
-import { asTsPoint } from "./common";
+import { asTsPoint, StopWatch } from "./common";
 
 
 class Utils {
@@ -51,6 +51,7 @@ export class Trees {
 	private readonly _languages = new Map<string, { wasmUri: string, language?: Promise<Parser.Language> }>();
 
 	private readonly _listener: Disposable[] = [];
+	private readonly _parser = new Parser();
 
 	constructor(private readonly _documents: DocumentStore, languages: { languageId: string, wasmUri: string }[]) {
 
@@ -69,6 +70,7 @@ export class Trees {
 	}
 
 	dispose(): void {
+		this._parser.delete();
 		for (let item of this._cache.values()) {
 			item.dispose();
 		}
@@ -113,17 +115,15 @@ export class Trees {
 			return info.tree;
 		}
 
-		const parser = new Parser();
-		parser.setLanguage(language);
+		this._parser.setLanguage(language);
 		try {
 			const version = documentOrUri.version;
 			const text = documentOrUri.getText();
-
-			parser.setTimeoutMicros(1000 * 1000); // parse max 1sec
+			this._parser.setTimeoutMicros(1000 * 1000); // parse max 1sec
 
 			if (!info) {
 				// never seen before, parse fresh
-				const tree = parser.parse(text);
+				const tree = this._parser.parse(text);
 				info = new Entry(version, tree, []);
 				this._cache.set(documentOrUri.uri, info);
 
@@ -134,7 +134,7 @@ export class Trees {
 				deltas.forEach(delta => oldTree.edit(delta));
 				info.edits.length = 0;
 
-				info.tree = parser.parse(text, oldTree);
+				info.tree = this._parser.parse(text, oldTree);
 				info.version = version;
 				oldTree.delete();
 			}
@@ -145,8 +145,6 @@ export class Trees {
 			console.error(e);
 			this._cache.delete(documentOrUri.uri);
 			throw e;
-		} finally {
-			parser.delete();
 		}
 	}
 };
