@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Location, ReferenceParams, TextDocuments } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Connection, Location, ReferenceParams } from 'vscode-languageserver';
 import { containsLocation, nodeAtPosition } from '../common';
+import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from '../symbolIndex';
 import { Trees } from '../trees';
 
 export class ReferencesProvider {
 
 	constructor(
-		private readonly _document: TextDocuments<TextDocument>,
+		private readonly _documents: DocumentStore,
 		private readonly _trees: Trees,
 		private _symbols: SymbolIndex
 	) { }
@@ -22,11 +22,8 @@ export class ReferencesProvider {
 	}
 
 	async provideReferences(params: ReferenceParams): Promise<Location[]> {
-		const document = this._document.get(params.textDocument.uri)!;
-		const tree = await this._trees.getParseTree(document);
-		if (!tree) {
-			return [];
-		}
+
+		const tree = await this._trees.getParseTree(params.textDocument.uri);
 		const node = nodeAtPosition(tree.rootNode, params.position);
 		if (!node) {
 			return [];
@@ -45,7 +42,7 @@ export class ReferencesProvider {
 		if (usages) {
 			for (let usage of usages) {
 				if (thisKind === undefined) {
-					if (containsLocation(usage.location, document.uri, params.position)) {
+					if (containsLocation(usage.location, params.textDocument.uri, params.position)) {
 						thisKind = usage.kind;
 					}
 				}
@@ -61,7 +58,7 @@ export class ReferencesProvider {
 		if (symbols) {
 			for (let symbol of symbols) {
 				if (thisKind === undefined) {
-					if (containsLocation(symbol.location, document.uri, params.position)) {
+					if (containsLocation(symbol.location, params.textDocument.uri, params.position)) {
 						thisKind = symbol.kind;
 					}
 				}

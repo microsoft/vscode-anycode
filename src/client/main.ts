@@ -39,23 +39,29 @@ export function activate(context: vscode.ExtensionContext) {
 	client.onReady().then(() => {
 
 		const langPattern = `**/*.{${supportedLanguages.getSupportedLanguages().map(item => item.suffixes).flat().join(',')}}`;
-		const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
-		if (size > 0) {
-			const p = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, 0).then(uris => {
-				uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
-				console.info(`FOUND ${uris.length} files for ${langPattern}`);
-
-				return client.sendRequest('file/queue/init', uris.map(String));
-			}));
-
-			vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => p);
-		}
-
 		const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
 		context.subscriptions.push(watcher);
-		context.subscriptions.push(watcher.onDidCreate(uri => client.sendNotification('file/queue/add', [uri.toString()])));
-		context.subscriptions.push(watcher.onDidDelete(uri => client.sendNotification('file/queue/remove', [uri.toString()])));
-		context.subscriptions.push(watcher.onDidChange(uri => client.sendNotification('file/queue/update', [uri.toString()])));
+
+		// file discover and watching. in addition to text documents we annouce and provide
+		// all matching files
+		const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
+		const init = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, 0).then(uris => {
+			uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
+			console.info(`FOUND ${uris.length} files for ${langPattern}`);
+			return client.sendRequest('queue/init', uris.map(String));
+		}));
+		vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => init);
+		context.subscriptions.push(watcher.onDidCreate(uri => {
+			client.sendNotification('queue/add', [uri.toString()]);
+		}));
+		context.subscriptions.push(watcher.onDidDelete(uri => {
+			client.sendNotification('queue/remove', [uri.toString()]);
+			client.sendNotification('file-cache/remove', uri.toString());
+		}));
+		context.subscriptions.push(watcher.onDidChange(uri => {
+			client.sendNotification('queue/add', [uri.toString()]);
+			client.sendNotification('file-cache/remove', uri.toString());
+		}));
 
 
 		client.onRequest('file/read', async raw => {

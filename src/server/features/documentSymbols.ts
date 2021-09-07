@@ -7,6 +7,7 @@ import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-
 import { asCodeRange, containsRange, StopWatch } from '../common';
 import { SymbolIndex, symbolMapping } from '../symbolIndex';
 import type Parser from '../../../tree-sitter/tree-sitter';
+import { DocumentStore } from '../documentStore';
 
 
 //#region --- document symbols ---
@@ -21,7 +22,7 @@ class Node {
 
 export class DocumentSymbols {
 
-	constructor(private readonly _symbols: SymbolIndex) { }
+	constructor(private readonly _documents: DocumentStore, private readonly _symbols: SymbolIndex) { }
 
 	register(connection: Connection) {
 		connection.onDocumentSymbol(this.provideDocumentSymbols.bind(this));
@@ -30,7 +31,7 @@ export class DocumentSymbols {
 	async provideDocumentSymbols(params: DocumentSymbolParams): Promise<DocumentSymbol[]> {
 
 		const sw = new StopWatch();
-		const document = await this._symbols.documents.getOrLoadDocument(params.textDocument.uri);
+		const document = await this._documents.retrieve(params.textDocument.uri);
 		const captures = await this._symbols.symbolCaptures(document);
 		sw.elapsed('CAPTURE query');
 

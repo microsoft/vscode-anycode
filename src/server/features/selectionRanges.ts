@@ -8,10 +8,11 @@ import { Connection, SelectionRange, SelectionRangeParams, TextDocuments } from 
 import { asCodeRange as asCodeRange, StopWatch } from '../common';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Trees } from '../trees';
+import { DocumentStore } from '../documentStore';
 
 export class SelectionRangesProvider {
 
-	constructor(private _documents: TextDocuments<TextDocument>, private _trees: Trees) { }
+	constructor(private _documents: DocumentStore, private _trees: Trees) { }
 
 	register(connection: Connection) {
 		connection.onSelectionRanges(this.provideSelectionRanges.bind(this));
@@ -19,14 +20,10 @@ export class SelectionRangesProvider {
 
 	async provideSelectionRanges(params: SelectionRangeParams) {
 
-		const document = this._documents.get(params.textDocument.uri)!;
+		const document = await this._documents.retrieve(params.textDocument.uri);
 		const tree = await this._trees.getParseTree(document);
-		if (!tree) {
-			return undefined;
-		}
 
 		const sw = new StopWatch();
-		sw.reset();
 		const result: SelectionRange[] = [];
 
 		for (const position of params.positions) {

@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CompletionItem, CompletionItemKind, CompletionParams, Connection, DefinitionParams, Location, SymbolKind, TextDocuments } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Connection, DefinitionParams, Location } from 'vscode-languageserver';
 import { asCodeRange, nodeAtPosition } from '../common';
+import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from '../symbolIndex';
 import { Trees } from '../trees';
 
 export class DefinitionProvider {
 
 	constructor(
-		private readonly _document: TextDocuments<TextDocument>,
+		private readonly _documents: DocumentStore,
 		private readonly _trees: Trees,
 		private _symbols: SymbolIndex
 	) { }
@@ -22,11 +22,8 @@ export class DefinitionProvider {
 	}
 
 	async provideDefinitions(params: DefinitionParams): Promise<Location[]> {
-		const document = this._document.get(params.textDocument.uri)!;
+		const document = await this._documents.retrieve(params.textDocument.uri)!;
 		const tree = await this._trees.getParseTree(document);
-		if (!tree) {
-			return [];
-		}
 		const node = nodeAtPosition(tree.rootNode, params.position);
 		if (!node) {
 			return [];
@@ -50,7 +47,7 @@ export class DefinitionProvider {
 	}
 
 	private async _collectSymbolsWithSameName(name: string, language: string, uri: string, bucket: Location[]) {
-		const document = await this._symbols.documents.getOrLoadDocument(uri);
+		const document = await this._documents.retrieve(uri);
 		const isSameLanguage = document.languageId !== language;
 		const captures = await this._symbols.symbolCaptures(document);
 		for (let capture of captures) {

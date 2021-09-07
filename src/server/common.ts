@@ -6,14 +6,6 @@
 import { CancellationToken, DocumentUri, Range, Position, Location } from 'vscode-languageserver';
 import type Parser from '../../tree-sitter/tree-sitter';
 
-
-export interface IDocument {
-	uri: DocumentUri,
-	version: number;
-	languageId: string;
-	getText(): string;
-}
-
 export function asCodeRange(node: Parser.SyntaxNode): Range {
 	return Range.create(node.startPosition.row, node.startPosition.column, node.endPosition.row, node.endPosition.column);
 }

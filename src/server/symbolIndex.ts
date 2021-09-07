@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type Parser from '../../tree-sitter/tree-sitter';
-import { asCodeRange, StopWatch, IDocument, parallel } from './common';
+import { asCodeRange, StopWatch, parallel, isInteresting } from './common';
 import * as c from './queries/c';
 import * as c_sharp from './queries/c_sharp';
 import * as cpp from './queries/cpp';
@@ -17,7 +17,8 @@ import * as typescript from './queries/typescript';
 import { Trie } from './util/trie';
 import { CancellationTokenSource, Location, SymbolInformation, SymbolKind } from 'vscode-languageserver';
 import { Trees } from './trees';
-import { FileQueueAndDocuments } from './fileQueue';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { DocumentStore } from './documentStore';
 
 export const symbolMapping: {
 	getSymbolKind(symbolKind: string, strict: boolean): SymbolKind | undefined;
@@ -98,8 +99,6 @@ const _queries = new class {
 	}
 };
 
-
-
 export class Usage {
 	constructor(
 		readonly location: Location,
@@ -111,23 +110,48 @@ export class Usage {
 	}
 }
 
+class Queue {
+
+	private readonly _queue = new Set<string>();
+
+	enqueue(uri: string): void {
+		if (isInteresting(uri) && !this._queue.has(uri)) {
+			this._queue.add(uri);
+		}
+	}
+
+	consume(): string[] {
+		const result = Array.from(this._queue.values());
+		this._queue.clear();
+		return result;
+	}
+}
+
 export class SymbolIndex {
 
 	readonly symbols: Trie<Set<SymbolInformation>> = Trie.create();
 	readonly usages: Trie<Set<Usage>> = Trie.create();
 
+	private readonly _queue = new Queue();
 	private _currentUpdate: Promise<void> | undefined;
 
-	constructor(private readonly _trees: Trees, private readonly _queue: FileQueueAndDocuments) {
+	constructor(
+		private readonly _trees: Trees,
+		private readonly _documents: DocumentStore
+	) { }
 
+	addFile(uris: string[] | string): void {
+		if (Array.isArray(uris)) {
+			uris.forEach(this._queue.enqueue, this._queue);
+		} else {
+			this._queue.enqueue(uris);
+		}
 	}
 
-	dispose(): void {
-		this._queue.dispose();
-	}
-
-	get documents(): { getOrLoadDocument(uri: string): Promise<IDocument> } {
-		return this._queue;
+	removeFile(uris: string[]): void {
+		// todo@jrieken
+		// (1) remove from queue
+		// (2) remove from tries
 	}
 
 	async update(): Promise<void> {
@@ -138,56 +162,54 @@ export class SymbolIndex {
 
 	private async _doUpdate(): Promise<void> {
 		const uris = this._queue.consume();
-		if (uris.length > 0) {
-			const sw = new StopWatch();
-			const remove = new Set(uris.map(u => u.toString()));
-
-			// symbols
-			for (const [key, value] of this.symbols) {
-				for (let item of value) {
-					if (remove.has(item.location.uri.toString())) {
-						value.delete(item);
-					}
-				}
-				if (value.size === 0) {
-					this.symbols.delete(key);
-				}
-			}
-
-			// usages
-			for (const [key, value] of this.usages) {
-				for (let item of value) {
-					if (remove.has(item.location.uri.toString())) {
-						value.delete(item);
-					}
-				}
-				if (value.size === 0) {
-					this.usages.delete(key);
-				}
-			}
-			sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
-
-			sw.reset();
-			const tasks = uris.map(this._createIndexTask, this);
-			await parallel(tasks, 50, new CancellationTokenSource().token);
-			sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.symbols.size}, usages: ${this.usages.size}`);
+		if (uris.length === 0) {
+			return;
 		}
+		const sw = new StopWatch();
+		const remove = new Set(uris.map(u => u.toString()));
+
+		// symbols
+		for (const [key, value] of this.symbols) {
+			for (let item of value) {
+				if (remove.has(item.location.uri.toString())) {
+					value.delete(item);
+				}
+			}
+			if (value.size === 0) {
+				this.symbols.delete(key);
+			}
+		}
+
+		// usages
+		for (const [key, value] of this.usages) {
+			for (let item of value) {
+				if (remove.has(item.location.uri.toString())) {
+					value.delete(item);
+				}
+			}
+			if (value.size === 0) {
+				this.usages.delete(key);
+			}
+		}
+		sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
+
+		sw.reset();
+		const tasks = uris.map(this._createIndexTask, this);
+		await parallel(tasks, 50, new CancellationTokenSource().token);
+		sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.symbols.size}, usages: ${this.usages.size}`);
 	}
 
 	private _createIndexTask(uri: string) {
 		return async () => {
-			const document = await this._queue.getOrLoadDocument(uri);
+			const document = await this._documents.retrieve(uri);
 			await this._doIndex(document);
 		};
 	}
 
-	private async _doIndex(document: IDocument): Promise<void> {
-		const tree = await this._trees.getParseTree(document);
-		if (!tree) {
-			return;
-		}
-
+	private async _doIndex(document: TextDocument): Promise<void> {
 		// symbols
+
+		const tree = await this._trees.getParseTree(document);
 		const query = _queries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return;
@@ -253,11 +275,8 @@ export class SymbolIndex {
 
 	//
 
-	async symbolCaptures(document: IDocument): Promise<Parser.QueryCapture[]> {
+	async symbolCaptures(document: TextDocument): Promise<Parser.QueryCapture[]> {
 		const tree = await this._trees.getParseTree(document);
-		if (!tree) {
-			return [];
-		}
 		const query = _queries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return [];

@@ -6,11 +6,8 @@
 // ghetto LRU that utilizes the fact that Map keeps things in insertion order
 export class LRUMap<K, V> extends Map<K, V> {
 
-	private readonly _cacheLimits = { max: 45, size: 30 };
-
-	constructor(size: number = 30) {
+	constructor(private readonly _options: { size: number, dispose: (entries: [K, V][]) => void }) {
 		super();
-		this._cacheLimits = { size, max: Math.round(size * 1.3) };
 	}
 
 	get(key: K): V | undefined {
@@ -20,17 +17,17 @@ export class LRUMap<K, V> extends Map<K, V> {
 		const result = super.get(key);
 		this.delete(key);
 		this.set(key, result!);
+		setTimeout(() => {
+			if (this.size < Math.ceil(this._options.size * 1.3)) {
+				return;
+			}
+			const result = Array.from(this.entries()).slice(0, this._options.size);
+			for (let [key] of result) {
+				this.delete(key);
+			}
+			this._options.dispose(result);
+		}, 0);
 		return result;
 	}
 
-	cleanup(): [K, V][] {
-		if (this.size < this._cacheLimits.max) {
-			return [];
-		}
-		const result = Array.from(this.entries()).slice(0, this._cacheLimits.size);
-		for (let [key] of result) {
-			this.delete(key);
-		}
-		return result;
-	}
 }
