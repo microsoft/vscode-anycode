@@ -49,7 +49,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	new WorkspaceSymbol(symbolIndex).register(connection);
 	new DocumentSymbols(documents, trees).register(connection);
 	new DefinitionProvider(documents, trees, symbolIndex).register(connection);
-	new ReferencesProvider(trees, symbolIndex).register(connection);
+	new ReferencesProvider(documents, trees, symbolIndex).register(connection);
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
 	new FoldingRangeProvider(documents, trees).register(connection);
@@ -60,7 +60,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		workspaceSymbolProvider: true,
 		documentSymbolProvider: true,
 		definitionProvider: true,
-		// referencesProvider: true,
+		referencesProvider: true,
 		completionProvider: {},
 		selectionRangeProvider: true,
 		foldingRangeProvider: true,

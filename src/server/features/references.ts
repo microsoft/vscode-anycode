@@ -3,31 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, Location, ReferenceParams } from 'vscode-languageserver';
-import { containsLocation, nodeAtPosition } from '../common';
+import * as lsp from 'vscode-languageserver';
+import { asCodeRange, containsLocation, nodeAtPosition } from '../common';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
+import { DocumentStore } from '../documentStore';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { FileInfo } from './fileInfo';
+import { SyntaxNode } from '../../../tree-sitter/tree-sitter';
 
 export class ReferencesProvider {
 
 	constructor(
+		private readonly _documents: DocumentStore,
 		private readonly _trees: Trees,
-		private _symbols: SymbolIndex
+		private readonly _symbols: SymbolIndex
 	) { }
 
-	register(connection: Connection) {
+	register(connection: lsp.Connection) {
 		connection.onReferences(this.provideReferences.bind(this));
 	}
 
-	async provideReferences(params: ReferenceParams): Promise<Location[]> {
+	async provideReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {
 
-		const tree = await this._trees.getParseTree(params.textDocument.uri);
+		const document = await this._documents.retrieve(params.textDocument.uri);
+
+		const result: lsp.Location[] = [];
+		if (this._findReferencesInFile(document, params.position, params.context.includeDeclaration, result)) {
+			return result;
+		}
+
+		const tree = this._trees.getParseTree(document);
 		if (!tree) {
-			return [];
+			return result;
 		}
 		const node = nodeAtPosition(tree.rootNode, params.position);
 		if (!node) {
-			return [];
+			return result;
 		}
 
 		const text = node.text;
@@ -35,10 +47,10 @@ export class ReferencesProvider {
 		const usages = this._symbols.usages.get(text);
 		const symbols = this._symbols.symbols.get(text);
 		if (!usages && !symbols) {
-			return [];
+			return result;
 		}
 
-		const locationsByKind = new Map<number, Location[]>();
+		const locationsByKind = new Map<number, lsp.Location[]>();
 		let thisKind: number | undefined;
 		if (usages) {
 			for (let usage of usages) {
@@ -82,5 +94,25 @@ export class ReferencesProvider {
 			const unknownKind = locationsByKind.get(-1) ?? [];
 			return [sameKind, unknownKind].flat();
 		}
+	}
+
+	private _findReferencesInFile(document: TextDocument, position: lsp.Position, includeDefinition: boolean, result: lsp.Location[]) {
+		const info = FileInfo.create(document, this._trees);
+		const scope = info.root.findScope(position);
+		const anchor = scope.findUsage(position) ?? scope.findDefinition(position);
+		if (!anchor) {
+			return false;
+		}
+
+		const all: SyntaxNode[][] = [];
+		all.push(scope.findUsages(anchor.text));
+		if (includeDefinition) {
+			all.push(scope.findDefinitions(anchor.text));
+		}
+
+		for (let def of all.flat()) {
+			result.push(lsp.Location.create(document.uri, asCodeRange(def)));
+		}
+		return true;
 	}
 }

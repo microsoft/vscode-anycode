@@ -125,7 +125,7 @@ export class SymbolIndex {
 	private async _doIndex(document: TextDocument): Promise<void> {
 		// symbols
 
-		const tree = await this._trees.getParseTree(document);
+		const tree = this._trees.getParseTree(document);
 		if (!tree) {
 			return;
 		}

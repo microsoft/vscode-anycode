@@ -54,7 +54,7 @@ export class Validation {
 	}
 
 	private async _createDiagnostics(document: TextDocument): Promise<void> {
-		const tree = await this._trees.getParseTree(document);
+		const tree = this._trees.getParseTree(document);
 		const diagnostics: Diagnostic[] = [];
 		if (tree) {
 

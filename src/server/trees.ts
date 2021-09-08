@@ -56,11 +56,17 @@ export class Trees {
 
 	// --- tree/parse
 
-	async getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> {
-
+	getParseTree(documentOrUri: string): Promise<Parser.Tree | undefined>;
+	getParseTree(documentOrUri: TextDocument): Parser.Tree | undefined;
+	getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> | Parser.Tree | undefined {
 		if (typeof documentOrUri === 'string') {
-			documentOrUri = await this._documents.retrieve(documentOrUri);
+			return this._documents.retrieve(documentOrUri).then(doc => this._parse(doc));
+		} else {
+			return this._parse(documentOrUri);
 		}
+	}
+
+	private _parse(documentOrUri: TextDocument): Parser.Tree | undefined {
 
 		let info = this._cache.get(documentOrUri.uri);
 		if (info?.version === documentOrUri.version) {

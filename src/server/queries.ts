@@ -17,6 +17,7 @@ import Languages from './languages';
 
 export type QueryModule = {
 	documentSymbols?: string;
+	definitions?: string;
 	comments?: string;
 	folding?: string;
 	usages?: string;

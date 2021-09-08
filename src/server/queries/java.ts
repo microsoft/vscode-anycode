@@ -53,7 +53,21 @@ const documentSymbols =`
 ) @symbol.module
 `;
 
+const definitions = `
+
+	${documentSymbols}
+
+	(formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
+	(local_variable_declaration declarator: (variable_declarator name: (identifier) @symbol.variable.name)) @symbol.variable
+	
+`;
+
 const usages = `
+(argument_list (identifier) @usage) ;; foo(USAGE)
+(method_invocation object: (identifier) @usage) ;; USAGE(foo)
+(field_access object: (identifier) @usage) ;; USAGE.foo
+(assignment_expression right: (identifier) @usage) ;; foo = USAGE
+
 (field_access
 	field: (identifier) @usage.field
 )
@@ -74,29 +88,31 @@ const usages = `
 )
 
 (superclass
-	(type_identifier) @symbol.usage.class
+	(type_identifier) @usage.class
 )
 
 (formal_parameter
-	type: (type_identifier) @symbol.usage
+	type: (type_identifier) @usage.type
 )
 
 (local_variable_declaration
-	type: (type_identifier) @symbol.usage
+	type: (type_identifier) @usage.type
 )
 
 (type_arguments
-	(type_identifier) @symbol.usage
+	(type_identifier) @usage.type
 )
 
 (wildcard
-	(type_identifier) @symbol.usage
+	(type_identifier) @usage.type
 )
 `;
 
 const scopes = `
-[(block) (class_body) (interface_body) (enum_body)] @scope
+[(class_declaration) (interface_declaration) (enum_declaration) (method_declaration)] @scope
+(block) @scope
 (if_statement consequence: (_) @scope)
+(if_statement alternative: (_) @scope)
 `;
 
 const comments = `(comment) @comment`;
@@ -111,6 +127,7 @@ ${comments}
 
 export const mod: QueryModule = {
 	documentSymbols,
+	definitions,
 	usages,
 	scopes,
 	comments,
