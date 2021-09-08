@@ -74,6 +74,9 @@ const documentSymbols =`
 ) @symbol.struct
 `;
 
-export default <QueryModule>{
+
+export const mod: QueryModule = {
 	documentSymbols
 };
+
+export default mod;

@@ -129,7 +129,7 @@ export class SymbolIndex {
 		if (!tree) {
 			return;
 		}
-		const query = Queries.get(document.languageId, QueryType.DocumentSymbols | QueryType.Usages);
+		const query = Queries.get(document.languageId, 'documentSymbols', 'usages');
 		if (!query) {
 			return;
 		}

@@ -101,6 +101,8 @@ const documentSymbols = `
 	(identifier) @symbol.enumMember.name
 ) @symbol.enumMember`;
 
-export default <QueryModule>{
+export const mod: QueryModule = {
 	documentSymbols
 };
+
+export default mod;

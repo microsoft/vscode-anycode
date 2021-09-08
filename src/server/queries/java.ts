@@ -94,7 +94,27 @@ const usages = `
 )
 `;
 
-export default <QueryModule>{
+const scopes = `
+[(block) (class_body) (interface_body) (enum_body)] @scope
+(if_statement consequence: (_) @scope)
+`;
+
+const comments = `(comment) @comment`;
+
+const folding = `
+${scopes}
+${comments}
+(
+	(import_declaration)
+	(import_declaration)*
+) @import`;
+
+export const mod: QueryModule = {
 	documentSymbols,
-	usages
+	usages,
+	scopes,
+	comments,
+	folding
 };
+
+export default mod;

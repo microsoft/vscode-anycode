@@ -15,15 +15,15 @@ import rust from './queries/rust';
 import typescript from './queries/typescript';
 import Languages from './languages';
 
-export const enum QueryType {
-	DocumentSymbols = 1,
-	Usages = 2
-}
-
-export interface QueryModule {
-	documentSymbols: string;
+export type QueryModule = {
+	documentSymbols?: string;
+	comments?: string;
+	folding?: string;
 	usages?: string;
-}
+	scopes?: string;
+};
+
+export type QueryType = keyof QueryModule;
 
 export abstract class Queries {
 
@@ -41,7 +41,7 @@ export abstract class Queries {
 
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
-	static get(languageId: string, type: QueryType): Parser.Query | undefined {
+	static get(languageId: string, type: QueryType, ...more: QueryType[]): Parser.Query | undefined {
 
 		const module = this._queryModules.get(languageId);
 		if (!module) {
@@ -49,19 +49,13 @@ export abstract class Queries {
 			return undefined;
 		}
 
-		const source: string[] = [];
-		if (type & QueryType.DocumentSymbols) {
-			source.push(module.documentSymbols);
-		}
-		if (type & QueryType.Usages && module.usages) {
-			source.push(module.usages);
-		}
-		const key = `${languageId}/${type}.join()`;
+		const source = [type, ...more].map(type => module[type] ?? '').join('\n').trim();
+		const key = `${languageId}/${source}`;
 
 		let query = this._queryInstances.get(key);
 		if (!query) {
 			try {
-				query = Languages.get(languageId)!.query(source.join('\n'));
+				query = Languages.get(languageId)!.query(source);
 				this._queryInstances.set(key, query);
 			} catch (e) {
 				console.log(languageId, e);

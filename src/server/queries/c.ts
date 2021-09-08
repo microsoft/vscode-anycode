@@ -60,6 +60,9 @@ const documentSymbols = `
 	) @symbol.field
 )`;
 
-export default <QueryModule>{
+
+export const mod: QueryModule = {
 	documentSymbols
 };
+
+export default mod;

@@ -91,7 +91,10 @@ const usages = `
 
 (type_identifier) @usage`;
 
-export default <QueryModule>{
+
+export const mod: QueryModule = {
 	documentSymbols,
 	usages
 };
+
+export default mod;

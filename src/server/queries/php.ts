@@ -25,6 +25,9 @@ const documentSymbols =`(class_declaration
 	name: (name) @symbol.property.name
 ) @symbol.property`;
 
-export default <QueryModule>{
+
+export const mod: QueryModule = {
 	documentSymbols
 };
+
+export default mod;

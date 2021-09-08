@@ -37,7 +37,7 @@ export class DocumentSymbols {
 		if (!tree) {
 			return [];
 		}
-		const query = Queries.get(document.languageId, QueryType.DocumentSymbols);
+		const query = Queries.get(document.languageId, 'documentSymbols');
 		if (!query) {
 			return [];
 		}

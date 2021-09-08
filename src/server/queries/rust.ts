@@ -66,6 +66,26 @@ const documentSymbols = `
 ) @symbol.namespace
 `;
 
-export default <QueryModule>{
-	documentSymbols
+const scopes = `
+(block) @scope
+`;
+
+const comments = `
+(line_comment) @comment
+(block_comment) @comment
+`;
+
+const folding = `
+${comments}
+${scopes}
+(_) body: (_) @fold
+`;
+
+export const mod: QueryModule = {
+	documentSymbols,
+	scopes,
+	comments,
+	folding
 };
+
+export default mod;

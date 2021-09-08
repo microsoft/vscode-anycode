@@ -13,6 +13,9 @@ const documentSymbols = `(class_definition
 	name: (identifier) @symbol.function.name
 ) @symbol.function`;
 
-export default <QueryModule>{
+
+export const mod: QueryModule = {
 	documentSymbols
 };
+
+export default mod;

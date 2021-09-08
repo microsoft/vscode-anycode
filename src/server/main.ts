@@ -17,6 +17,7 @@ import { ReferencesProvider } from './features/references';
 import { Validation } from './features/validation';
 import { DocumentStore } from './documentStore';
 import Languages from './languages';
+import { FoldingRangeProvider } from './features/foldingRanges';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
@@ -51,6 +52,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	new ReferencesProvider(trees, symbolIndex).register(connection);
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
+	new FoldingRangeProvider(documents, trees).register(connection);
 	new Validation(connection, documents, trees);
 
 	const capabilities: ServerCapabilities = {
@@ -61,6 +63,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		// referencesProvider: true,
 		completionProvider: {},
 		selectionRangeProvider: true,
+		foldingRangeProvider: true,
 	};
 
 	// (nth) manage symbol index. add/remove files as they are disovered and edited
