@@ -55,11 +55,10 @@ const documentSymbols =`
 
 const definitions = `
 
-	${documentSymbols}
+${documentSymbols}
 
-	(formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
-	(local_variable_declaration declarator: (variable_declarator name: (identifier) @symbol.variable.name)) @symbol.variable
-	
+(formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
+(local_variable_declaration declarator: (variable_declarator name: (identifier) @symbol.variable.name)) @symbol.variable
 `;
 
 const usages = `
@@ -67,6 +66,7 @@ const usages = `
 (method_invocation object: (identifier) @usage) ;; USAGE(foo)
 (field_access object: (identifier) @usage) ;; USAGE.foo
 (assignment_expression right: (identifier) @usage) ;; foo = USAGE
+(binary_expression (identifier) @usage)
 
 (field_access
 	field: (identifier) @usage.field
