@@ -205,7 +205,7 @@ export class SymbolIndex {
 			try {
 				await this._doIndex(document);
 			} catch (e) {
-				console.log(`FAILED to parse ${uri}`, e);
+				console.log(`FAILED to index ${uri}`, e);
 			}
 		};
 	}
@@ -280,7 +280,12 @@ export class SymbolIndex {
 	//
 
 	async symbolCaptures(document: TextDocument): Promise<Parser.QueryCapture[]> {
-		const tree = await this._trees.getParseTree(document);
+		let tree: Parser.Tree;
+		try {
+			tree = await this._trees.getParseTree(document);
+		} catch {
+			return [];
+		}
 		const query = _queries.get(document.languageId, tree.getLanguage());
 		if (!query) {
 			return [];
