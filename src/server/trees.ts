@@ -120,7 +120,6 @@ export class Trees {
 			return info.tree;
 
 		} catch (e) {
-			console.error(e);
 			this._cache.delete(documentOrUri.uri);
 			throw e;
 		}

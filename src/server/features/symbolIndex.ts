@@ -202,7 +202,11 @@ export class SymbolIndex {
 	private _createIndexTask(uri: string) {
 		return async () => {
 			const document = await this._documents.retrieve(uri);
-			await this._doIndex(document);
+			try {
+				await this._doIndex(document);
+			} catch (e) {
+				console.log(`FAILED to parse ${uri}`, e);
+			}
 		};
 	}
 

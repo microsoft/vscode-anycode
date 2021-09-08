@@ -85,7 +85,12 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 
 	// serve fileRead request		
 	client.onRequest('file/read', async raw => {
+
 		const uri = vscode.Uri.parse(raw);
+		const stat = await vscode.workspace.fs.stat(uri);
+		if (stat.size > 1024 ** 2) {
+			return { data: new Uint8Array(), languageId: '' };
+		}
 		let languageId = '';
 		for (let item of supportedLanguages.getSupportedLanguages()) {
 			if (item.suffixes.some(suffix => uri.path.endsWith(`.${suffix}`))) {
