@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const queries =`(class_declaration
+import type { QueryModule } from "../queries";
+
+const documentSymbols =`(class_declaration
 	name: (name) @symbol.class.name
 ) @symbol.class
 
@@ -22,3 +24,7 @@ export const queries =`(class_declaration
 (trait_declaration
 	name: (name) @symbol.property.name
 ) @symbol.property`;
+
+export default <QueryModule>{
+	documentSymbols
+};

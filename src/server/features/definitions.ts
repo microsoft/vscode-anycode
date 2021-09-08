@@ -14,7 +14,7 @@ export class DefinitionProvider {
 	constructor(
 		private readonly _documents: DocumentStore,
 		private readonly _trees: Trees,
-		private _symbols: SymbolIndex
+		private readonly _symbols: SymbolIndex
 	) { }
 
 	register(connection: Connection) {
@@ -24,6 +24,9 @@ export class DefinitionProvider {
 	async provideDefinitions(params: DefinitionParams): Promise<Location[]> {
 		const document = await this._documents.retrieve(params.textDocument.uri)!;
 		const tree = await this._trees.getParseTree(document);
+		if (!tree) {
+			return [];
+		}
 		const node = nodeAtPosition(tree.rootNode, params.position);
 		if (!node) {
 			return [];
@@ -39,27 +42,9 @@ export class DefinitionProvider {
 		}
 		const promises: Promise<any>[] = [];
 		for (const symbol of all) {
-			promises.push(this._collectSymbolsWithSameName(text, document.languageId, symbol.location.uri, result));
-
+			result.push(symbol.location);
 		}
 		await Promise.all(promises);
 		return result;
-	}
-
-	private async _collectSymbolsWithSameName(name: string, language: string, uri: string, bucket: Location[]) {
-		const document = await this._documents.retrieve(uri);
-		const isSameLanguage = document.languageId !== language;
-		const captures = await this._symbols.symbolCaptures(document);
-		for (let capture of captures) {
-			if (!capture.name.endsWith('.name') || capture.node.text !== name) {
-				continue;
-			}
-			const location = Location.create(document.uri, asCodeRange(capture.node));
-			if (isSameLanguage) {
-				bucket.unshift(location);
-			} else {
-				bucket.push(location);
-			}
-		}
 	}
 }

@@ -56,65 +56,68 @@ export class Validation {
 	private async _createDiagnostics(document: TextDocument): Promise<void> {
 		const tree = await this._trees.getParseTree(document);
 		const diagnostics: Diagnostic[] = [];
+		if (tree) {
 
-		const sw = new StopWatch();
-		// find MISSING nodes (those that got auto-inserted)
-		const cursor = tree.walk();
-		const seen = new Set<number>();
-		try {
-			let visitedChildren = false;
-			while (true) {
-				if (cursor.nodeIsMissing && !seen.has(cursor.nodeId)) {
-					diagnostics.push({
-						range: asCodeRange(cursor.currentNode()),
-						message: `Expected '${cursor.nodeType}'`,
-						severity: DiagnosticSeverity.Error,
-						source: 'anycode',
-						code: 'missing',
-					});
-					seen.add(cursor.nodeId);
-				}
+			const sw = new StopWatch();
+			// find MISSING nodes (those that got auto-inserted)
 
-				// depth first search
-				if (!visitedChildren) {
-					if (!cursor.gotoFirstChild()) {
-						visitedChildren = true;
+			const cursor = tree.walk();
+			const seen = new Set<number>();
+			try {
+				let visitedChildren = false;
+				while (true) {
+					if (cursor.nodeIsMissing && !seen.has(cursor.nodeId)) {
+						diagnostics.push({
+							range: asCodeRange(cursor.currentNode()),
+							message: `Expected '${cursor.nodeType}'`,
+							severity: DiagnosticSeverity.Error,
+							source: 'anycode',
+							code: 'missing',
+						});
+						seen.add(cursor.nodeId);
+					}
+
+					// depth first search
+					if (!visitedChildren) {
+						if (!cursor.gotoFirstChild()) {
+							visitedChildren = true;
+						}
+					}
+					if (visitedChildren) {
+						if (cursor.gotoNextSibling()) {
+							visitedChildren = false;
+						} else if (cursor.gotoParent()) {
+							visitedChildren = true;
+						} else {
+							break;
+						}
 					}
 				}
-				if (visitedChildren) {
-					if (cursor.gotoNextSibling()) {
-						visitedChildren = false;
-					} else if (cursor.gotoParent()) {
-						visitedChildren = true;
-					} else {
-						break;
-					}
-				}
+			} finally {
+				cursor.delete();
 			}
-		} finally {
-			cursor.delete();
-		}
 
-		// // find "generic" error nodes
-		// let query: Parser.Query | undefined;
-		// try {
-		// 	query = tree.getLanguage().query('(ERROR) @error');
-		// 	const captures = query.captures(tree.rootNode);
-		// 	for (let capture of captures) {
-		// 		diags.push({
-		// 			range: asCodeRange(capture.node),
-		// 			message: 'Error',
-		// 			severity: vscode.DiagnosticSeverity.Error,
-		// 			source: 'anycode',
-		// 			code: 'error',
-		// 		});
-		// 	}
-		// } catch {
-		// 	// ignore - parsing the query might fail
-		// } finally {
-		// 	query?.delete();
-		// }
-		sw.elapsed('DIAGNOSTICS');
+			// // find "generic" error nodes
+			// let query: Parser.Query | undefined;
+			// try {
+			// 	query = tree.getLanguage().query('(ERROR) @error');
+			// 	const captures = query.captures(tree.rootNode);
+			// 	for (let capture of captures) {
+			// 		diags.push({
+			// 			range: asCodeRange(capture.node),
+			// 			message: 'Error',
+			// 			severity: vscode.DiagnosticSeverity.Error,
+			// 			source: 'anycode',
+			// 			code: 'error',
+			// 		});
+			// 	}
+			// } catch {
+			// 	// ignore - parsing the query might fail
+			// } finally {
+			// 	query?.delete();
+			// }
+			sw.elapsed('DIAGNOSTICS');
+		}
 
 		this._connection.sendDiagnostics({ uri: document.uri, diagnostics });
 	}

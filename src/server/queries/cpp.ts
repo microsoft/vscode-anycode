@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const queries =`
+import type { QueryModule } from "../queries";
+
+const documentSymbols =`
 (namespace_definition
 	name: (identifier) @symbol.module.name
 ) @symbol.module
@@ -71,3 +73,7 @@ export const queries =`
 	declarator: (type_identifier) @symbol.struct.name
 ) @symbol.struct
 `;
+
+export default <QueryModule>{
+	documentSymbols
+};

@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const queries = `
+import type { QueryModule } from '../queries';
+
+const documentSymbols = `
 (class_declaration
 	name: (identifier) @symbol.class.name
 ) @symbol.class
@@ -98,3 +100,7 @@ export const queries = `
 (enum_member_declaration
 	(identifier) @symbol.enumMember.name
 ) @symbol.enumMember`;
+
+export default <QueryModule>{
+	documentSymbols
+};

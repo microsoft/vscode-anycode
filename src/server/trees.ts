@@ -9,7 +9,7 @@ import { Disposable } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
 import { asTsPoint } from "./common";
-
+import Languages from "./languages";
 
 class Entry {
 	constructor(
@@ -30,17 +30,10 @@ export class Trees {
 		}
 	});
 
-	private readonly _languages = new Map<string, { wasmUri: string, language?: Promise<Parser.Language> }>();
-
 	private readonly _listener: Disposable[] = [];
 	private readonly _parser = new Parser();
 
-	constructor(private readonly _documents: DocumentStore, languages: { languageId: string, wasmUri: string }[]) {
-
-		// supported languages
-		for (let item of languages) {
-			this._languages.set(item.languageId, { wasmUri: item.wasmUri });
-		}
+	constructor(private readonly _documents: DocumentStore) {
 
 		// build edits when document changes
 		this._listener.push(_documents.onDidChangeContent2(e => {
@@ -61,31 +54,12 @@ export class Trees {
 		}
 	}
 
-	// --- languages
-
-	private async _getLanguage(langId: string): Promise<Parser.Language | undefined> {
-		const entry = this._languages.get(langId);
-		if (!entry) {
-			return undefined;
-		}
-		if (!entry.language) {
-			entry.language = Parser.Language.load(entry.wasmUri);
-
-		}
-		return entry.language;
-	}
-
 	// --- tree/parse
 
-	async getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree> {
+	async getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> {
 
 		if (typeof documentOrUri === 'string') {
 			documentOrUri = await this._documents.retrieve(documentOrUri);
-		}
-
-		const language = await this._getLanguage(documentOrUri.languageId);
-		if (!language) {
-			throw new Error(`UNKNOWN languages ${documentOrUri.languageId}`);
 		}
 
 		let info = this._cache.get(documentOrUri.uri);
@@ -93,11 +67,16 @@ export class Trees {
 			return info.tree;
 		}
 
+		const language = Languages.get(documentOrUri.languageId);
+		if (!language) {
+			return undefined;
+		}
 		this._parser.setLanguage(language);
+		this._parser.setTimeoutMicros(1000 * 1000); // parse max 1sec
+
 		try {
 			const version = documentOrUri.version;
 			const text = documentOrUri.getText();
-			this._parser.setTimeoutMicros(1000 * 1000); // parse max 1sec
 
 			if (!info) {
 				// never seen before, parse fresh
@@ -121,7 +100,7 @@ export class Trees {
 
 		} catch (e) {
 			this._cache.delete(documentOrUri.uri);
-			throw e;
+			return undefined;
 		}
 	}
 

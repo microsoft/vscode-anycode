@@ -21,6 +21,9 @@ export class SelectionRangesProvider {
 
 		const document = await this._documents.retrieve(params.textDocument.uri);
 		const tree = await this._trees.getParseTree(document);
+		if (!tree) {
+			return [];
+		}
 
 		const sw = new StopWatch();
 		const result: SelectionRange[] = [];

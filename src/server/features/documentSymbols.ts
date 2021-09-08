@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-languageserver';
-import { asCodeRange, containsRange, StopWatch } from '../common';
-import { SymbolIndex, symbolMapping } from './symbolIndex';
+import { asCodeRange, containsRange, StopWatch, symbolMapping } from '../common';
 import type Parser from '../../../tree-sitter/tree-sitter';
 import { DocumentStore } from '../documentStore';
+import { Trees } from '../trees';
+import { Queries, QueryType } from '../queries';
 
 
 //#region --- document symbols ---
@@ -22,7 +23,7 @@ class Node {
 
 export class DocumentSymbols {
 
-	constructor(private readonly _documents: DocumentStore, private readonly _symbols: SymbolIndex) { }
+	constructor(private readonly _documents: DocumentStore, private readonly _trees: Trees) { }
 
 	register(connection: Connection) {
 		connection.onDocumentSymbol(this.provideDocumentSymbols.bind(this));
@@ -32,7 +33,15 @@ export class DocumentSymbols {
 
 		const sw = new StopWatch();
 		const document = await this._documents.retrieve(params.textDocument.uri);
-		const captures = await this._symbols.symbolCaptures(document);
+		const tree = await this._trees.getParseTree(document);
+		if (!tree) {
+			return [];
+		}
+		const query = Queries.get(document.languageId, QueryType.DocumentSymbols);
+		if (!query) {
+			return [];
+		}
+		const captures = query.captures(tree.rootNode);
 		sw.elapsed('CAPTURE query');
 
 		// build a Node-tree that is based on range containment. This includes true 

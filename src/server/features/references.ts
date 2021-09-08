@@ -22,6 +22,9 @@ export class ReferencesProvider {
 	async provideReferences(params: ReferenceParams): Promise<Location[]> {
 
 		const tree = await this._trees.getParseTree(params.textDocument.uri);
+		if (!tree) {
+			return [];
+		}
 		const node = nodeAtPosition(tree.rootNode, params.position);
 		if (!node) {
 			return [];

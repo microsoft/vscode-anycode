@@ -16,6 +16,7 @@ import { DefinitionProvider } from './features/definitions';
 import { ReferencesProvider } from './features/references';
 import { Validation } from './features/validation';
 import { DocumentStore } from './documentStore';
+import Languages from './languages';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
@@ -36,15 +37,18 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		}
 	});
 
+	// (2) init supported languages and its queries
+	await Languages.init((<InitOptions>params.initializationOptions).supportedLanguages);
+
 	// (2) setup features
 	const documents = new DocumentStore(connection);
-	const trees = new Trees(documents, (<InitOptions>params.initializationOptions).supportedLanguages);
+	const trees = new Trees(documents);
 	const symbolIndex = new SymbolIndex(trees, documents);
 
 	new WorkspaceSymbol(symbolIndex).register(connection);
-	new DocumentSymbols(documents, symbolIndex).register(connection);
+	new DocumentSymbols(documents, trees).register(connection);
 	new DefinitionProvider(documents, trees, symbolIndex).register(connection);
-	// new ReferencesProvider(trees, symbolIndex).register(connection);
+	new ReferencesProvider(trees, symbolIndex).register(connection);
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
 	new Validation(connection, documents, trees);

@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const queries = `
+import type { QueryModule } from "../queries";
 
-;; --- SYMBOLS ---
-
+const documentSymbols = `
 (field_declaration
 	name: (field_identifier) @symbol.field.name
 ) @symbol.field
@@ -66,9 +65,9 @@ export const queries = `
 	name: (type_identifier) @symbol.event.name
 	type: (channel_type)
 ) @symbol.event
+`;
 
-;; --- USAGES ---
-
+const usages = `
 (call_expression
 	function: [
 		(identifier) @usage.function
@@ -90,5 +89,9 @@ export const queries = `
 	field: (field_identifier) @usage.field
 )
 
-(type_identifier) @usage
-`;
+(type_identifier) @usage`;
+
+export default <QueryModule>{
+	documentSymbols,
+	usages
+};

@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export const queries = `
+import type { QueryModule } from "../queries";
+
+const documentSymbols = `
 (interface_declaration
 	name: (type_identifier) @symbol.interface.name
 ) @symbol.interface
@@ -61,3 +63,7 @@ export const queries = `
 	name: [(identifier)@symbol.module.name (string) @symbol.module.name]
 ) @symbol.module
 `;
+
+export default <QueryModule>{
+	documentSymbols
+};
