@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type Parser from '../../../tree-sitter/tree-sitter';
+import type Parser from '../tree-sitter/tree-sitter';
 import { Connection, SelectionRange, SelectionRangeParams } from 'vscode-languageserver';
 import { asLspRange as asLspRange, StopWatch } from '../common';
 import { Trees } from '../trees';

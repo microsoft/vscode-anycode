@@ -5,10 +5,10 @@
 
 import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-languageserver';
 import { asLspRange, containsRange, StopWatch, symbolMapping } from '../common';
-import type Parser from '../../../tree-sitter/tree-sitter';
+import type Parser from '../tree-sitter/tree-sitter';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
-import { Queries, QueryType } from '../queries';
+import { Queries } from '../queries';
 
 
 //#region --- document symbols ---

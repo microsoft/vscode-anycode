@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type Parser from '../../../tree-sitter/tree-sitter';
 import * as lsp from 'vscode-languageserver';
-import { asLspRange as asLspRange, StopWatch } from '../common';
+import { asLspRange, StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { Queries, QueryType } from '../queries';
+import { Queries } from '../queries';
 
 export class FoldingRangeProvider {
 

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from '../../tree-sitter/tree-sitter';
+import Parser from './tree-sitter/tree-sitter';
 
 export default abstract class Languages {
 
