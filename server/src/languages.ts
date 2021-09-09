@@ -9,7 +9,7 @@ export default abstract class Languages {
 
 	private static _languages = new Map<string, Parser.Language>();
 
-	static async init(langInfo: { languageId: string, wasmUri: string, suffixes: string[] }[]) {
+	static async init(langInfo: { languageId: string, wasmUri: string | Uint8Array, suffixes: string[] }[]) {
 		for (let entry of langInfo) {
 			const lang = await Parser.Language.load(entry.wasmUri);
 			this._languages.set(entry.languageId, lang);

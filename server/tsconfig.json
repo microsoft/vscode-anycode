@@ -14,7 +14,9 @@
 	},
 	"include": [
 		"src"
-	],
+,
+"run.js"
+],
 	"exclude": [
 		"node_modules",
 		".vscode-test-web"
