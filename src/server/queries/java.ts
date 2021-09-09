@@ -111,6 +111,7 @@ const usages = `
 
 const scopes = `
 [(class_declaration) (interface_declaration) (enum_declaration) (method_declaration)] @scope
+(for_statement) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)
 (try_statement (block) @scope)
