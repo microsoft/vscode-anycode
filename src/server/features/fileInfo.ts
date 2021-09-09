@@ -21,7 +21,7 @@ export class FileInfo {
 
 		const tree = trees.getParseTree(document);
 		const query = Queries.get(document.languageId, 'scopes', 'definitions', 'usages');
-		if (!tree || !query) {
+		if (!tree) {
 			return new FileInfo(document, root);
 		}
 

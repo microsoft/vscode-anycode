@@ -38,9 +38,6 @@ export class DocumentSymbols {
 			return [];
 		}
 		const query = Queries.get(document.languageId, 'documentSymbols');
-		if (!query) {
-			return [];
-		}
 		const captures = query.captures(tree.rootNode);
 		sw.elapsed('CAPTURE query');
 

@@ -27,10 +27,6 @@ export class FoldingRangeProvider {
 		}
 
 		const query = Queries.get(document.languageId, 'scopes', 'comments', 'folding');
-		if (!query) {
-			return [];
-		}
-
 		const sw = new StopWatch();
 		const result: lsp.FoldingRange[] = [];
 

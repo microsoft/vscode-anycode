@@ -130,10 +130,6 @@ export class SymbolIndex {
 			return;
 		}
 		const query = Queries.get(document.languageId, 'documentSymbols', 'usages');
-		if (!query) {
-			return;
-		}
-
 		const captures = query.captures(tree.rootNode);
 
 		// --- symbols

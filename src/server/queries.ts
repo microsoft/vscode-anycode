@@ -42,12 +42,12 @@ export abstract class Queries {
 
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
-	static get(languageId: string, type: QueryType, ...more: QueryType[]): Parser.Query | undefined {
+	static get(languageId: string, type: QueryType, ...more: QueryType[]): Parser.Query {
 
 		const module = this._queryModules.get(languageId);
 		if (!module) {
 			// unknown language or invalid query (deleted after failed parse attempt)
-			return undefined;
+			return Languages.get(languageId)!.query('');
 		}
 
 		const source = [type, ...more].map(type => module[type] ?? '').join('\n').trim();
@@ -57,12 +57,12 @@ export abstract class Queries {
 		if (!query) {
 			try {
 				query = Languages.get(languageId)!.query(source);
-				this._queryInstances.set(key, query);
 			} catch (e) {
-				console.log(languageId, e);
-				this._queryModules.delete(languageId);
+				query = Languages.get(languageId)!.query('');
+				console.warn(languageId, e);
 			}
 		}
+		this._queryInstances.set(key, query);
 		return query;
 	}
 };
