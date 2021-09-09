@@ -35,14 +35,16 @@ export class FileInfo {
 
 			if (capture.name.startsWith('scope')) {
 				let parent = stack.pop();
-				const scope = new Scope(asCodeRange(capture.node), parent ?? root);
+				const range = asCodeRange(capture.node);
 				while (true) {
 					if (!parent) {
+						const scope = new Scope(range, root);
 						root.children.add(scope);
 						stack.push(scope);
 						break;
 					}
-					if (containsRange(parent.range, scope.range)) {
+					if (containsRange(parent.range, range)) {
+						const scope = new Scope(range, parent);
 						parent.children.add(scope);
 						stack.push(parent);
 						stack.push(scope);
