@@ -63,24 +63,17 @@ export const symbolMapping: SymbolMapping = new class {
 
 // --- geometry
 
-export function asCodeRange(node: Parser.SyntaxNode): lsp.Range {
+export function asLspRange(node: Parser.SyntaxNode): lsp.Range {
 	return lsp.Range.create(node.startPosition.row, node.startPosition.column, node.endPosition.row, node.endPosition.column);
 }
 
 export function nodeAtPosition(node: Parser.SyntaxNode, position: lsp.Position): Parser.SyntaxNode | undefined {
 	for (let child of node.children) {
-		if (containsPosition(asCodeRange(child), position)) {
+		if (containsPosition(asLspRange(child), position)) {
 			return nodeAtPosition(child, position) ?? child;
 		}
 	}
 	return undefined;
-}
-
-export function asTsPoint(position: lsp.Position): Parser.Point {
-	return {
-		row: position.line,
-		column: position.character
-	};
 }
 
 export function isBeforeOrEqual(a: lsp.Position, b: lsp.Position): boolean {

@@ -5,7 +5,7 @@
 
 import { CancellationTokenSource, Connection, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { asCodeRange, StopWatch, isInteresting } from '../common';
+import { asLspRange, StopWatch, isInteresting } from '../common';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
 
@@ -68,7 +68,7 @@ export class Validation {
 				while (true) {
 					if (cursor.nodeIsMissing && !seen.has(cursor.nodeId)) {
 						diagnostics.push({
-							range: asCodeRange(cursor.currentNode()),
+							range: asLspRange(cursor.currentNode()),
 							message: `Expected '${cursor.nodeType}'`,
 							severity: DiagnosticSeverity.Error,
 							source: 'anycode',

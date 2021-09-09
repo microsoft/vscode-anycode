@@ -5,10 +5,9 @@
 
 import { LRUMap } from "./util/lruMap";
 import Parser from '../../tree-sitter/tree-sitter';
-import { Disposable } from 'vscode-languageserver';
+import { Disposable, Position } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
-import { asTsPoint } from "./common";
 import Languages from "./languages";
 
 class Entry {
@@ -112,12 +111,17 @@ export class Trees {
 
 	private static _asEdits(event: TextDocumentChange2): Parser.Edit[] {
 		return event.changes.map(change => ({
-			startPosition: asTsPoint(change.range.start),
-			oldEndPosition: asTsPoint(change.range.end),
-			newEndPosition: asTsPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
+			startPosition: this._asTsPoint(change.range.start),
+			oldEndPosition: this._asTsPoint(change.range.end),
+			newEndPosition: this._asTsPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
 			startIndex: change.rangeOffset,
 			oldEndIndex: change.rangeOffset + change.rangeLength,
 			newEndIndex: change.rangeOffset + change.text.length
 		}));
+	}
+
+	private static _asTsPoint(position: Position): Parser.Point {
+		const { line: row, character: column } = position;
+		return { row, column };
 	}
 };

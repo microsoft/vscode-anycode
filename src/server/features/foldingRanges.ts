@@ -5,7 +5,7 @@
 
 import type Parser from '../../../tree-sitter/tree-sitter';
 import * as lsp from 'vscode-languageserver';
-import { asCodeRange as asCodeRange, StopWatch } from '../common';
+import { asLspRange as asLspRange, StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Queries, QueryType } from '../queries';

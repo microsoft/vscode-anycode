@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asCodeRange, containsPosition, containsRange, nodeAtPosition } from '../common';
+import { asLspRange, containsPosition, containsRange, nodeAtPosition } from '../common';
 import { Trees } from '../trees';
 import { QueryCapture, SyntaxNode, Tree } from '../../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
@@ -35,7 +35,7 @@ export class FileInfo {
 
 			if (capture.name.startsWith('scope')) {
 				let parent = stack.pop();
-				const range = asCodeRange(capture.node);
+				const range = asLspRange(capture.node);
 				while (true) {
 					if (!parent) {
 						const scope = new Scope(range, root);
@@ -99,7 +99,7 @@ export class Scope {
 
 	findUsage(position: lsp.Position): SyntaxNode | undefined {
 		for (let usage of this.usages) {
-			if (containsPosition(asCodeRange(usage), position)) {
+			if (containsPosition(asLspRange(usage), position)) {
 				return usage;
 			}
 		}
@@ -107,7 +107,7 @@ export class Scope {
 
 	findDefinition(position: lsp.Position): SyntaxNode | undefined {
 		for (let usage of this.definitions) {
-			if (containsPosition(asCodeRange(usage), position)) {
+			if (containsPosition(asLspRange(usage), position)) {
 				return usage;
 			}
 		}

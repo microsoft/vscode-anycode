@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asCodeRange, containsLocation, nodeAtPosition } from '../common';
+import { asLspRange, containsLocation, nodeAtPosition } from '../common';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
@@ -111,7 +111,7 @@ export class ReferencesProvider {
 		}
 
 		for (let def of all.flat()) {
-			result.push(lsp.Location.create(document.uri, asCodeRange(def)));
+			result.push(lsp.Location.create(document.uri, asLspRange(def)));
 		}
 		return true;
 	}

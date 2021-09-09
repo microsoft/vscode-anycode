@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-languageserver';
-import { asCodeRange, containsRange, StopWatch, symbolMapping } from '../common';
+import { asLspRange, containsRange, StopWatch, symbolMapping } from '../common';
 import type Parser from '../../../tree-sitter/tree-sitter';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
@@ -17,7 +17,7 @@ class Node {
 	readonly range: Range;
 	readonly children: Node[] = [];
 	constructor(readonly capture: Parser.QueryCapture) {
-		this.range = asCodeRange(capture.node);
+		this.range = asLspRange(capture.node);
 	}
 }
 

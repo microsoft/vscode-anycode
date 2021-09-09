@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asCodeRange, nodeAtPosition } from '../common';
+import { asLspRange, nodeAtPosition } from '../common';
 import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
@@ -67,7 +67,7 @@ export class DefinitionProvider {
 			return false;
 		}
 		for (let def of definitions) {
-			result.push(lsp.Location.create(document.uri, asCodeRange(def)));
+			result.push(lsp.Location.create(document.uri, asLspRange(def)));
 		}
 		return true;
 	}

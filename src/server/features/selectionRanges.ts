@@ -5,7 +5,7 @@
 
 import type Parser from '../../../tree-sitter/tree-sitter';
 import { Connection, SelectionRange, SelectionRangeParams } from 'vscode-languageserver';
-import { asCodeRange as asCodeRange, StopWatch } from '../common';
+import { asLspRange as asLspRange, StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 
@@ -50,7 +50,7 @@ export class SelectionRangesProvider {
 
 			let parent: SelectionRange | undefined;
 			for (let node of stack) {
-				let range = SelectionRange.create(asCodeRange(node), parent);
+				let range = SelectionRange.create(asLspRange(node), parent);
 				parent = range;
 			}
 			if (parent) {

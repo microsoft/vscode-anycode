@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { asCodeRange, StopWatch, parallel, isInteresting, symbolMapping } from '../common';
+import { asLspRange, StopWatch, parallel, isInteresting, symbolMapping } from '../common';
 import { Trie } from '../util/trie';
 import { CancellationTokenSource, Location, SymbolInformation, SymbolKind } from 'vscode-languageserver';
 import { Trees } from '../trees';
@@ -144,7 +144,7 @@ export class SymbolIndex {
 			const symbol = SymbolInformation.create(
 				capture.node.text,
 				SymbolKind.Struct,
-				asCodeRange(capture.node),
+				asLspRange(capture.node),
 				document.uri
 			);
 			const containerCandidate = captures[i - 1];
@@ -176,7 +176,7 @@ export class SymbolIndex {
 			}
 			const idx = capture.name.lastIndexOf('.');
 			const loc = new Usage(
-				Location.create(document.uri, asCodeRange(capture.node)),
+				Location.create(document.uri, asLspRange(capture.node)),
 				symbolMapping.getSymbolKind(capture.name.substring(idx + 1), true)
 			);
 			let all = this.usages.get(capture.node.text);
