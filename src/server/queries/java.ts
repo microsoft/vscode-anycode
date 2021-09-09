@@ -59,6 +59,7 @@ ${documentSymbols}
 
 (formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
 (local_variable_declaration declarator: (variable_declarator name: (identifier) @symbol.variable.name)) @symbol.variable
+(catch_formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
 `;
 
 const usages = `
@@ -110,9 +111,11 @@ const usages = `
 
 const scopes = `
 [(class_declaration) (interface_declaration) (enum_declaration) (method_declaration)] @scope
-(block) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)
+(try_statement (block) @scope)
+(catch_clause) @scope
+(block) @scope
 `;
 
 const comments = `(comment) @comment`;

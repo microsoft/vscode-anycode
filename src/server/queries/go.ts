@@ -67,7 +67,19 @@ const documentSymbols = `
 ) @symbol.event
 `;
 
+const definitions = `
+
+${documentSymbols}
+
+(parameter_declaration name: (identifier) @symbol.variable.name) @symbol.variable
+(short_var_declaration left: (expression_list (identifier) @symbol.variable.name)) @symbol.variable
+`;
+
 const usages = `
+
+(argument_list (identifier) @usage)
+(selector_expression operand: (identifier) @usage)
+
 (call_expression
 	function: [
 		(identifier) @usage.function
@@ -92,9 +104,17 @@ const usages = `
 (type_identifier) @usage`;
 
 
+const scopes = `
+
+(function_declaration) @scope
+(block) @scope
+`;
+
 export const mod: QueryModule = {
 	documentSymbols,
-	usages
+	definitions,
+	usages,
+	scopes
 };
 
 export default mod;
