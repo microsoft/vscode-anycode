@@ -4,5 +4,8 @@
 	"publisher": "ms-vscode",
 	"dependencies": {
 		"vscode-languageclient": "^7.0.0"
+	},
+	"devDependencies": {
+		"assert": "^2.0.0"
 	}
 }

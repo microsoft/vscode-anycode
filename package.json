@@ -98,13 +98,16 @@
 		"watch": "node esbuild.js --watch",
 		"lint": "eslint src --ext ts",
 		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-		"deploy": "npx vsce publish --noVerify"
+		"deploy": "npx vsce publish --noVerify",
+		"pretest-extension": "npx esbuild client/src/test/suite/index.ts --bundle --external:vscode --target=es2020 --format=cjs --outfile=dist/extension.test.js --define:process=\"{\\\"env\\\":{}}\"",
+		"test-extension": "npx vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/extension.test.js"
 	},
 	"devDependencies": {
 		"@types/mocha": "^9.0.0",
 		"@types/node": "^16.7.3",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
+		"@vscode/test-web": "^0.0.8",
 		"esbuild": "^0.12.14",
 		"eslint": "^7.19.0",
 		"mocha": "^9.1.0",
