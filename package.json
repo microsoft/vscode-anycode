@@ -97,7 +97,7 @@
 		"compile": "tsc -b tsconfig.json && node esbuild.js",
 		"watch": "node esbuild.js --watch",
 		"lint": "eslint src --ext ts",
-		"postinstall": "cd src/client && npm install && cd ../server && npm install && cd ../..",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"deploy": "npx vsce publish --noVerify"
 	},
 	"devDependencies": {

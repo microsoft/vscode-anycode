@@ -9,7 +9,7 @@ import { CancellationTokenSource, Location, SymbolInformation, SymbolKind } from
 import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
-import { Queries, QueryType } from '../queries';
+import { Queries } from '../queries';
 
 export class Usage {
 	constructor(

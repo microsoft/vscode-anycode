@@ -5,7 +5,7 @@
 
 import { createConnection, BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserver/browser';
 import { InitializeParams, InitializeResult, ServerCapabilities, TextDocumentSyncKind } from 'vscode-languageserver';
-import Parser from './tree-sitter/tree-sitter';
+import Parser from '../tree-sitter/tree-sitter';
 import { Trees } from './trees';
 import { DocumentSymbols } from './features/documentSymbols';
 import { SymbolIndex } from './features/symbolIndex';

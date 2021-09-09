@@ -6,7 +6,7 @@
 import * as lsp from 'vscode-languageserver';
 import { asLspRange, containsPosition, containsRange } from '../common';
 import { Trees } from '../trees';
-import { QueryCapture, SyntaxNode, Tree } from '../tree-sitter/tree-sitter';
+import { QueryCapture, SyntaxNode } from '../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 

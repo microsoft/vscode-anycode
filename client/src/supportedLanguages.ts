@@ -25,15 +25,15 @@ export class SupportedLanguages {
 
 	constructor(context: vscode.ExtensionContext) {
 		this._all = [
-			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-c.wasm').toString(), ['c', 'i']),
-			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-cpp.wasm').toString(), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
-			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-c_sharp.wasm').toString(), ['cs']),
-			new LanguageInfo('go', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-go.wasm').toString(), ['go']),
-			new LanguageInfo('java', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-java.wasm').toString(), ['java']),
-			new LanguageInfo('php', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-php.wasm').toString(), ['php', 'php4', 'php5', 'phtml', 'ctp']),
-			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-python.wasm').toString(), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']),
-			new LanguageInfo('rust', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-rust.wasm').toString(), ['rs']),
-			new LanguageInfo('typescript', vscode.Uri.joinPath(context.extensionUri, 'src/server/tree-sitter-typescript.wasm').toString(), ['ts', 'tsx']),
+			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c.wasm').toString(), ['c', 'i']),
+			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-cpp.wasm').toString(), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
+			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c_sharp.wasm').toString(), ['cs']),
+			new LanguageInfo('go', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-go.wasm').toString(), ['go']),
+			new LanguageInfo('java', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-java.wasm').toString(), ['java']),
+			new LanguageInfo('php', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-php.wasm').toString(), ['php', 'php4', 'php5', 'phtml', 'ctp']),
+			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-python.wasm').toString(), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']),
+			new LanguageInfo('rust', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-rust.wasm').toString(), ['rs']),
+			new LanguageInfo('typescript', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-typescript.wasm').toString(), ['ts', 'tsx']),
 		];
 
 		// reset when extension or configuration changes

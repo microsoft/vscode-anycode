@@ -10,7 +10,7 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { FileInfo } from './fileInfo';
-import { SyntaxNode } from '../tree-sitter/tree-sitter';
+import { SyntaxNode } from '../../tree-sitter/tree-sitter';
 
 export class ReferencesProvider {
 

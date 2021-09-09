@@ -22,7 +22,7 @@ if (process.argv.includes('--watch')) {
 // --- extension
 
 const client = esbuild.build({
-	entryPoints: ['src/client/main.ts'],
+	entryPoints: ['client/src/main.ts'],
 	outfile: 'dist/extension.js',
 	bundle: true,
 	external: ['vscode'],
@@ -36,7 +36,7 @@ const client = esbuild.build({
 // --- server
 
 const server = esbuild.build({
-	entryPoints: ['src/server/main.ts'],
+	entryPoints: ['server/src/main.ts'],
 	outfile: 'dist/anycode.server.js',
 	bundle: true,
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc

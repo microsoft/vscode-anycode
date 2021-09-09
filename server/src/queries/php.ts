@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from "../queries";
+import type { QueryModule } from '../queries';
 
-const documentSymbols =`(class_declaration
+const documentSymbols = `(class_declaration
 	name: (name) @symbol.class.name
 ) @symbol.class
 

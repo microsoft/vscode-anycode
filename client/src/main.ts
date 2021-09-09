@@ -44,7 +44,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
-			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, 'src/server/tree-sitter/tree-sitter.wasm').toString(),
+			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages: supportedLanguages.getSupportedLanguages()
 		}
 	};

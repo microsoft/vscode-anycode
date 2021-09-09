@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LRUMap } from "./util/lruMap";
-import Parser from './tree-sitter/tree-sitter';
+import Parser from '../tree-sitter/tree-sitter';
 import { Disposable, Position } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
