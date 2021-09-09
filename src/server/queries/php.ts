@@ -26,8 +26,13 @@ const documentSymbols =`(class_declaration
 ) @symbol.property`;
 
 
+const comments = `
+(comment) @comment
+`;
+
 export const mod: QueryModule = {
-	documentSymbols
+	documentSymbols,
+	comments
 };
 
 export default mod;

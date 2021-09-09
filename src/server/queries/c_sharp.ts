@@ -101,8 +101,11 @@ const documentSymbols = `
 	(identifier) @symbol.enumMember.name
 ) @symbol.enumMember`;
 
+const comments = `(comment) @comment`;
+
 export const mod: QueryModule = {
-	documentSymbols
+	documentSymbols,
+	comments
 };
 
 export default mod;

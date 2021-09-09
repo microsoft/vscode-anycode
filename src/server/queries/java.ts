@@ -119,7 +119,9 @@ const scopes = `
 (block) @scope
 `;
 
-const comments = `(comment) @comment`;
+const comments = `
+(comment) @comment
+`;
 
 const folding = `
 ${scopes}

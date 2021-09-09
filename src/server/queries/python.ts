@@ -14,8 +14,13 @@ const documentSymbols = `(class_definition
 ) @symbol.function`;
 
 
+const comments = `
+(comment) @comment
+`;
+
 export const mod: QueryModule = {
-	documentSymbols
+	documentSymbols,
+	comments
 };
 
 export default mod;

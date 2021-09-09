@@ -110,11 +110,23 @@ const scopes = `
 (block) @scope
 `;
 
+
+const comments = `
+(comment) @comment
+`;
+
+const folding = `
+${scopes}
+${comments}
+`;
+
 export const mod: QueryModule = {
 	documentSymbols,
 	definitions,
+	comments,
 	usages,
-	scopes
+	scopes,
+	folding
 };
 
 export default mod;

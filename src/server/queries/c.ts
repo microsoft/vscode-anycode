@@ -60,9 +60,13 @@ const documentSymbols = `
 	) @symbol.field
 )`;
 
+const comments = `
+(comment) @comment
+`;
 
 export const mod: QueryModule = {
-	documentSymbols
+	documentSymbols,
+	comments
 };
 
 export default mod;
