@@ -1,0 +1,13 @@
+static [LANGUAGE]: &str = "Rust";
+const [THRESHOLD]: i32 = 10;
+---
+fn [is_big](n: i32) -> bool {
+    // Access constant in some function
+    n > THRESHOLD
+}
+---
+impl [Foo] {
+    const default fn [bar]() -> i32 {
+      default.bar();
+    }
+}

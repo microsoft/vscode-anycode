@@ -1,15 +1,17 @@
----
-
 func (me *MySQLError) [Is](err error) bool {
 	if merr, ok := err.(*MySQLError); ok {
 		return merr.Number == me.Number
 	}
 	return false
 }
-
 ---
-
 type [MySQLError] struct {
 	[Number]  uint16
 	[Message] string
 }
+---
+var (
+	[ErrInvalidConn]       = errors.New("invalid connection")
+	[ErrMalformPkt]        = errors.New("malformed packet")
+	[ErrNoTLS]             = errors.New("TLS requested but server does not support TLS")
+)

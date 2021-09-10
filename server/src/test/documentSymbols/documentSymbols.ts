@@ -58,21 +58,21 @@ async function assertFixture(item: TestFixture) {
 	const parts = item.text.split('---')
 		.filter(s => Boolean(s));
 
-	const result: string[] = [];
+	const result: { ok?: string, err?: string }[] = [];
 	try {
 		for (const text of parts) {
 			await assertOneFixture(item.uri, item.languageId, text, result);
 		}
 	} catch (e) {
-		result.unshift(String(e));
+		result.unshift({ err: String(e) });
 	}
 
-	(<any>globalThis).report_result(item.uri, result.join('\n'));
+	(<any>globalThis).report_result(item.uri, result);
 }
 
-async function assertOneFixture(uri: string, languageId: string, text: string, messages: string[]) {
+async function assertOneFixture(uri: string, languageId: string, text: string, messages: { ok?: string, err?: string }[]) {
 
-	const r = /\[\w+\]/g;
+	const r = /\[[^\]]+\]/g;
 
 	type SymbolCoord = {
 		name: string;
@@ -102,20 +102,22 @@ async function assertOneFixture(uri: string, languageId: string, text: string, m
 	const trees = new Trees(store);
 	const symbols = new DocumentSymbols(store, trees);
 
-	const textDocument = store.get(uri);
+	const textDocument = store.get(uri)!;
 
 	const result = await symbols.provideDocumentSymbols({ textDocument: { uri } });
 
-	(function walk(symbols: lsp.DocumentSymbol[], indent: number = 0) {
+	(function walk(symbols: lsp.DocumentSymbol[], indent: number = 2) {
 		for (let symbol of symbols) {
 			const prefix = ' '.repeat(indent);
 			const e = expected.shift();
 			if (!e) {
-				messages.push(`${prefix}symbols NOT expected: ${symbol.name}@${symbol.range.start.line}`);
+				messages.push({ err: `${prefix}symbol NOT expected: ${symbol.name}@${symbol.range.start.line},${symbol.range.start.character}` });
 			} else if (symbol.name !== e.name) {
-				messages.push(`${prefix}expected: ${e.name}, actual: ${symbol.name}`);
+				messages.push({ err: `${prefix}expected: ${e.name}, actual: ${symbol.name}` });
+			} else if (textDocument.offsetAt(symbol.selectionRange.start) !== e.start) {
+				messages.push({ err: `${prefix}BAD offset for ${e.name} expected ${e.start}, actual: ${textDocument.offsetAt(symbol.selectionRange.start)}` });
 			} else {
-				messages.push(`${prefix}✓ ${symbol.name}`);
+				messages.push({ ok: `${prefix}✓ ${symbol.name}` });
 			}
 			if (symbol.children) {
 				walk(symbol.children, indent + 2);

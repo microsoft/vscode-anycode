@@ -25,16 +25,25 @@ const _debug = process.argv.includes('--debug');
 	const context = await browser.newContext();
 	const page = await context.newPage();
 
-	// page.on('console', async msg => {
-	// 	for (let i = 0; i < msg.args().length; ++i) { console.log(`${i}: ${await msg.args()[i].jsonValue()}`); }
-	// });
+	if (_debug) {
+		page.on('console', async msg => {
+			for (let i = 0; i < msg.args().length; ++i) { console.log(`${i}: ${await msg.args()[i].jsonValue()}`); }
+		});
+	}
 
 	page.exposeFunction('tree_sitter_bootstrap', () => {
 		const result = {
 			treeSitterWasmUri: url.pathToFileURL(path.join(__dirname, '../../tree-sitter/tree-sitter.wasm')).href,
 			languages: [
-				{ languageId: 'java', wasmUri: path.join(__dirname, '../../tree-sitter-java.wasm'), suffixes: [] },
+				{ languageId: 'csharp', wasmUri: path.join(__dirname, '../../tree-sitter-c_sharp.wasm'), suffixes: [] },
+				{ languageId: 'c', wasmUri: path.join(__dirname, '../../tree-sitter-c.wasm'), suffixes: [] },
+				{ languageId: 'cpp', wasmUri: path.join(__dirname, '../../tree-sitter-cpp.wasm'), suffixes: [] },
 				{ languageId: 'go', wasmUri: path.join(__dirname, '../../tree-sitter-go.wasm'), suffixes: [] },
+				{ languageId: 'java', wasmUri: path.join(__dirname, '../../tree-sitter-java.wasm'), suffixes: [] },
+				{ languageId: 'php', wasmUri: path.join(__dirname, '../../tree-sitter-php.wasm'), suffixes: [] },
+				{ languageId: 'python', wasmUri: path.join(__dirname, '../../tree-sitter-python.wasm'), suffixes: [] },
+				{ languageId: 'rust', wasmUri: path.join(__dirname, '../../tree-sitter-rust.wasm'), suffixes: [] },
+				{ languageId: 'java', wasmUri: path.join(__dirname, '../../tree-sitter-typescript.wasm'), suffixes: [] },
 			]
 		};
 		return result;
@@ -58,12 +67,20 @@ const _debug = process.argv.includes('--debug');
 	});
 
 	const p = new Promise((resolve, reject) => {
-		page.exposeFunction('report_result', (uri, message) => {
+		let errorCount = 0;
+		page.exposeFunction('report_result', (uri, messages) => {
 			expect.delete(uri)
 			console.log(uri)
-			console.log(message)
+			for (let message of messages) {
+				if (message.ok) {
+					console.log(message.ok)
+				} else {
+					console.error(message.err)
+					errorCount += 1
+				}
+			}
 			if (expect.size === 0) {
-				resolve(undefined);
+				resolve(errorCount);
 			}
 		});
 		setTimeout(() => reject(new Error('timeout')), 5000);
@@ -72,8 +89,12 @@ const _debug = process.argv.includes('--debug');
 	const target = url.pathToFileURL(path.join(__dirname, './documentSymbols/index.html'));
 	await page.goto(target.href);
 
-	await p;
+	const exitCode = await p;
 
-	page.close();
-	process.exit();
+
+	console.error(`${exitCode} FAILURES`)
+	if (!_debug) {
+		page.close();
+		process.exit(exitCode);
+	}
 })();
