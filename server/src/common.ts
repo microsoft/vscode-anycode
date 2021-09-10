@@ -86,6 +86,16 @@ export function isBeforeOrEqual(a: lsp.Position, b: lsp.Position): boolean {
 	return a.character <= b.character;
 }
 
+export function isBefore(a: lsp.Position, b: lsp.Position): boolean {
+	if (a.line < b.line) {
+		return true;
+	}
+	if (b.line < a.line) {
+		return false;
+	}
+	return a.character < b.character;
+}
+
 export function containsPosition(range: lsp.Range, position: lsp.Position): boolean {
 	return isBeforeOrEqual(range.start, position) && isBeforeOrEqual(position, range.end);
 }

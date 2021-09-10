@@ -4,147 +4,285 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, containsPosition, containsRange } from '../common';
+import { asLspRange, containsPosition, containsRange, isBefore, isBeforeOrEqual, symbolMapping } from '../common';
 import { Trees } from '../trees';
 import { QueryCapture, SyntaxNode } from '../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
+
 export class FileInfo {
 
-	static create(document: TextDocument, trees: Trees): FileInfo {
-
-		const root = new Scope(
-			lsp.Range.create(0, 0, document.lineCount, 0),
-			undefined
-		);
-
+	static simple(document: TextDocument, trees: Trees): FileInfo {
+		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
 		const tree = trees.getParseTree(document);
-		const query = Queries.get(document.languageId, 'scopes', 'definitions', 'usages');
+		if (tree) {
+			const query = Queries.get(document.languageId, 'documentSymbols', 'usages');
+			const captures = query.captures(tree.rootNode);
+			const nodes: Node[] = [];
+			this._fillInDefinitionsAndUsages(nodes, captures);
+			this._constructTree(root, nodes);
+		}
+		return new FileInfo(document, root);
+	}
+
+	static detailed(document: TextDocument, trees: Trees): FileInfo {
+		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
+		const tree = trees.getParseTree(document);
 		if (!tree) {
 			return new FileInfo(document, root);
 		}
 
-		const captures = query
-			.captures(tree.rootNode)
-			.sort(this._compareCaptures);
+		const all: Node[] = [];
 
-		const stack: Scope[] = [];
-
-		for (const capture of captures) {
-
-			if (capture.name.startsWith('scope')) {
-				let parent = stack.pop();
-				const range = asLspRange(capture.node);
-				while (true) {
-					if (!parent) {
-						const scope = new Scope(range, root);
-						root.children.add(scope);
-						stack.push(scope);
-						break;
-					}
-					if (containsRange(parent.range, range)) {
-						const scope = new Scope(range, parent);
-						parent.children.add(scope);
-						stack.push(parent);
-						stack.push(scope);
-						break;
-					}
-					parent = stack.pop();
-				}
-
-			} else if (capture.name.startsWith('symbol.') && capture.name.endsWith('.name')) {
-				const scope = stack[stack.length - 1] ?? root;
-				scope.definitions.add(capture.node);
-
-			} else if (capture.name === 'usage') {
-				const scope = stack[stack.length - 1] ?? root;
-				scope.usages.add(capture.node);
-
+		// Find all scopes and merge some. The challange is that function-bodies "see" their
+		// arguments but function-block-nodes and argument-list-nodes are usually siblings
+		const scopeQuery = Queries.get(document.languageId, 'scopes');
+		const scopeCaptures = scopeQuery.captures(tree.rootNode).sort(this._compareCaptures);
+		for (let i = 0; i < scopeCaptures.length; i++) {
+			const capture = scopeCaptures[i];
+			const range = asLspRange(capture.node);
+			if (capture.name.endsWith('.merge')) {
+				all[all.length - 1].range.end = range.end;
+			} else {
+				all.push(new Scope(range));
 			}
 		}
+
+		// Find all definitions and usages and mix them with scopes
+		const query = Queries.get(document.languageId, 'definitions', 'usages');
+		const captures = query.captures(tree.rootNode);
+		this._fillInDefinitionsAndUsages(all, captures);
+
+		//
+		this._constructTree(root, all);
 
 		return new FileInfo(document, root);
 	}
 
+	private static _fillInDefinitionsAndUsages(bucket: Node[], captures: QueryCapture[]): void {
+		for (let capture of captures) {
+
+			const match = /symbol\.(\w+)\.name/.exec(capture.name);
+
+			if (match) {
+				bucket.push(new Definition(
+					capture.node.text,
+					asLspRange(capture.node),
+					capture.name.includes('.variable.'),
+					symbolMapping.getSymbolKind(match[1])
+				));
+			} else if (capture.name === 'usage') {
+				bucket.push(new Usage(capture.node.text, asLspRange(capture.node)));
+			}
+		}
+	}
+
+	private static _constructTree(root: Scope, nodes: Node[]): void {
+		const stack: Node[] = [];
+		for (const thing of nodes.sort(this._compareByRange)) {
+			while (true) {
+				let parent = stack.pop() ?? root;
+				if (containsRange(parent.range, thing.range)) {
+					parent.addChild(thing);
+					stack.push(parent);
+					stack.push(thing);
+					break;
+				}
+				if (parent === root) {
+					// impossible ?!
+					break;
+				}
+			}
+		}
+	}
+
+
 	private static _compareCaptures(a: QueryCapture, b: QueryCapture) {
 		return a.node.startIndex - b.node.startIndex;
+	}
+
+	private static _compareByRange<T extends { range: lsp.Range }>(a: T, b: T) {
+		if (isBefore(a.range.start, b.range.start)) {
+			return -1;
+		} else if (isBefore(b.range.start, a.range.start)) {
+			return 1;
+		}
+		// same start...
+		if (isBefore(a.range.end, b.range.end)) {
+			return -1;
+		} else if (isBefore(b.range.end, a.range.end)) {
+			return 1;
+		}
+		return 0;
 	}
 
 	private constructor(
 		readonly document: TextDocument,
 		readonly root: Scope
 	) { }
+
 }
 
-export class Scope {
+const enum NodeType {
+	'Scope', 'Definition', 'Usage'
+}
 
-	readonly children = new Set<Scope>();
-	readonly definitions = new Set<SyntaxNode>();
-	readonly usages = new Set<SyntaxNode>();
+abstract class Node {
+
+	protected _parent: Node | undefined;
+	protected _children: Node[] = [];
 
 	constructor(
 		readonly range: lsp.Range,
-		readonly parent: Scope | undefined
+		readonly type: NodeType
 	) { }
 
+	addChild(node: Node) {
+		this._children.push(node);
+		node._parent = this;
+	}
+
+	toString() {
+		return `${this.type}@${this.range.start.line},${this.range.start.character} -${this.range.end.line},${this.range.end.character}`;
+	}
+}
+
+export class Usage extends Node {
+	constructor(
+		readonly name: string,
+		range: lsp.Range
+	) {
+		super(range, NodeType.Usage);
+	}
+
+	addChild(node: Node) {
+		// console.log('ignored', node.toString());
+	}
+
+	toString() {
+		return `[usages] ${this.name}`;
+	}
+}
+
+export class Definition extends Node {
+	constructor(
+		readonly name: string,
+		readonly range: lsp.Range,
+		readonly scoped: boolean,
+		readonly kind: lsp.SymbolKind
+	) {
+		super(range, NodeType.Definition);
+	}
+
+	addChild(node: Node) {
+		// console.log('ignored', node.toString());
+	}
+
+	toString() {
+		return `[def] ${this.name}`;
+	}
+}
+
+export class Scope extends Node {
+
+	constructor(range: lsp.Range) {
+		super(range, NodeType.Scope);
+	}
+
+	*definitions() {
+		for (let item of this._children) {
+			if (item instanceof Definition) {
+				yield item;
+			}
+		}
+	}
+	*usages() {
+		for (let item of this._children) {
+			if (item instanceof Usage) {
+				yield item;
+			}
+		}
+	}
+	*scopes() {
+		for (let item of this._children) {
+			if (item instanceof Scope) {
+				yield item;
+			}
+		}
+	}
+
 	findScope(position: lsp.Position): Scope {
-		for (let child of this.children) {
-			if (containsPosition(child.range, position)) {
-				return child.findScope(position);
+		for (let scope of this.scopes()) {
+			if (containsPosition(scope.range, position)) {
+				return scope.findScope(position);
 			}
 		}
 		return this;
 	}
 
-	findUsage(position: lsp.Position): SyntaxNode | undefined {
-		for (let usage of this.usages) {
-			if (containsPosition(asLspRange(usage), position)) {
-				return usage;
+	findUsage(position: lsp.Position): Usage | undefined {
+		for (let child of this.usages()) {
+			if (containsPosition(child.range, position)) {
+				return child;
 			}
 		}
 	}
 
-	findDefinition(position: lsp.Position): SyntaxNode | undefined {
-		for (let usage of this.definitions) {
-			if (containsPosition(asLspRange(usage), position)) {
-				return usage;
+	findDefinition(position: lsp.Position): Definition | undefined {
+		for (let child of this.definitions()) {
+			if (containsPosition(child.range, position)) {
+				return child;
 			}
 		}
 	}
 
-	findDefinitions(text: string): SyntaxNode[] {
-		const result = Array.from(this.definitions).filter(node => node.text === text);
+	findDefinitions(text: string): Definition[] {
+		const result: Definition[] = [];
+		for (let child of this.definitions()) {
+			if (child.name === text) {
+				result.push(child);
+			}
+		}
 		if (result.length > 0) {
 			return result;
 		}
-		if (!this.parent) {
+		if (!(this._parent instanceof Scope)) {
 			return [];
 		}
-		return this.parent.findDefinitions(text);
+		return this._parent.findDefinitions(text);
 	}
 
-	findUsages(text: string): SyntaxNode[] {
-		const bucket: SyntaxNode[][] = [];
+	findUsages(text: string): Usage[] {
+		const bucket: Usage[][] = [];
 
 		// find higest scope defining
 		let scope: Scope = this;
-		while (scope.parent && !scope._defines(text)) {
-			scope = scope.parent;
+		while (!scope._defines(text)) {
+			if (scope._parent instanceof Scope) {
+				scope = scope._parent;
+			} else {
+				break;
+			}
 		}
 		// find usages in all child scope (unless also defined there)
 		scope._findUsagesDown(text, bucket);
 		return bucket.flat();
 	}
 
-	private _findUsagesDown(text: string, bucket: SyntaxNode[][]): void {
+	private _findUsagesDown(text: string, bucket: Usage[][]): void {
 
 		// usages in this scope
-		const result = Array.from(this.usages).filter(node => node.text === text);
+		const result: Usage[] = [];
+		for (let child of this.usages()) {
+			if (child.name === text) {
+				result.push(child);
+			}
+		}
 		bucket.push(result);
 
 		// usages in child scope (unless also defined there)
-		for (let child of this.children) {
+		for (let child of this.scopes()) {
 			if (!child._defines(text)) {
 				child._findUsagesDown(text, bucket);
 			}
@@ -152,23 +290,11 @@ export class Scope {
 	}
 
 	private _defines(text: string): boolean {
-		for (let def of this.definitions) {
-			if (def.text === text) {
+		for (let child of this.definitions()) {
+			if (child.name === text) {
 				return true;
 			}
 		}
 		return false;
-	}
-
-	toString(nest: number = 0) {
-		let r = `${' '.repeat(nest)}Scope@${this.range.start.line},${this.range.start.character}=-${this.range.end.line},${this.range.end.character}, 
-		DEFINES: ${Array.from(this.definitions.values()).map(node => node.text)}
-		USES: ${Array.from(this.usages.values()).map(node => node.text)}
-		`;
-
-		for (let item of this.children) {
-			r += `\n${item.toString(nest + 1)}`;
-		}
-		return r;
 	}
 }

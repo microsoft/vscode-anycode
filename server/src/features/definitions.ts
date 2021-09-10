@@ -56,18 +56,18 @@ export class DefinitionProvider {
 	}
 
 	private _findDefinitionsInFile(document: TextDocument, position: lsp.Position, result: lsp.Location[]) {
-		const info = FileInfo.create(document, this._trees);
+		const info = FileInfo.detailed(document, this._trees);
 		const scope = info.root.findScope(position);
-		const usage = scope.findUsage(position) ?? scope.findDefinition(position);
-		if (!usage) {
+		const anchor = scope.findUsage(position) ?? scope.findDefinition(position);
+		if (!anchor) {
 			return false;
 		}
-		const definitions = scope.findDefinitions(usage.text);
+		const definitions = scope.findDefinitions(anchor.name);
 		if (definitions.length === 0) {
 			return false;
 		}
 		for (let def of definitions) {
-			result.push(lsp.Location.create(document.uri, asLspRange(def)));
+			result.push(lsp.Location.create(document.uri, def.range));
 		}
 		return true;
 	}

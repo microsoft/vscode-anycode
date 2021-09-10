@@ -63,54 +63,14 @@ ${documentSymbols}
 `;
 
 const usages = `
-(argument_list (identifier) @usage) ;; foo(USAGE)
-(method_invocation object: (identifier) @usage) ;; USAGE(foo)
-(field_access object: (identifier) @usage) ;; USAGE.foo
-(assignment_expression right: (identifier) @usage) ;; foo = USAGE
-(binary_expression (identifier) @usage)
-
-(field_access
-	field: (identifier) @usage.field
-)
-
-(method_invocation
-	name: (identifier) @usage.call
-)
-
-(object_creation_expression
-	type: [
-		(type_identifier) @usage.constructor
-		(generic_type (type_identifier)) @usage.contructor
-	]
-)
-
-(interface_type_list
-	(type_identifier) @usage.interface
-)
-
-(superclass
-	(type_identifier) @usage.class
-)
-
-(formal_parameter
-	type: (type_identifier) @usage.type
-)
-
-(local_variable_declaration
-	type: (type_identifier) @usage.type
-)
-
-(type_arguments
-	(type_identifier) @usage.type
-)
-
-(wildcard
-	(type_identifier) @usage.type
-)
+(identifier) @usage
+(type_identifier) @usage
 `;
 
 const scopes = `
-[(class_declaration) (interface_declaration) (enum_declaration) (method_declaration)] @scope
+[(class_body) (interface_body) (enum_body)] @scope
+(method_declaration (formal_parameters) @scope)
+(method_declaration (block) @scope.merge)
 (for_statement) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)

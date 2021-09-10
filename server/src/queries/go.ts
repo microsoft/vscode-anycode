@@ -76,37 +76,17 @@ ${documentSymbols}
 `;
 
 const usages = `
-
-(argument_list (identifier) @usage)
-(selector_expression operand: (identifier) @usage)
-
-(call_expression
-	function: [
-		(identifier) @usage.function
-		(selector_expression
-			field: (field_identifier) @usage.function
-		)
-		(parenthesized_expression
-			(identifier) @usage.function
-		)
-		(parenthesized_expression
-			(selector_expression
-				field: (field_identifier) @usage.function
-			)
-		)
-	]
-)
-
-(selector_expression
-	field: (field_identifier) @usage.field
-)
-
-(type_identifier) @usage`;
+(field_identifier) @usage
+(identifier) @usage
+(type_identifier) @usage
+`;
 
 
 const scopes = `
-
-(function_declaration) @scope
+(function_declaration parameters: (parameter_list) @scope)
+(function_declaration body: (block) @scope.merge)
+(expression_switch_statement) @scope
+(for_statement) @scope
 (block) @scope
 `;
 
