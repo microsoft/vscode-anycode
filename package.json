@@ -3,7 +3,7 @@
 	"displayName": "anycode",
 	"publisher": "ms-vscode",
 	"description": "",
-	"version": "0.0.27",
+	"version": "0.0.28",
 	"enableProposedApi": true,
 	"preview": true,
 	"repository": {
