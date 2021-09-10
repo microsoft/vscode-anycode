@@ -4,8 +4,8 @@
 	"publisher": "ms-vscode",
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
-		"pretest": "npx esbuild src/test/all.test.ts --bundle --outfile=src/test/all.test.js --external:fs --external:path",
-		"test": "node src/test/run.js"
+		"pretest": "npx esbuild --bundle src/test/documentSymbols/documentSymbols.ts --outfile=src/test/documentSymbols/documentSymbols.js --external:fs --external:path",
+		"test": "node src/test/index.js"
 	},
 	"dependencies": {
 		"vscode-languageserver": "^7.0.0",

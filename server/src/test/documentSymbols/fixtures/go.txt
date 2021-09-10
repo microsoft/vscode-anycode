@@ -1,0 +1,15 @@
+---
+
+func (me *MySQLError) [Is](err error) bool {
+	if merr, ok := err.(*MySQLError); ok {
+		return merr.Number == me.Number
+	}
+	return false
+}
+
+---
+
+type [MySQLError] struct {
+	[Number]  uint16
+	[Message] string
+}

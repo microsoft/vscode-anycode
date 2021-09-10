@@ -5,3 +5,4 @@ node_modules
 .vscode-test-web/
 *.vsix
 tree-sitter-*.wasm
+**/test/documentSymbols/**/*.js
