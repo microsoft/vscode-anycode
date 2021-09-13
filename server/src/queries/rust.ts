@@ -66,7 +66,18 @@ const definitionsOutline = `
 ) @definition.namespace
 `;
 
+const definitionsAll = `
+(let_declaration pattern: (identifier) @definition.variable.name) @definition.variable
+(parameter pattern: (identifier) @definition.variable.name) @definition.variable
+`;
+
+const usages = `
+(identifier) @usage
+`;
+
 const scopes = `
+(function_item (parameters) @scope)
+(function_item (block) @scope.merge)
 (block) @scope
 `;
 
@@ -83,6 +94,8 @@ ${scopes}
 
 export const mod: QueryModule = {
 	definitionsOutline,
+	definitionsAll,
+	usages,
 	scopes,
 	comments,
 	folding
