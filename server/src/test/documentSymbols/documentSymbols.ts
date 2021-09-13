@@ -105,6 +105,9 @@ async function assertOneFixture(uri: string, languageId: string, text: string, m
 	const textDocument = store.get(uri)!;
 
 	const result = await symbols.provideDocumentSymbols({ textDocument: { uri } });
+	if (result.length === 0) {
+		messages.push({ err: 'NO results' });
+	}
 
 	(function walk(symbols: lsp.DocumentSymbol[], indent: number = 2) {
 		for (let symbol of symbols) {

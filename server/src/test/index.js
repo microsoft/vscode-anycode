@@ -43,7 +43,7 @@ const _debug = process.argv.includes('--debug');
 				{ languageId: 'php', wasmUri: path.join(__dirname, '../../tree-sitter-php.wasm'), suffixes: [] },
 				{ languageId: 'python', wasmUri: path.join(__dirname, '../../tree-sitter-python.wasm'), suffixes: [] },
 				{ languageId: 'rust', wasmUri: path.join(__dirname, '../../tree-sitter-rust.wasm'), suffixes: [] },
-				{ languageId: 'java', wasmUri: path.join(__dirname, '../../tree-sitter-typescript.wasm'), suffixes: [] },
+				{ languageId: 'typescript', wasmUri: path.join(__dirname, '../../tree-sitter-typescript.wasm'), suffixes: [] },
 			]
 		};
 		return result;

@@ -54,9 +54,8 @@ const definitionsOutline = `
 	name: (type_identifier) @definition.interface.name
 ) @definition.interface
 
-(impl_item
-	type: (type_identifier) @definition.class.name
-) @definition.class
+(impl_item type: (type_identifier) @definition.class.name) @definition.class
+(impl_item trait: (type_identifier) @definition.class.name) @definition.class
 
 (foreign_mod_item
 	[
