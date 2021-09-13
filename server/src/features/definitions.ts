@@ -40,7 +40,7 @@ export class DefinitionProvider {
 		// find definition globally
 		await this._symbols.update();
 		const result: lsp.Location[] = [];
-		const all = this._symbols.symbols.get(anchor.name);
+		const all = this._symbols.definitions.get(anchor.name);
 		if (all) {
 			for (const symbol of all) {
 				result.push(symbol.location);

@@ -21,7 +21,7 @@ export class WorkspaceSymbol {
 		await this._symbols.update();
 
 		const sw = new StopWatch();
-		const all = this._symbols.symbols.query(Array.from(params.query));
+		const all = this._symbols.definitions.query(Array.from(params.query));
 		for (let [, symbols] of all) {
 			result.push(Array.from(symbols));
 		}

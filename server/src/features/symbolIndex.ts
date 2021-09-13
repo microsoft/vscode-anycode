@@ -30,7 +30,7 @@ class Queue {
 
 export class SymbolIndex {
 
-	readonly symbols: Trie<Set<lsp.SymbolInformation>> = Trie.create();
+	readonly definitions: Trie<Set<lsp.SymbolInformation>> = Trie.create();
 	readonly usages: Trie<Set<lsp.Location>> = Trie.create();
 
 	private readonly _queue = new Queue();
@@ -70,14 +70,14 @@ export class SymbolIndex {
 		const remove = new Set(uris.map(u => u.toString()));
 
 		// symbols
-		for (const [key, value] of this.symbols) {
+		for (const [key, value] of this.definitions) {
 			for (let item of value) {
 				if (remove.has(item.location.uri.toString())) {
 					value.delete(item);
 				}
 			}
 			if (value.size === 0) {
-				this.symbols.delete(key);
+				this.definitions.delete(key);
 			}
 		}
 
@@ -97,7 +97,7 @@ export class SymbolIndex {
 		sw.reset();
 		const tasks = uris.map(this._createIndexTask, this);
 		await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
-		sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.symbols.size}, usages: ${this.usages.size}`);
+		sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.definitions.size}, usages: ${this.usages.size}`);
 	}
 
 	private _createIndexTask(uri: string) {
@@ -124,9 +124,9 @@ export class SymbolIndex {
 				def.range,
 				document.uri
 			);
-			let all = this.symbols.get(def.name);
+			let all = this.definitions.get(def.name);
 			if (!all) {
-				this.symbols.set(def.name, new Set([symbol]));
+				this.definitions.set(def.name, new Set([symbol]));
 			} else {
 				all.add(symbol);
 			}

@@ -51,7 +51,7 @@ export class ReferencesProvider {
 		if (!isScopedDefinition) {
 			// the definition the "anchor" was found or wasn't marked a local/argument and
 			// therefore we try to find all symbols that match this name
-			this._fillInGlobalReferences(anchor, params.context.includeDeclaration, result);
+			await this._fillInGlobalReferences(anchor, params.context.includeDeclaration, result);
 		}
 
 		return result;
@@ -61,8 +61,8 @@ export class ReferencesProvider {
 		await this._symbols.update();
 
 		const usages = this._symbols.usages.get(anchor.name);
-		const symbols = this._symbols.symbols.get(anchor.name);
-		if (!usages && !symbols) {
+		const definition = this._symbols.definitions.get(anchor.name);
+		if (!usages && !definition) {
 			return;
 		}
 
@@ -72,8 +72,8 @@ export class ReferencesProvider {
 			}
 		}
 
-		if (symbols) {
-			for (let symbol of symbols) {
+		if (definition) {
+			for (let symbol of definition) {
 				bucket.push(lsp.Location.create(symbol.location.uri, symbol.location.range));
 			}
 		}

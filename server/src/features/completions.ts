@@ -19,7 +19,7 @@ export class CompletionItemProvider {
 		await this._symbols.update();
 
 		const result: CompletionItem[] = [];
-		for (let [key, symbols] of this._symbols.symbols) {
+		for (let [key, symbols] of this._symbols.definitions) {
 			const [first] = symbols;
 			result.push({
 				label: key,
