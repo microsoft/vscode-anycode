@@ -67,13 +67,13 @@ export function asLspRange(node: Parser.SyntaxNode): lsp.Range {
 	return lsp.Range.create(node.startPosition.row, node.startPosition.column, node.endPosition.row, node.endPosition.column);
 }
 
-export function nodeAtPosition(node: Parser.SyntaxNode, position: lsp.Position): Parser.SyntaxNode | undefined {
+export function nodeAtPosition(node: Parser.SyntaxNode, position: lsp.Position): Parser.SyntaxNode {
 	for (let child of node.children) {
 		if (containsPosition(asLspRange(child), position)) {
-			return nodeAtPosition(child, position) ?? child;
+			return nodeAtPosition(child, position);
 		}
 	}
-	return undefined;
+	return node;
 }
 
 export function isBeforeOrEqual(a: lsp.Position, b: lsp.Position): boolean {

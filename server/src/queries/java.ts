@@ -63,8 +63,13 @@ ${definitionsOutline}
 `;
 
 const usages = `
-(identifier) @usage
-(type_identifier) @usage
+(argument_list (identifier) @usage.variable)
+(assignment_expression (identifier) @usage.variable)
+(binary_expression (identifier) @usage.variable)
+(return_statement (identifier) @usage.variable)
+(cast_expression (identifier) @usage.variable)
+(field_access object: (identifier) @usage.variable)
+(method_invocation object: (identifier) @usage.variable)
 `;
 
 const scopes = `

@@ -66,17 +66,32 @@ const definitionsOutline = `
 `;
 
 const definitionsAll = `
+${definitionsOutline}
 (let_declaration pattern: (identifier) @definition.variable.name) @definition.variable
 (parameter pattern: (identifier) @definition.variable.name) @definition.variable
+(for_expression pattern: [(identifier) @definition.variable.name @definition.variable (reference_pattern (identifier) @definition.variable.name @definition.variable)] )
 `;
 
 const usages = `
-(identifier) @usage
+(parameter pattern: [(identifier) @usage.variable])
+(token_tree (identifier) @usage.variable)
+(macro_invocation macro: (identifier) @usage.variable)
+(call_expression function: (identifier) @usage.variable)
+(arguments (identifier) @usage.variable)
+(reference_expression value: (identifier) @usage.variable)
+(index_expression (identifier) @usage.variable)
+(field_expression (identifier) @usage.variable)
+(for_expression value: (identifier) @usage.variable)
+(binary_expression (identifier) @usage.variable)
+(assignment_expression (identifier) @usage.variable)
+(block (identifier) @usage.variable)
+(field_initializer (identifier) @usage.variable)
 `;
 
 const scopes = `
 (function_item (parameters) @scope)
 (function_item (block) @scope.merge)
+(for_expression) @scope
 (block) @scope
 `;
 

@@ -72,7 +72,7 @@ export class FileInfo {
 					capture.name.includes('.variable.'),
 					symbolMapping.getSymbolKind(match[1])
 				));
-			} else if (capture.name === 'usage') {
+			} else if (capture.name === 'usage.variable') {
 				bucket.push(new Usage(capture.node.text, asLspRange(capture.node)));
 			}
 		}
@@ -144,7 +144,7 @@ abstract class Node {
 	}
 
 	toString() {
-		return `${this.type}@${this.range.start.line},${this.range.start.character} -${this.range.end.line},${this.range.end.character}`;
+		return `${this.type}@${this.range.start.line},${this.range.start.character}-${this.range.end.line},${this.range.end.character}`;
 	}
 }
 
@@ -156,7 +156,7 @@ export class Usage extends Node {
 		super(range, NodeType.Usage);
 	}
 
-	addChild(node: Node) {
+	addChild(_node: Node) {
 		// console.log('ignored', node.toString());
 	}
 
@@ -175,7 +175,7 @@ export class Definition extends Node {
 		super(range, NodeType.Definition);
 	}
 
-	addChild(node: Node) {
+	addChild(_node: Node) {
 		// console.log('ignored', node.toString());
 	}
 
@@ -221,7 +221,7 @@ export class Scope extends Node {
 		return this;
 	}
 
-	findAnchor(position: lsp.Position): Definition | Usage | undefined {
+	findDefinitionOrUsage(position: lsp.Position): Definition | Usage | undefined {
 		for (let child of this._children) {
 			if ((child instanceof Definition || child instanceof Usage) && containsPosition(child.range, position)) {
 				return child;

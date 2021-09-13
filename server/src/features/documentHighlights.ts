@@ -25,7 +25,7 @@ export class DocumentHighlightsProvider {
 		const info = FileInfo.detailed(document, this._trees);
 		const scope = info.root.findScope(params.position);
 
-		const anchor = scope.findAnchor(params.position);
+		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (!anchor) {
 			return [];
 		}
