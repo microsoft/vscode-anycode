@@ -18,6 +18,7 @@ import { Validation } from './features/validation';
 import { DocumentStore } from './documentStore';
 import Languages from './languages';
 import { FoldingRangeProvider } from './features/foldingRanges';
+import { DocumentHighlightsProvider } from './features/documentHighlights';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
@@ -50,6 +51,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	new DocumentSymbols(documents, trees).register(connection);
 	new DefinitionProvider(documents, trees, symbolIndex).register(connection);
 	new ReferencesProvider(documents, trees, symbolIndex).register(connection);
+	new DocumentHighlightsProvider(documents, trees).register(connection);
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
 	new FoldingRangeProvider(documents, trees).register(connection);
@@ -61,6 +63,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		documentSymbolProvider: true,
 		definitionProvider: true,
 		referencesProvider: true,
+		documentHighlightProvider: true,
 		completionProvider: {},
 		selectionRangeProvider: true,
 		foldingRangeProvider: true,
