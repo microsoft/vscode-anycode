@@ -5,61 +5,61 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const definitionsOutline = `
 (class_declaration
-	name: (identifier) @symbol.class.name
-) @symbol.class
+	name: (identifier) @definition.class.name
+) @definition.class
 
 (variable_declarator
-	name: (identifier) @symbol.class.name
+	name: (identifier) @definition.class.name
 	value: (object_creation_expression
 		.
 		(_)*
 		(class_body)
 	)
-) @symbol.class
+) @definition.class
 
 (interface_declaration
-	name: (identifier) @symbol.interface.name
-) @symbol.interface
+	name: (identifier) @definition.interface.name
+) @definition.interface
 
 (enum_declaration
-	name: (identifier) @symbol.enum.name
-) @symbol.enum
+	name: (identifier) @definition.enum.name
+) @definition.enum
 
 (enum_constant
-	name: (identifier) @symbol.enumMember.name
-) @symbol.enumMember
+	name: (identifier) @definition.enumMember.name
+) @definition.enumMember
 
 (constructor_declaration
-	name: (identifier) @symbol.constructor.name
-) @symbol.constructor
+	name: (identifier) @definition.constructor.name
+) @definition.constructor
 
 (method_declaration
-	name: (identifier) @symbol.method.name
-) @symbol.method
+	name: (identifier) @definition.method.name
+) @definition.method
 
 (field_declaration
-	declarator: ((variable_declarator 
-		name: (identifier) @symbol.field.name)
-	) @symbol.field
+	declarator: ((variable_declarator
+		name: (identifier) @definition.field.name)
+	) @definition.field
 )
 
 (module_declaration
 	[
-		(scoped_identifier) @symbol.module.name
-		(identifier) @symbol.module.name
+		(scoped_identifier) @definition.module.name
+		(identifier) @definition.module.name
 	]
-) @symbol.module
+) @definition.module
 `;
 
-const definitions = `
+const definitionsAll = `
 
-${documentSymbols}
+${definitionsOutline}
 
-(formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
-(local_variable_declaration declarator: (variable_declarator name: (identifier) @symbol.variable.name)) @symbol.variable
-(catch_formal_parameter name: (identifier) @symbol.variable.name) @symbol.variable
+(formal_parameter name: (identifier) @definition.variable.name) @definition.variable
+(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition.variable.name)) @definition.variable
+(catch_formal_parameter name: (identifier) @definition.variable.name) @definition.variable
 `;
 
 const usages = `
@@ -93,8 +93,8 @@ ${comments}
 ) @import`;
 
 export const mod: QueryModule = {
-	documentSymbols,
-	definitions,
+	definitionsOutline,
+	definitionsAll,
 	usages,
 	scopes,
 	comments,

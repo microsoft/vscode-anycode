@@ -27,7 +27,7 @@ export class ReferencesProvider {
 		const info = FileInfo.detailed(document, this._trees);
 		const scope = info.root.findScope(params.position);
 
-		const anchor = scope.findUsage(params.position) ?? scope.findDefinition(params.position);
+		const anchor = scope.findAnchor(params.position);
 		if (!anchor) {
 			return [];
 		}

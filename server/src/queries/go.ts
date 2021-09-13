@@ -5,74 +5,74 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const definitionsOutline = `
 (field_declaration
-	name: (field_identifier) @symbol.field.name
-) @symbol.field
+	name: (field_identifier) @definition.field.name
+) @definition.field
 
 (method_spec
-	name: (field_identifier) @symbol.method.name
-) @symbol.method
+	name: (field_identifier) @definition.method.name
+) @definition.method
 
 (type_alias
-	name: (type_identifier) @symbol.string.name
-) @symbol.string
+	name: (type_identifier) @definition.string.name
+) @definition.string
 
 (function_declaration
-	name: (identifier) @symbol.function.name
-) @symbol.function
+	name: (identifier) @definition.function.name
+) @definition.function
 
 (method_declaration
-	name: (field_identifier) @symbol.method.name
-) @symbol.method
+	name: (field_identifier) @definition.method.name
+) @definition.method
 
 ;; variables defined in the package
 (source_file
 	(var_declaration
 		(var_spec
-			name: (identifier) @symbol.variable.name
-		) @symbol.variable
+			name: (identifier) @definition.variable.name
+		) @definition.variable
 	)
 )
 
 ;; lots of type_spec, must be mutually exclusive
 (type_spec 
-	name: (type_identifier) @symbol.interface.name
+	name: (type_identifier) @definition.interface.name
 	type: (interface_type)
-) @symbol.interface
+) @definition.interface
 
 (type_spec 
-	name: (type_identifier) @symbol.function.name
+	name: (type_identifier) @definition.function.name
 	type: (function_type)
-) @symbol.function
+) @definition.function
 
-(type_spec 
-	name: (type_identifier) @symbol.struct.name
+(type_spec
+	name: (type_identifier) @definition.struct.name
 	type: (struct_type)
-) @symbol.struct
+) @definition.struct
 
 (type_spec
-	name: (type_identifier) @symbol.struct.name
+	name: (type_identifier) @definition.struct.name
 	type: (map_type)
-) @symbol.struct
+) @definition.struct
 
 (type_spec
-	name: (type_identifier) @symbol.struct.name
+	name: (type_identifier) @definition.struct.name
 	type: (pointer_type)
-) @symbol.struct
+) @definition.struct
 
 (type_spec
-	name: (type_identifier) @symbol.event.name
+	name: (type_identifier) @definition.event.name
 	type: (channel_type)
-) @symbol.event
+) @definition.event
 `;
 
-const definitions = `
+const definitionsAll = `
 
-${documentSymbols}
+${definitionsOutline}
 
-(parameter_declaration name: (identifier) @symbol.variable.name) @symbol.variable
-(short_var_declaration left: (expression_list (identifier) @symbol.variable.name)) @symbol.variable
+(parameter_declaration name: (identifier) @definition.variable.name) @definition.variable
+(short_var_declaration left: (expression_list (identifier) @definition.variable.name)) @definition.variable
 `;
 
 const usages = `
@@ -101,8 +101,8 @@ ${comments}
 `;
 
 export const mod: QueryModule = {
-	documentSymbols,
-	definitions,
+	definitionsOutline,
+	definitionsAll,
 	comments,
 	usages,
 	scopes,

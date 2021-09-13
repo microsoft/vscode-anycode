@@ -6,24 +6,24 @@
 import type { QueryModule } from '../queries';
 
 const documentSymbols = `(class_declaration
-	name: (name) @symbol.class.name
-) @symbol.class
+	name: (name) @definition.class.name
+) @definition.class
 
 (method_declaration
-  name: (name) @symbol.method.name
-) @symbol.method
+  name: (name) @definition.method.name
+) @definition.method
 
 (property_element
-	(variable_name) @symbol.property.name
-) @symbol.property
+	(variable_name) @definition.property.name
+) @definition.property
 
 (function_definition
-	name: (name) @symbol.function.name
-) @symbol.function
+	name: (name) @definition.function.name
+) @definition.function
 
 (trait_declaration
-	name: (name) @symbol.property.name
-) @symbol.property`;
+	name: (name) @definition.property.name
+) @definition.property`;
 
 
 const comments = `
@@ -31,7 +31,7 @@ const comments = `
 `;
 
 export const mod: QueryModule = {
-	documentSymbols,
+	definitionsOutline: documentSymbols,
 	comments
 };
 

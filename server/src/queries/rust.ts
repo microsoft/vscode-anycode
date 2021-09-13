@@ -5,65 +5,65 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const definitionsOutline = `
 (mod_item
-	name: (identifier) @symbol.module.name
-) @symbol.module
+	name: (identifier) @definition.module.name
+) @definition.module
 
 (function_item
-	name: (identifier) @symbol.function.name
-) @symbol.function
+	name: (identifier) @definition.function.name
+) @definition.function
 
 (union_item
-	name: (type_identifier) @symbol.struct.name
-) @symbol.struct
+	name: (type_identifier) @definition.struct.name
+) @definition.struct
 
 (field_declaration
-	name: (field_identifier) @symbol.field.name
-) @symbol.field
+	name: (field_identifier) @definition.field.name
+) @definition.field
 
 (struct_item
-	name: (type_identifier) @symbol.struct.name
-) @symbol.struct
+	name: (type_identifier) @definition.struct.name
+) @definition.struct
 
 (enum_item
-	name: (type_identifier) @symbol.enum.name
-) @symbol.enum
+	name: (type_identifier) @definition.enum.name
+) @definition.enum
 
 (enum_variant
-	name: (identifier) @symbol.enumMember.name
-) @symbol.enumMember
+	name: (identifier) @definition.enumMember.name
+) @definition.enumMember
 
 (trait_item
-	name: (type_identifier) @symbol.interface.name
-) @symbol.interface
+	name: (type_identifier) @definition.interface.name
+) @definition.interface
 
 (function_signature_item
-	name: (identifier) @symbol.function.name
-) @symbol.function
+	name: (identifier) @definition.function.name
+) @definition.function
 
 (const_item
-	name: (identifier) @symbol.constant.name
-) @symbol.constant
+	name: (identifier) @definition.constant.name
+) @definition.constant
 
 (static_item
-	name: (identifier) @symbol.constant.name
-) @symbol.constant
+	name: (identifier) @definition.constant.name
+) @definition.constant
 
 (type_item
-	name: (type_identifier) @symbol.interface.name
-) @symbol.interface
+	name: (type_identifier) @definition.interface.name
+) @definition.interface
 
 (impl_item
-	type: (type_identifier) @symbol.class.name
-) @symbol.class
+	type: (type_identifier) @definition.class.name
+) @definition.class
 
 (foreign_mod_item
 	[
-		(extern_modifier (string_literal) @symbol.namespace.name)
-		(extern_modifier) @symbol.namespace.name
+		(extern_modifier (string_literal) @definition.namespace.name)
+		(extern_modifier) @definition.namespace.name
 	]
-) @symbol.namespace
+) @definition.namespace
 `;
 
 const scopes = `
@@ -82,7 +82,7 @@ ${scopes}
 `;
 
 export const mod: QueryModule = {
-	documentSymbols,
+	definitionsOutline,
 	scopes,
 	comments,
 	folding

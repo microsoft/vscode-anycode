@@ -5,106 +5,106 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const definitionsOutline = `
 (class_declaration
-	name: (identifier) @symbol.class.name
-) @symbol.class
+	name: (identifier) @definition.class.name
+) @definition.class
 
 (interface_declaration 
-	name: (identifier) @symbol.interface.name
-) @symbol.interface
+	name: (identifier) @definition.interface.name
+) @definition.interface
 
 (record_declaration 
-	name: (identifier) @symbol.record.name
-) @symbol.record
+	name: (identifier) @definition.record.name
+) @definition.record
 
 (record_declaration
 	(parameter_list
 		(parameter
-			name: (identifier) @symbol.property.name
-		) @symbol.property
+			name: (identifier) @definition.property.name
+		) @definition.property
 	)
 )
 
 (constructor_declaration
-	name: (identifier) @symbol.constructor.name
-) @symbol.constructor
+	name: (identifier) @definition.constructor.name
+) @definition.constructor
 
 (destructor_declaration
-	(identifier) @symbol.method.name
-) @symbol.method
+	(identifier) @definition.method.name
+) @definition.method
 
 (indexer_declaration
-	(bracketed_parameter_list) @symbol.method.name
-) @symbol.method
+	(bracketed_parameter_list) @definition.method.name
+) @definition.method
 
 (method_declaration
-	name: (identifier) @symbol.method.name
-) @symbol.method
+	name: (identifier) @definition.method.name
+) @definition.method
 
 (property_declaration
-	name: (identifier) @symbol.property.name
-) @symbol.property
+	name: (identifier) @definition.property.name
+) @definition.property
 
 (delegate_declaration
-	name: (identifier) @symbol.function.name
-) @symbol.function
+	name: (identifier) @definition.function.name
+) @definition.function
 
 (field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @symbol.field.name
+			(identifier) @definition.field.name
 		)
 	)
-) @symbol.field
+) @definition.field
 
 (event_field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @symbol.event.name
+			(identifier) @definition.event.name
 		)
 	)
-) @symbol.event
+) @definition.event
 
 (global_attribute_list
 	(attribute
-		(identifier) @symbol.constant.name
-	) @symbol.constant
+		(identifier) @definition.constant.name
+	) @definition.constant
 )
 
 (global_statement
 	(local_declaration_statement
 		(variable_declaration
 			(variable_declarator
-				(identifier) @symbol.variable.name
+				(identifier) @definition.variable.name
 			)
 		)
 	)
 )
 
 (enum_declaration name:
-	(identifier) @symbol.enum.name
-) @symbol.enum
+	(identifier) @definition.enum.name
+) @definition.enum
 
 (struct_declaration
-	(identifier) @symbol.struct.name
-) @symbol.struct
+	(identifier) @definition.struct.name
+) @definition.struct
 
 (namespace_declaration
 	[
-		name: (identifier) @symbol.module.name
-		name: (qualified_name) @symbol.module.name
+		name: (identifier) @definition.module.name
+		name: (qualified_name) @definition.module.name
 	]
-) @symbol.module
+) @definition.module
 
 (enum_member_declaration
-	(identifier) @symbol.enumMember.name
-) @symbol.enumMember`;
+	(identifier) @definition.enumMember.name
+) @definition.enumMember`;
 
 const comments = `(comment) @comment`;
 
 export const mod: QueryModule = {
-	documentSymbols,
+	definitionsOutline,
 	comments
 };
 

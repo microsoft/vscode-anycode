@@ -5,73 +5,73 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const definitionsOutline = `
 (namespace_definition
-	name: (identifier) @symbol.module.name
-) @symbol.module
+	name: (identifier) @definition.module.name
+) @definition.module
 
 (declaration
 	type: (primitive_type)
-	declarator: (identifier) @symbol.variable.name
-) @symbol.variable
+	declarator: (identifier) @definition.variable.name
+) @definition.variable
 
 (friend_declaration
-	(type_identifier) @symbol.variable.name
-) @symbol.variable
+	(type_identifier) @definition.variable.name
+) @definition.variable
 
 (function_definition
 	(function_declarator
 		[
-			(identifier) @symbol.function.name
-			(field_identifier) @symbol.function.name
-			(scoped_identifier) @symbol.function.name
+			(identifier) @definition.function.name
+			(field_identifier) @definition.function.name
+			(scoped_identifier) @definition.function.name
 		]
 	)
-) @symbol.function
+) @definition.function
 
 (field_declaration
 	(function_declarator
 		[
-			(identifier) @symbol.function.name
-			(field_identifier) @symbol.function.name
-			(scoped_identifier) @symbol.function.name
+			(identifier) @definition.function.name
+			(field_identifier) @definition.function.name
+			(scoped_identifier) @definition.function.name
 		]
 	)
-) @symbol.function
+) @definition.function
 
 (declaration
 	(function_declarator
 		[
-			(identifier) @symbol.function.name
-			(field_identifier) @symbol.function.name
-			(scoped_identifier) @symbol.function.name
-			(destructor_name) @symbol.function.name
+			(identifier) @definition.function.name
+			(field_identifier) @definition.function.name
+			(scoped_identifier) @definition.function.name
+			(destructor_name) @definition.function.name
 		]
 	)
-) @symbol.function
+) @definition.function
 
 (pointer_declarator
 	declarator: (function_declarator
-		declarator: (identifier) @symbol.function.name
-	) @symbol.function
+		declarator: (identifier) @definition.function.name
+	) @definition.function
 )
 
 (field_declaration
-	(field_identifier) @symbol.field.name
-) @symbol.field
+	(field_identifier) @definition.field.name
+) @definition.field
 
 (struct_specifier
-	(type_identifier) @symbol.struct.name
-) @symbol.struct
+	(type_identifier) @definition.struct.name
+) @definition.struct
 
 (class_specifier
-	(type_identifier) @symbol.class.name
-) @symbol.class
+	(type_identifier) @definition.class.name
+) @definition.class
 
 (type_definition
 	type: (_)
-	declarator: (type_identifier) @symbol.struct.name
-) @symbol.struct
+	declarator: (type_identifier) @definition.struct.name
+) @definition.struct
 `;
 
 
@@ -80,7 +80,7 @@ const comments = `
 `;
 
 export const mod: QueryModule = {
-	documentSymbols,
+	definitionsOutline,
 	comments
 };
 

@@ -16,8 +16,8 @@ import typescript from './queries/typescript';
 import Languages from './languages';
 
 export type QueryModule = {
-	documentSymbols?: string;
-	definitions?: string;
+	definitionsOutline?: string;
+	definitionsAll?: string;
 	comments?: string;
 	folding?: string;
 	usages?: string;

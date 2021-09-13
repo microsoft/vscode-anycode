@@ -4,11 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, nodeAtPosition } from '../common';
 import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { FileInfo } from './fileInfo';
 
 export class DefinitionProvider {
@@ -26,49 +24,28 @@ export class DefinitionProvider {
 	async provideDefinitions(params: lsp.DefinitionParams): Promise<lsp.Location[]> {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
-		const result: lsp.Location[] = [];
-		if (this._findDefinitionsInFile(document, params.position, result)) {
-			return result;
-		}
-
-		const tree = this._trees.getParseTree(document);
-		if (!tree) {
-			return result;
-		}
-		const node = nodeAtPosition(tree.rootNode, params.position);
-		if (!node) {
-			return result;
-		}
-
-		const text = node.text;
-		await this._symbols.update();
-
-		const all = this._symbols.symbols.get(text);
-		if (!all) {
-			return result;
-		}
-		const promises: Promise<any>[] = [];
-		for (const symbol of all) {
-			result.push(symbol.location);
-		}
-		await Promise.all(promises);
-		return result;
-	}
-
-	private _findDefinitionsInFile(document: TextDocument, position: lsp.Position, result: lsp.Location[]) {
 		const info = FileInfo.detailed(document, this._trees);
-		const scope = info.root.findScope(position);
-		const anchor = scope.findUsage(position) ?? scope.findDefinition(position);
+		const scope = info.root.findScope(params.position);
+		const anchor = scope.findAnchor(params.position);
 		if (!anchor) {
-			return false;
+			return [];
 		}
+
+		// find definition inside this file
 		const definitions = scope.findDefinitions(anchor.name);
-		if (definitions.length === 0) {
-			return false;
+		if (definitions.length > 0) {
+			return definitions.map(def => lsp.Location.create(document.uri, def.range));
 		}
-		for (let def of definitions) {
-			result.push(lsp.Location.create(document.uri, def.range));
+
+		// find definition globally
+		await this._symbols.update();
+		const result: lsp.Location[] = [];
+		const all = this._symbols.symbols.get(anchor.name);
+		if (all) {
+			for (const symbol of all) {
+				result.push(symbol.location);
+			}
 		}
-		return true;
+		return result;
 	}
 }

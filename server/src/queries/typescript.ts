@@ -7,66 +7,66 @@ import type { QueryModule } from '../queries';
 
 const documentSymbols = `
 (interface_declaration
-	name: (type_identifier) @symbol.interface.name
-) @symbol.interface
+	name: (type_identifier) @definition.interface.name
+) @definition.interface
 
 (property_signature
-	name: (property_identifier) @symbol.field.name
-) @symbol.field
+	name: (property_identifier) @definition.field.name
+) @definition.field
 
 (method_signature
-	name: (property_identifier) @symbol.method.name
-) @symbol.method
+	name: (property_identifier) @definition.method.name
+) @definition.method
 
 (class_declaration
-	name: (type_identifier) @symbol.class.name
-) @symbol.class
+	name: (type_identifier) @definition.class.name
+) @definition.class
 
 (new_expression
-	constructor: (class 
-		body: (class_body) 
-	) @symbol.class
+	constructor: (class
+		body: (class_body)
+	) @definition.class
 )
 
 (method_definition
 	name: [
-		(property_identifier) @symbol.method.name
-		(computed_property_name (string) @symbol.method.name)
+		(property_identifier) @definition.method.name
+		(computed_property_name (string) @definition.method.name)
 	]
-) @symbol.method
+) @definition.method
 
 (public_field_definition
 	name: [
-		(property_identifier) @symbol.field.name
-		(computed_property_name (string) @symbol.field.name)
+		(property_identifier) @definition.field.name
+		(computed_property_name (string) @definition.field.name)
 	]
-) @symbol.field
+) @definition.field
 
 (enum_declaration
-	name: (identifier) @symbol.enum.name
-) @symbol.enum
+	name: (identifier) @definition.enum.name
+) @definition.enum
 
 (enum_body [
-	(property_identifier) @symbol.enumMember
-	(enum_assignment (property_identifier) @symbol.enumMember)
+	(property_identifier) @definition.enumMember
+	(enum_assignment (property_identifier) @definition.enumMember)
 ])
 
 (function_declaration
-	name: (identifier) @symbol.function.name
-) @symbol.function
+	name: (identifier) @definition.function.name
+) @definition.function
 
 (variable_declarator
-	name: (identifier) @symbol.variable.name
-) @symbol.variable
+	name: (identifier) @definition.variable.name
+) @definition.variable
 
 (module
-	name: [(identifier)@symbol.module.name (string) @symbol.module.name]
-) @symbol.module
+	name: [(identifier)@definition.module.name (string) @definition.module.name]
+) @definition.module
 `;
 
 
 export const mod: QueryModule = {
-	documentSymbols
+	definitionsOutline: documentSymbols
 };
 
 export default mod;

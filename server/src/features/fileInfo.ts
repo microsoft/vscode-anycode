@@ -17,7 +17,7 @@ export class FileInfo {
 		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
 		const tree = trees.getParseTree(document);
 		if (tree) {
-			const query = Queries.get(document.languageId, 'documentSymbols', 'usages');
+			const query = Queries.get(document.languageId, 'definitionsOutline', 'usages');
 			const captures = query.captures(tree.rootNode);
 			const nodes: Node[] = [];
 			this._fillInDefinitionsAndUsages(nodes, captures);
@@ -50,7 +50,7 @@ export class FileInfo {
 		}
 
 		// Find all definitions and usages and mix them with scopes
-		const query = Queries.get(document.languageId, 'definitions', 'usages');
+		const query = Queries.get(document.languageId, 'definitionsAll', 'usages');
 		const captures = query.captures(tree.rootNode);
 		this._fillInDefinitionsAndUsages(all, captures);
 
@@ -63,7 +63,7 @@ export class FileInfo {
 	private static _fillInDefinitionsAndUsages(bucket: Node[], captures: QueryCapture[]): void {
 		for (let capture of captures) {
 
-			const match = /symbol\.(\w+)\.name/.exec(capture.name);
+			const match = /definition\.(\w+)\.name/.exec(capture.name);
 
 			if (match) {
 				bucket.push(new Definition(
@@ -221,21 +221,14 @@ export class Scope extends Node {
 		return this;
 	}
 
-	findUsage(position: lsp.Position): Usage | undefined {
-		for (let child of this.usages()) {
-			if (containsPosition(child.range, position)) {
+	findAnchor(position: lsp.Position): Definition | Usage | undefined {
+		for (let child of this._children) {
+			if ((child instanceof Definition || child instanceof Usage) && containsPosition(child.range, position)) {
 				return child;
 			}
 		}
 	}
 
-	findDefinition(position: lsp.Position): Definition | undefined {
-		for (let child of this.definitions()) {
-			if (containsPosition(child.range, position)) {
-				return child;
-			}
-		}
-	}
 
 	findDefinitions(text: string): Definition[] {
 		const result: Definition[] = [];

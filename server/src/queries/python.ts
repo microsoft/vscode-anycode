@@ -6,12 +6,12 @@
 import type { QueryModule } from '../queries';
 
 const documentSymbols = `(class_definition
-	name: (identifier) @symbol.class.name
-) @symbol.class
+	name: (identifier) @definition.class.name
+) @definition.class
 
 (function_definition
-	name: (identifier) @symbol.function.name
-) @symbol.function`;
+	name: (identifier) @definition.function.name
+) @definition.function`;
 
 
 const comments = `
@@ -19,7 +19,7 @@ const comments = `
 `;
 
 export const mod: QueryModule = {
-	documentSymbols,
+	definitionsOutline: documentSymbols,
 	comments
 };
 
