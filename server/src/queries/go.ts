@@ -30,7 +30,7 @@ const definitionsOutline = `
 (source_file
 	(var_declaration
 		(var_spec
-			name: (identifier) @definition.variable.name
+			(identifier) @definition.variable.name
 		) @definition.variable
 	)
 )
@@ -68,17 +68,20 @@ const definitionsOutline = `
 `;
 
 const definitionsAll = `
-
 ${definitionsOutline}
-
-(parameter_declaration name: (identifier) @definition.variable.name) @definition.variable
+(const_spec name: (identifier) @definition.variable.name) @definition.variable
+(var_declaration (var_spec (identifier) @definition.variable.name @definition.variable))
+(assignment_statement left: (expression_list (identifier) @definition.variable @definition.variable.name ))
+(parameter_declaration (identifier) @definition.variable.name @definition.variable)
 (short_var_declaration left: (expression_list (identifier) @definition.variable.name)) @definition.variable
 `;
 
 const usages = `
-(field_identifier) @usage
-(identifier) @usage
-(type_identifier) @usage
+(selector_expression operand: (identifier) @usage.variable)
+(binary_expression (identifier) @usage.variable)
+(call_expression function: (identifier) @usage.variable)
+(argument_list (identifier) @usage.variable)
+(return_statement (expression_list (identifier) @usage.variable))
 `;
 
 

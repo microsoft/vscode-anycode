@@ -15,3 +15,5 @@ var (
 	[ErrMalformPkt]        = errors.New("malformed packet")
 	[ErrNoTLS]             = errors.New("TLS requested but server does not support TLS")
 )
+---
+var [c], [python], [java] bool

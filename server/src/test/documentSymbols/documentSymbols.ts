@@ -127,6 +127,10 @@ async function assertOneFixture(uri: string, languageId: string, text: string, m
 			}
 		}
 	})(result);
+
+	if (expected.length > 0) {
+		messages.push({ err: `also EXPECTED ${expected.map(e => e.name)}` });
+	}
 }
 
 (async function () {
