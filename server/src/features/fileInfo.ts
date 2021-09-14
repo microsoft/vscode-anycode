@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, containsPosition, containsRange, isBefore, isBeforeOrEqual, symbolMapping } from '../common';
+import { asLspRange, compareRangeByStart, containsPosition, containsRange, isBefore, isBeforeOrEqual, symbolMapping } from '../common';
 import { Trees } from '../trees';
 import { QueryCapture, SyntaxNode } from '../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
@@ -57,7 +57,9 @@ export class FileInfo {
 		//
 		this._constructTree(root, all);
 
-		return new FileInfo(document, root);
+		const result = new FileInfo(document, root);
+		// result.debugPrint();
+		return result;
 	}
 
 	private static _fillInDefinitionsAndUsages(bucket: Node[], captures: QueryCapture[]): void {
@@ -72,8 +74,12 @@ export class FileInfo {
 					capture.name.includes('.variable.'),
 					symbolMapping.getSymbolKind(match[1])
 				));
-			} else if (capture.name === 'usage.variable') {
-				bucket.push(new Usage(capture.node.text, asLspRange(capture.node)));
+			} else if (capture.name.startsWith('usage.')) {
+				bucket.push(new Usage(
+					capture.node.text,
+					asLspRange(capture.node),
+					symbolMapping.getSymbolKind(capture.name.substring(capture.name.indexOf('.') + 1))
+				));
 			}
 		}
 	}
@@ -103,24 +109,17 @@ export class FileInfo {
 	}
 
 	private static _compareByRange<T extends { range: lsp.Range }>(a: T, b: T) {
-		if (isBefore(a.range.start, b.range.start)) {
-			return -1;
-		} else if (isBefore(b.range.start, a.range.start)) {
-			return 1;
-		}
-		// same start...
-		if (isBefore(a.range.end, b.range.end)) {
-			return -1;
-		} else if (isBefore(b.range.end, a.range.end)) {
-			return 1;
-		}
-		return 0;
+		return compareRangeByStart(a.range, b.range);
 	}
 
 	private constructor(
 		readonly document: TextDocument,
 		readonly root: Scope
 	) { }
+
+	debugPrint() {
+		console.log(this.root.toString());
+	}
 
 }
 
@@ -146,12 +145,14 @@ abstract class Node {
 	toString() {
 		return `${this.type}@${this.range.start.line},${this.range.start.character}-${this.range.end.line},${this.range.end.character}`;
 	}
+
 }
 
 export class Usage extends Node {
 	constructor(
 		readonly name: string,
-		range: lsp.Range
+		readonly range: lsp.Range,
+		readonly kind: lsp.SymbolKind
 	) {
 		super(range, NodeType.Usage);
 	}
@@ -161,7 +162,7 @@ export class Usage extends Node {
 	}
 
 	toString() {
-		return `[usages] ${this.name}`;
+		return `use:${this.name}`;
 	}
 }
 
@@ -180,7 +181,7 @@ export class Definition extends Node {
 	}
 
 	toString() {
-		return `[def] ${this.name}`;
+		return `def:${this.name}`;
 	}
 }
 
@@ -289,5 +290,28 @@ export class Scope extends Node {
 			}
 		}
 		return false;
+	}
+
+	toString(depth: number = 0): string {
+
+
+		let scopes: string[] = [];
+		let parts: string[] = [];
+
+		this._children.slice(0).forEach(child => {
+			if (child instanceof Scope) {
+				scopes.push(child.toString(depth + 2));
+			} else {
+				parts.push(child.toString());
+			}
+		});
+
+		let indent = ' '.repeat(depth);
+		let res = `${indent}Scope@${this.range.start.line},${this.range.start.character}-${this.range.end.line},${this.range.end.character}`;
+		res += `\n${indent + indent}${parts.join(`, `)}`;
+		res += `\n${indent}${scopes.join(`\n${indent}`)}`;
+
+		return res;
+
 	}
 }

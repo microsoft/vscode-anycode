@@ -96,6 +96,21 @@ export function isBefore(a: lsp.Position, b: lsp.Position): boolean {
 	return a.character < b.character;
 }
 
+export function compareRangeByStart(a: lsp.Range, b: lsp.Range): number {
+	if (isBefore(a.start, b.start)) {
+		return -1;
+	} else if (isBefore(b.start, a.start)) {
+		return 1;
+	}
+	// same start...
+	if (isBefore(a.end, b.end)) {
+		return -1;
+	} else if (isBefore(b.end, a.end)) {
+		return 1;
+	}
+	return 0;
+}
+
 export function containsPosition(range: lsp.Range, position: lsp.Position): boolean {
 	return isBeforeOrEqual(range.start, position) && isBeforeOrEqual(position, range.end);
 }

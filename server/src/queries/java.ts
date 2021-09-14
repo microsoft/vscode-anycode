@@ -54,28 +54,23 @@ const definitionsOutline = `
 `;
 
 const definitionsAll = `
-
 ${definitionsOutline}
-
 (formal_parameter name: (identifier) @definition.variable.name) @definition.variable
 (local_variable_declaration declarator: (variable_declarator name: (identifier) @definition.variable.name)) @definition.variable
 (catch_formal_parameter name: (identifier) @definition.variable.name) @definition.variable
 `;
 
 const usages = `
-(argument_list (identifier) @usage.variable)
-(assignment_expression (identifier) @usage.variable)
-(binary_expression (identifier) @usage.variable)
-(return_statement (identifier) @usage.variable)
-(cast_expression (identifier) @usage.variable)
-(field_access object: (identifier) @usage.variable)
-(method_invocation object: (identifier) @usage.variable)
+(field_access field: (identifier) @usage.field)
+(identifier) @usage.variable
 `;
 
 const scopes = `
 [(class_body) (interface_body) (enum_body)] @scope
 (method_declaration (formal_parameters) @scope)
 (method_declaration (block) @scope.merge)
+(constructor_declaration (formal_parameters) @scope)
+(constructor_declaration (constructor_body) @scope.merge)
 (for_statement) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)

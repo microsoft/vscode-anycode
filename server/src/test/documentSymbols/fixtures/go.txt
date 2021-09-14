@@ -17,3 +17,7 @@ var (
 )
 ---
 var [c], [python], [java] bool
+---
+type [Vertex] struct {
+	[X], [Y] float64
+}

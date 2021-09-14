@@ -33,17 +33,21 @@ export class ReferencesProvider {
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (anchor) {
-			const usages = scope.findUsages(anchor.name);
-			for (let usage of usages) {
-				result.push(lsp.Location.create(document.uri, usage.range));
-			}
 			const definitions = scope.findDefinitions(anchor.name);
+			const definitionKinds = new Set<lsp.SymbolKind>();
 			for (let def of definitions) {
 				if (params.context.includeDeclaration) {
 					result.push(lsp.Location.create(document.uri, def.range));
 				}
+				definitionKinds.add(def.kind);
 				if (def.scoped) {
 					isScopedDefinition = true;
+				}
+			}
+			const usages = scope.findUsages(anchor.name);
+			for (let usage of usages) {
+				if (definitionKinds.has(usage.kind)) {
+					result.push(lsp.Location.create(document.uri, usage.range));
 				}
 			}
 		}

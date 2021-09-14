@@ -6,9 +6,7 @@
 import type { QueryModule } from '../queries';
 
 const definitionsOutline = `
-(field_declaration
-	name: (field_identifier) @definition.field.name
-) @definition.field
+(field_declaration (field_identifier) @definition.field @definition.field.name)
 
 (method_spec
 	name: (field_identifier) @definition.method.name
@@ -71,26 +69,26 @@ const definitionsAll = `
 ${definitionsOutline}
 (const_spec name: (identifier) @definition.variable.name) @definition.variable
 (var_declaration (var_spec (identifier) @definition.variable.name @definition.variable))
-(assignment_statement left: (expression_list (identifier) @definition.variable @definition.variable.name ))
 (parameter_declaration (identifier) @definition.variable.name @definition.variable)
 (short_var_declaration left: (expression_list (identifier) @definition.variable.name)) @definition.variable
+(range_clause left: (expression_list (identifier) @definition.variable.name)) @definition.variable
+(type_switch_statement (expression_list (identifier) @definition.variable @definition.variable.name))
 `;
 
 const usages = `
-(selector_expression operand: (identifier) @usage.variable)
-(binary_expression (identifier) @usage.variable)
-(call_expression function: (identifier) @usage.variable)
-(argument_list (identifier) @usage.variable)
-(return_statement (expression_list (identifier) @usage.variable))
+(identifier) @usage.variable
 `;
 
 
 const scopes = `
+(method_declaration parameters: (parameter_list) @scope)
+(method_declaration body: (block) @scope.merge)
 (function_declaration parameters: (parameter_list) @scope)
 (function_declaration body: (block) @scope.merge)
 (expression_switch_statement) @scope
 (for_statement) @scope
 (block) @scope
+(type_switch_statement) @scope
 `;
 
 

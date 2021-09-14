@@ -24,20 +24,22 @@ export class DocumentHighlightsProvider {
 
 		const info = FileInfo.detailed(document, this._trees);
 		const scope = info.root.findScope(params.position);
-
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (!anchor) {
 			return [];
 		}
 		const result: lsp.DocumentHighlight[] = [];
-		const usages = scope.findUsages(anchor.name);
-		for (let usage of usages) {
-			result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
-		}
 		const definitions = scope.findDefinitions(anchor.name);
+		const definitionKinds = new Set<lsp.SymbolKind>();
 		for (let def of definitions) {
 			result.push(lsp.DocumentHighlight.create(def.range, lsp.DocumentHighlightKind.Write));
-
+			definitionKinds.add(def.kind);
+		}
+		const usages = scope.findUsages(anchor.name);
+		for (let usage of usages) {
+			if (definitionKinds.has(usage.kind)) {
+				result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
+			}
 		}
 		return result;
 	}
