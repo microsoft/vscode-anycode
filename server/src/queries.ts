@@ -66,4 +66,14 @@ export abstract class Queries {
 		this._queryInstances.set(key, query);
 		return query;
 	}
+
+	static supportedLanguages(type: QueryType): string[] {
+		const result: string[] = [];
+		for (let [language, module] of this._queryModules) {
+			if (module[type]) {
+				result.push(language);
+			}
+		}
+		return result;
+	}
 };

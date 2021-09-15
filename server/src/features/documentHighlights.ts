@@ -7,6 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
+import { Queries } from '../queries';
 
 export class DocumentHighlightsProvider {
 
@@ -16,7 +17,8 @@ export class DocumentHighlightsProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.onDocumentHighlight(this.provideDocumentHighlights.bind(this));
+		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Queries.supportedLanguages('locals') });
+		connection.onRequest(lsp.DocumentHighlightRequest.type, this.provideDocumentHighlights.bind(this));
 	}
 
 	async provideDocumentHighlights(params: lsp.DocumentHighlightParams): Promise<lsp.DocumentHighlight[]> {
