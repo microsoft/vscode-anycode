@@ -1,3 +1,4 @@
+--- ctor-argument 1
 class Point {
   int x, y;
   Point(int [x], int y) {
@@ -5,7 +6,7 @@ class Point {
     this.y = y;
   }
 }
----
+--- ctor-argument 2
 class Point {
   int x, y;
   Point(int x, int [y]) {

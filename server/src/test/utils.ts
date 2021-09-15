@@ -81,7 +81,9 @@ export class Fixture {
 		const text = await res.text();
 
 		const result: Fixture[] = [];
-		const fixtures = text.split('---').filter(Boolean);
+		const r = /---.*/gu;
+		const fixtures = text.split(r).filter(Boolean);
+		const matches = text.match(r);
 
 		for (let i = 0; i < fixtures.length; i++) {
 			let text = fixtures[i];
@@ -100,7 +102,7 @@ export class Fixture {
 				}
 			}
 			result.push(new Fixture(
-				String(i),
+				matches?.shift()?.substring(3) ?? String(i),
 				TextDocument.create(`${uri}#${i}`, languageId, 1, text),
 				marks
 			));

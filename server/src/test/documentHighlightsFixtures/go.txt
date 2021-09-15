@@ -1,7 +1,8 @@
+--- paramter
 func AbsFunc([v] Vertex) float64 {
 	return math.Sqrt([v].v*[v].X + [v].Y*[v].Y)
 }
----
+--- variable
 func main() {
 	[v] := Vertex{3, 4}
 	fmt.Println([v].Abs())
@@ -11,7 +12,7 @@ func main() {
 	fmt.Println(p.Abs())
 	fmt.Println(AbsFunc(*p))
 }
----
+--- parameter/switch
 func do([i] interface{}) {
 	switch v := [i].(type) {
 	case int:
@@ -22,7 +23,7 @@ func do([i] interface{}) {
 		fmt.Printf("I don't know about type %T!\n", v)
 	}
 }
----
+--- switch-type
 func do(i interface{}) {
 	switch [v] := i.(type) {
 	case int:

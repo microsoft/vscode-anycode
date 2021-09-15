@@ -1,0 +1,40 @@
+--- variable
+fn main() {
+    let [x] = 5;
+    println!("The value of x is: {}", [x]);
+    [x] = 6;
+    println!("The value of x is: {}", [x]);
+}
+--- shadow variable
+fn main() {
+    let [x] = 5;
+    let [x] = [x] + 1;
+    let [x] = [x] * 2;
+    println!("The value of x is: {}", [x]);
+}
+--- mutable variable
+let mut [spaces] = "   ";
+[spaces] = [spaces].len();
+--- variable vs field
+let mut [spaces] = "   ";
+[spaces] = [spaces].spaces;
+--- const-def/usage
+const [MAX_POINTS]: u32 = 100_000;
+fn foo() {
+	foo([MAX_POINTS])
+}
+--- function-def/usage
+fn main() {
+    println!("Hello, world!");
+    [another_function]();
+}
+fn [another_function]() {
+    println!("Another function.");
+}
+--- mod defines scope
+mod foo {
+    fn [foobar](_x: i32) -> () {}
+}
+fn main() {
+	foobar(23)
+}
