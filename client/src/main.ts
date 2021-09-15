@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { LanguageClientOptions } from 'vscode-languageclient';
+import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/browser';
 import { SupportedLanguages } from './supportedLanguages';
 
@@ -41,12 +41,13 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 	const disposables: vscode.Disposable[] = [];
 
 	const clientOptions: LanguageClientOptions = {
+		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
 			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages: supportedLanguages.getSupportedLanguages()
-		}
+		},
 	};
 
 	const serverMain = vscode.Uri.joinPath(extensionUri, 'dist/anycode.server.js');
