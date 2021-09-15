@@ -21,21 +21,21 @@ suite('DocumentSymbols - Fixtures', function () {
 		actual.sort((a, b) => compareRangeByStart(a.range, b.range));
 
 		if (actual.length === 0) {
-			assert.fail('NO symbols found');
+			assert.fail('NO symbols found: ' + fixture.name);
 		}
 
 		for (let highlight of actual) {
 			const e = fixture.marks.shift();
 			assert.ok(e);
-			assert.strictEqual(fixture.document.offsetAt(highlight.range.start), e.start);
+			assert.strictEqual(fixture.document.offsetAt(highlight.range.start), e.start, fixture.name);
 		}
 
 		if (fixture.marks.length > 0) {
-			assert.fail('not ALL MARKS seen');
+			assert.fail('not ALL MARKS seen: ' + fixture.name);
 		}
 	}
 
-	['go', 'java'].forEach(async langId => {
+	['go', 'java', 'rust'].forEach(async langId => {
 		test(langId, async function () {
 
 			const fixtures = await Fixture.parse(`/server/src/test/documentHighlightsFixtures/${langId}.txt`, langId);

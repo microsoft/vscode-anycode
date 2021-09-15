@@ -67,6 +67,7 @@ const outline = `
 
 
 const scopes = `
+(mod_item body: (declaration_list) @scope)
 (function_item (parameters) @scope)
 (function_item (block) @scope.merge)
 (for_expression) @scope
@@ -74,6 +75,9 @@ const scopes = `
 `;
 
 const locals = `
+(function_item name: (identifier) @definition)
+(const_item name: (identifier) @definition)
+(static_item name: (identifier) @definition)
 (let_declaration pattern: (identifier) @definition)
 (parameter pattern: (identifier) @definition)
 (for_expression pattern: (identifier) @definition)
