@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
-import { FileInfo } from './fileInfo';
+import { Locals } from './fileInfo';
 import { nodeAtPosition } from '../common';
 
 export class DefinitionProvider {
@@ -26,7 +26,7 @@ export class DefinitionProvider {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
 		// find definition in file
-		const info = FileInfo.detailed(document, this._trees);
+		const info = Locals.create(document, this._trees);
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (anchor) {

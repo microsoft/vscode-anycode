@@ -9,7 +9,7 @@ import { Trie } from '../util/trie';
 import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
-import { FileInfo } from './fileInfo';
+import { Outline } from './documentSymbols';
 
 class Queue {
 
@@ -113,36 +113,32 @@ export class SymbolIndex {
 
 	private async _doIndex(document: TextDocument): Promise<void> {
 
-		// build simple file info (single scope) and
-		// store all symbols and usages into a project wide trie
-		const info = FileInfo.simple(document, this._trees);
+		// (1) use outline information to feed the global index of definitions
+		const symbols = await Outline.create(document, this._trees);
+		const walkSymbols = (symbols: lsp.DocumentSymbol[], parent: lsp.DocumentSymbol | undefined) => {
 
-		for (let def of info.root.definitions()) {
-			const symbol = lsp.SymbolInformation.create(
-				def.name,
-				lsp.SymbolKind.Struct,
-				def.range,
-				document.uri
-			);
-			let all = this.definitions.get(def.name);
-			if (!all) {
-				this.definitions.set(def.name, new Set([symbol]));
-			} else {
-				all.add(symbol);
+			for (let symbol of symbols) {
+				const info = lsp.SymbolInformation.create(
+					symbol.name,
+					symbol.kind,
+					symbol.selectionRange,
+					document.uri,
+					parent?.name
+				);
+				let all = this.definitions.get(info.name);
+				if (!all) {
+					this.definitions.set(info.name, new Set([info]));
+				} else {
+					all.add(info);
+				}
+				if (symbol.children) {
+					walkSymbols(symbol.children, symbol);
+				}
 			}
-		}
+		};
+		walkSymbols(symbols, undefined);
 
-		for (let usage of info.root.usages()) {
-			const loc = lsp.Location.create(
-				document.uri,
-				usage.range
-			);
-			let all = this.usages.get(usage.name);
-			if (!all) {
-				this.usages.set(usage.name, new Set([loc]));
-			} else {
-				all.add(loc);
-			}
-		}
+		// (2) Use usage-queries to feed the global index of usages.
+		// todo@jrieken
 	}
 }

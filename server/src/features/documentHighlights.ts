@@ -6,7 +6,7 @@
 import * as lsp from 'vscode-languageserver';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { FileInfo } from './fileInfo';
+import { Locals } from './fileInfo';
 
 export class DocumentHighlightsProvider {
 
@@ -22,24 +22,22 @@ export class DocumentHighlightsProvider {
 	async provideDocumentHighlights(params: lsp.DocumentHighlightParams): Promise<lsp.DocumentHighlight[]> {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
-		const info = FileInfo.detailed(document, this._trees);
+		const info = Locals.create(document, this._trees);
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (!anchor) {
 			return [];
 		}
 		const result: lsp.DocumentHighlight[] = [];
-		const definitions = scope.findDefinitions(anchor.name);
-		const definitionKinds = new Set<lsp.SymbolKind>();
-		for (let def of definitions) {
+		for (let def of scope.findDefinitions(anchor.name)) {
 			result.push(lsp.DocumentHighlight.create(def.range, lsp.DocumentHighlightKind.Write));
-			definitionKinds.add(def.kind);
 		}
-		const usages = scope.findUsages(anchor.name);
-		for (let usage of usages) {
-			if (definitionKinds.has(usage.kind)) {
-				result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
-			}
+		if (result.length === 0) {
+			// needs a definition
+			return [];
+		}
+		for (let usage of scope.findUsages(anchor.name)) {
+			result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
 		}
 		return result;
 	}

@@ -3,47 +3,53 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, DocumentSymbol, DocumentSymbolParams, Range } from 'vscode-languageserver';
+import * as lsp from 'vscode-languageserver';
 import { asLspRange, containsRange, StopWatch, symbolMapping } from '../common';
-import type Parser from '../../tree-sitter/tree-sitter';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
 import { Queries } from '../queries';
-
-
-//#region --- document symbols ---
-
-class Node {
-	readonly range: Range;
-	readonly children: Node[] = [];
-	constructor(readonly capture: Parser.QueryCapture) {
-		this.range = asLspRange(capture.node);
-	}
-}
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { QueryCapture } from '../../tree-sitter/tree-sitter';
 
 export class DocumentSymbols {
 
 	constructor(private readonly _documents: DocumentStore, private readonly _trees: Trees) { }
 
-	register(connection: Connection) {
+	register(connection: lsp.Connection) {
 		connection.onDocumentSymbol(this.provideDocumentSymbols.bind(this));
 	}
 
-	async provideDocumentSymbols(params: DocumentSymbolParams): Promise<DocumentSymbol[]> {
+	async provideDocumentSymbols(params: lsp.DocumentSymbolParams): Promise<lsp.DocumentSymbol[]> {
 
-		const sw = new StopWatch();
 		const document = await this._documents.retrieve(params.textDocument.uri);
-		const tree = this._trees.getParseTree(document);
+		return Outline.create(document, this._trees);
+
+	}
+}
+
+
+class Node {
+	readonly range: lsp.Range;
+	readonly children: Node[] = [];
+	constructor(readonly capture: QueryCapture) {
+		this.range = asLspRange(capture.node);
+	}
+}
+
+export class Outline {
+
+	static async create(document: TextDocument, trees: Trees): Promise<lsp.DocumentSymbol[]> {
+
+		const tree = trees.getParseTree(document);
 		if (!tree) {
 			return [];
 		}
-		const query = Queries.get(document.languageId, 'definitionsOutline');
+		const query = Queries.get(document.languageId, 'outline');
 		const captures = query.captures(tree.rootNode);
-		sw.elapsed('CAPTURE query');
+
 
 		// build a Node-tree that is based on range containment. This includes true 
 		// children as well as the "name-child"
-		sw.reset();
 		const roots: Node[] = [];
 		const stack: Node[] = [];
 		for (const capture of captures) {
@@ -64,13 +70,12 @@ export class DocumentSymbols {
 				parent = stack.pop();
 			}
 		}
-		sw.elapsed('make TREE');
 
 		// build DocumentSymbol-tree from Node-tree. Children of nodes that match
 		// the `<xyz>.name` capture name are used as identifier/name and aren't producing
 		// a dedicated document symbol
-		function build(node: Node, bucket: DocumentSymbol[]): void {
-			let children: DocumentSymbol[] = [];
+		function build(node: Node, bucket: lsp.DocumentSymbol[]): void {
+			let children: lsp.DocumentSymbol[] = [];
 			let nameNode: Node | undefined;
 			for (let child of node.children) {
 				if (!nameNode && child.capture.name === `${node.capture.name}.name`) {
@@ -82,21 +87,19 @@ export class DocumentSymbols {
 			if (!nameNode) {
 				nameNode = node;
 			}
-			const symbol = DocumentSymbol.create(nameNode.capture.node.text, '', symbolMapping.getSymbolKind(node.capture.name), node.range, nameNode.range);
+			const symbol = lsp.DocumentSymbol.create(nameNode.capture.node.text, '', symbolMapping.getSymbolKind(node.capture.name), node.range, nameNode.range);
 			symbol.children = children;
 
 			bucket.push(symbol);
 		}
 
-		sw.reset();
-		const result: DocumentSymbol[] = [];
+
+		const result: lsp.DocumentSymbol[] = [];
 		for (let node of roots) {
 			build(node, result);
 		}
-		sw.elapsed('make SYMBOLS');
 
 		return result;
+
 	}
 }
-
-//#endregion

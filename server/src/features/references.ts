@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { FileInfo } from './fileInfo';
+import { Locals } from './fileInfo';
 import { nodeAtPosition } from '../common';
 
 export class ReferencesProvider {
@@ -25,48 +25,40 @@ export class ReferencesProvider {
 	async provideReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
-		const result: lsp.Location[] = [];
-		let isScopedDefinition = false;
-
 		// find references inside file
-		const info = FileInfo.detailed(document, this._trees);
+		const info = Locals.create(document, this._trees);
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (anchor) {
 			const definitions = scope.findDefinitions(anchor.name);
-			const definitionKinds = new Set<lsp.SymbolKind>();
-			for (let def of definitions) {
-				if (params.context.includeDeclaration) {
-					result.push(lsp.Location.create(document.uri, def.range));
+			if (definitions.length > 0) {
+				const result: lsp.Location[] = [];
+				for (let def of definitions) {
+					if (params.context.includeDeclaration) {
+						result.push(lsp.Location.create(document.uri, def.range));
+					}
 				}
-				definitionKinds.add(def.kind);
-				if (def.scoped) {
-					isScopedDefinition = true;
-				}
-			}
-			const usages = scope.findUsages(anchor.name);
-			for (let usage of usages) {
-				if (definitionKinds.has(usage.kind)) {
+				const usages = scope.findUsages(anchor.name);
+				for (let usage of usages) {
 					result.push(lsp.Location.create(document.uri, usage.range));
 				}
+				return result;
 			}
 		}
 
-		if (!isScopedDefinition) {
-			// the definition the "anchor" was found or wasn't marked a local/argument and
-			// therefore we try to find all symbols that match this name
-			await this._fillInGlobalReferences(params, result);
-		}
+		// the definition the "anchor" was found or wasn't marked a local/argument and
+		// therefore we try to find all symbols that match this name
+		return await this._findGlobalReferences(params);
 
-		return result;
 	}
 
-	private async _fillInGlobalReferences(params: lsp.ReferenceParams, bucket: lsp.Location[]) {
+	private async _findGlobalReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {
 
+		const result: lsp.Location[] = [];
 		const document = await this._documents.retrieve(params.textDocument.uri);
 		const tree = this._trees.getParseTree(document);
 		if (!tree) {
-			return;
+			return result;
 		}
 
 		const text = nodeAtPosition(tree.rootNode, params.position).text;
@@ -76,19 +68,20 @@ export class ReferencesProvider {
 		const usages = this._symbols.usages.get(text);
 		const definition = this._symbols.definitions.get(text);
 		if (!usages && !definition) {
-			return;
+			return result;
 		}
 
 		if (usages) {
 			for (let usage of usages) {
-				bucket.push(usage);
+				result.push(usage);
 			}
 		}
 
 		if (definition) {
 			for (let symbol of definition) {
-				bucket.push(lsp.Location.create(symbol.location.uri, symbol.location.range));
+				result.push(lsp.Location.create(symbol.location.uri, symbol.location.range));
 			}
 		}
+		return result;
 	}
 }

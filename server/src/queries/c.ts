@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const definitionsOutline = `
+const outline = `
 (struct_specifier
 	name: (type_identifier) @definition.struct.name
 ) @definition.struct
@@ -65,7 +65,7 @@ const comments = `
 `;
 
 export const mod: QueryModule = {
-	definitionsOutline,
+	outline,
 	comments
 };
 

@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const documentSymbols = `
+const outline = `
 (interface_declaration
 	name: (type_identifier) @definition.interface.name
 ) @definition.interface
@@ -66,7 +66,7 @@ const documentSymbols = `
 
 
 export const mod: QueryModule = {
-	definitionsOutline: documentSymbols
+	outline
 };
 
 export default mod;

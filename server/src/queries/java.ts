@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const definitionsOutline = `
+const outline = `
 (class_declaration
 	name: (identifier) @definition.class.name
 ) @definition.class
@@ -53,12 +53,6 @@ const definitionsOutline = `
 ) @definition.module
 `;
 
-const definitionsAll = `
-${definitionsOutline}
-(formal_parameter name: (identifier) @definition.variable.name) @definition.variable
-(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition.variable.name)) @definition.variable
-(catch_formal_parameter name: (identifier) @definition.variable.name) @definition.variable
-`;
 
 const usages = `
 (field_access field: (identifier) @usage.field)
@@ -80,6 +74,21 @@ const scopes = `
 (block) @scope
 `;
 
+const locals = `
+;; definitions
+(formal_parameter name: (identifier) @definition)
+(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition))
+(catch_formal_parameter name: (identifier) @definition)
+
+;; usages
+(field_access field: (identifier) @usage.void)
+(identifier) @usage
+
+;; scopes
+${scopes}
+`;
+
+
 const comments = `
 (comment) @comment
 `;
@@ -93,12 +102,12 @@ ${comments}
 ) @import`;
 
 export const mod: QueryModule = {
-	definitionsOutline,
-	definitionsAll,
+	outline,
 	usages,
 	scopes,
 	comments,
-	folding
+	folding,
+	locals
 };
 
 export default mod;

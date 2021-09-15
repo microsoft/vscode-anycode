@@ -8632,7 +8632,7 @@ ${JSON.stringify(message, null, 4)}`);
   var lsp3 = __toModule(require_main4());
 
   // src/queries/c_sharp.ts
-  var definitionsOutline = `
+  var outline = `
 (class_declaration
 	name: (identifier) @definition.class.name
 ) @definition.class
@@ -8729,13 +8729,13 @@ ${JSON.stringify(message, null, 4)}`);
 ) @definition.enumMember`;
   var comments = `(comment) @comment`;
   var mod = {
-    definitionsOutline,
+    outline,
     comments
   };
   var c_sharp_default = mod;
 
   // src/queries/c.ts
-  var definitionsOutline2 = `
+  var outline2 = `
 (struct_specifier
 	name: (type_identifier) @definition.struct.name
 ) @definition.struct
@@ -8793,13 +8793,13 @@ ${JSON.stringify(message, null, 4)}`);
 (comment) @comment
 `;
   var mod2 = {
-    definitionsOutline: definitionsOutline2,
+    outline: outline2,
     comments: comments2
   };
   var c_default = mod2;
 
   // src/queries/cpp.ts
-  var definitionsOutline3 = `
+  var outline3 = `
 (namespace_definition
 	name: (identifier) @definition.module.name
 ) @definition.module
@@ -8871,13 +8871,13 @@ ${JSON.stringify(message, null, 4)}`);
 (comment) @comment
 `;
   var mod3 = {
-    definitionsOutline: definitionsOutline3,
+    outline: outline3,
     comments: comments3
   };
   var cpp_default = mod3;
 
   // src/queries/go.ts
-  var definitionsOutline4 = `
+  var outline4 = `
 (field_declaration (field_identifier) @definition.field @definition.field.name)
 
 (method_spec
@@ -8936,18 +8936,6 @@ ${JSON.stringify(message, null, 4)}`);
 	type: (channel_type)
 ) @definition.event
 `;
-  var definitionsAll = `
-${definitionsOutline4}
-(const_spec name: (identifier) @definition.variable.name) @definition.variable
-(var_declaration (var_spec (identifier) @definition.variable.name @definition.variable))
-(parameter_declaration (identifier) @definition.variable.name @definition.variable)
-(short_var_declaration left: (expression_list (identifier) @definition.variable.name)) @definition.variable
-(range_clause left: (expression_list (identifier) @definition.variable.name)) @definition.variable
-(type_switch_statement (expression_list (identifier) @definition.variable @definition.variable.name))
-`;
-  var usages = `
-(identifier) @usage.variable
-`;
   var scopes = `
 (method_declaration parameters: (parameter_list) @scope)
 (method_declaration body: (block) @scope.merge)
@@ -8957,6 +8945,19 @@ ${definitionsOutline4}
 (for_statement) @scope
 (block) @scope
 (type_switch_statement) @scope
+(composite_literal body: (literal_value)  @scope)
+`;
+  var locals = `
+(const_spec name: (identifier) @definition)
+(var_declaration (var_spec (identifier) @definition))
+(parameter_declaration (identifier) @definition)
+(short_var_declaration left: (expression_list (identifier) @definition))
+(range_clause left: (expression_list (identifier) @definition))
+(type_switch_statement (expression_list (identifier) @definition))
+
+(identifier) @usage
+
+${scopes}
 `;
   var comments4 = `
 (comment) @comment
@@ -8966,17 +8967,16 @@ ${scopes}
 ${comments4}
 `;
   var mod4 = {
-    definitionsOutline: definitionsOutline4,
-    definitionsAll,
+    outline: outline4,
     comments: comments4,
-    usages,
+    locals,
     scopes,
     folding
   };
   var go_default = mod4;
 
   // src/queries/java.ts
-  var definitionsOutline5 = `
+  var outline5 = `
 (class_declaration
 	name: (identifier) @definition.class.name
 ) @definition.class
@@ -9023,15 +9023,7 @@ ${comments4}
 	]
 ) @definition.module
 `;
-  var definitionsAll2 = `
-
-${definitionsOutline5}
-
-(formal_parameter name: (identifier) @definition.variable.name) @definition.variable
-(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition.variable.name)) @definition.variable
-(catch_formal_parameter name: (identifier) @definition.variable.name) @definition.variable
-`;
-  var usages2 = `
+  var usages = `
 (field_access field: (identifier) @usage.field)
 (identifier) @usage.variable
 `;
@@ -9049,6 +9041,19 @@ ${definitionsOutline5}
 (catch_clause) @scope
 (block) @scope
 `;
+  var locals2 = `
+;; definitions
+(formal_parameter name: (identifier) @definition)
+(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition))
+(catch_formal_parameter name: (identifier) @definition)
+
+;; usages
+(field_access field: (identifier) @usage.void)
+(identifier) @usage
+
+;; scopes
+${scopes2}
+`;
   var comments5 = `
 (comment) @comment
 `;
@@ -9060,17 +9065,17 @@ ${comments5}
 	(import_declaration)*
 ) @import`;
   var mod5 = {
-    definitionsOutline: definitionsOutline5,
-    definitionsAll: definitionsAll2,
-    usages: usages2,
+    outline: outline5,
+    usages,
     scopes: scopes2,
     comments: comments5,
-    folding: folding2
+    folding: folding2,
+    locals: locals2
   };
   var java_default = mod5;
 
   // src/queries/php.ts
-  var documentSymbols = `(class_declaration
+  var outline6 = `(class_declaration
 	name: (name) @definition.class.name
 ) @definition.class
 
@@ -9093,13 +9098,13 @@ ${comments5}
 (comment) @comment
 `;
   var mod6 = {
-    definitionsOutline: documentSymbols,
+    outline: outline6,
     comments: comments6
   };
   var php_default = mod6;
 
   // src/queries/python.ts
-  var documentSymbols2 = `(class_definition
+  var outline7 = `(class_definition
 	name: (identifier) @definition.class.name
 ) @definition.class
 
@@ -9110,13 +9115,13 @@ ${comments5}
 (comment) @comment
 `;
   var mod7 = {
-    definitionsOutline: documentSymbols2,
+    outline: outline7,
     comments: comments7
   };
   var python_default = mod7;
 
   // src/queries/rust.ts
-  var definitionsOutline6 = `
+  var outline8 = `
 (mod_item
 	name: (identifier) @definition.module.name
 ) @definition.module
@@ -9175,32 +9180,22 @@ ${comments5}
 	]
 ) @definition.namespace
 `;
-  var definitionsAll3 = `
-${definitionsOutline6}
-(let_declaration pattern: (identifier) @definition.variable.name) @definition.variable
-(parameter pattern: (identifier) @definition.variable.name) @definition.variable
-(for_expression pattern: [(identifier) @definition.variable.name @definition.variable (reference_pattern (identifier) @definition.variable.name @definition.variable)] )
-`;
-  var usages3 = `
-(parameter pattern: [(identifier) @usage.variable])
-(token_tree (identifier) @usage.variable)
-(macro_invocation macro: (identifier) @usage.variable)
-(call_expression function: (identifier) @usage.variable)
-(arguments (identifier) @usage.variable)
-(reference_expression value: (identifier) @usage.variable)
-(index_expression (identifier) @usage.variable)
-(field_expression (identifier) @usage.variable)
-(for_expression value: (identifier) @usage.variable)
-(binary_expression (identifier) @usage.variable)
-(assignment_expression (identifier) @usage.variable)
-(block (identifier) @usage.variable)
-(field_initializer (identifier) @usage.variable)
-`;
   var scopes3 = `
 (function_item (parameters) @scope)
 (function_item (block) @scope.merge)
 (for_expression) @scope
 (block) @scope
+`;
+  var locals3 = `
+(let_declaration pattern: (identifier) @definition)
+(parameter pattern: (identifier) @definition)
+(for_expression pattern: (identifier) @definition)
+(reference_pattern (identifier) @definition)
+
+(scoped_identifier name: (identifier) @usage.void)
+(identifier) @usage
+
+${scopes3}
 `;
   var comments8 = `
 (line_comment) @comment
@@ -9212,9 +9207,8 @@ ${scopes3}
 (_) body: (_) @fold
 `;
   var mod8 = {
-    definitionsOutline: definitionsOutline6,
-    definitionsAll: definitionsAll3,
-    usages: usages3,
+    outline: outline8,
+    locals: locals3,
     scopes: scopes3,
     comments: comments8,
     folding: folding3
@@ -9222,7 +9216,7 @@ ${scopes3}
   var rust_default = mod8;
 
   // src/queries/typescript.ts
-  var documentSymbols3 = `
+  var outline9 = `
 (interface_declaration
 	name: (type_identifier) @definition.interface.name
 ) @definition.interface
@@ -9281,7 +9275,7 @@ ${scopes3}
 ) @definition.module
 `;
   var mod9 = {
-    definitionsOutline: documentSymbols3
+    outline: outline9
   };
   var typescript_default = mod9;
 
@@ -9341,32 +9335,21 @@ ${scopes3}
   Queries._queryInstances = new Map();
 
   // src/features/fileInfo.ts
-  var FileInfo = class {
+  var Locals = class {
     constructor(document2, root) {
       this.document = document2;
       this.root = root;
     }
-    static simple(document2, trees) {
-      const root = new Scope(lsp3.Range.create(0, 0, document2.lineCount, 0));
-      const tree = trees.getParseTree(document2);
-      if (tree) {
-        const query = Queries.get(document2.languageId, "definitionsOutline", "usages");
-        const captures = query.captures(tree.rootNode);
-        const nodes = [];
-        this._fillInDefinitionsAndUsages(nodes, captures);
-        this._constructTree(root, nodes);
-      }
-      return new FileInfo(document2, root);
-    }
-    static detailed(document2, trees) {
+    static create(document2, trees) {
       const root = new Scope(lsp3.Range.create(0, 0, document2.lineCount, 0));
       const tree = trees.getParseTree(document2);
       if (!tree) {
-        return new FileInfo(document2, root);
+        return new Locals(document2, root);
       }
       const all = [];
-      const scopeQuery = Queries.get(document2.languageId, "scopes");
-      const scopeCaptures = scopeQuery.captures(tree.rootNode).sort(this._compareCaptures);
+      const query = Queries.get(document2.languageId, "locals");
+      const captures = query.captures(tree.rootNode).sort(this._compareCaptures);
+      const scopeCaptures = captures.filter((capture) => capture.name.startsWith("scope"));
       for (let i = 0; i < scopeCaptures.length; i++) {
         const capture = scopeCaptures[i];
         const range = asLspRange(capture.node);
@@ -9376,20 +9359,17 @@ ${scopes3}
           all.push(new Scope(range));
         }
       }
-      const query = Queries.get(document2.languageId, "definitionsAll", "usages");
-      const captures = query.captures(tree.rootNode);
       this._fillInDefinitionsAndUsages(all, captures);
       this._constructTree(root, all);
-      const result = new FileInfo(document2, root);
-      return result;
+      const info = new Locals(document2, root);
+      return info;
     }
     static _fillInDefinitionsAndUsages(bucket, captures) {
-      for (let capture of captures) {
-        const match = /definition\.(\w+)\.name/.exec(capture.name);
-        if (match) {
-          bucket.push(new Definition(capture.node.text, asLspRange(capture.node), capture.name.includes(".variable."), symbolMapping.getSymbolKind(match[1])));
-        } else if (capture.name.startsWith("usage.")) {
-          bucket.push(new Usage(capture.node.text, asLspRange(capture.node), symbolMapping.getSymbolKind(capture.name.substring(capture.name.indexOf(".") + 1))));
+      for (const capture of captures) {
+        if (capture.name.startsWith("definition")) {
+          bucket.push(new Definition(capture.node.text, asLspRange(capture.node)));
+        } else if (capture.name.startsWith("usage")) {
+          bucket.push(new Usage(capture.node.text, asLspRange(capture.node), capture.name.endsWith(".void")));
         }
       }
     }
@@ -9399,7 +9379,7 @@ ${scopes3}
         while (true) {
           let parent = stack.pop() ?? root;
           if (containsRange(parent.range, thing.range)) {
-            parent.addChild(thing);
+            parent.appendChild(thing);
             stack.push(parent);
             stack.push(thing);
             break;
@@ -9407,6 +9387,16 @@ ${scopes3}
           if (parent === root) {
             break;
           }
+        }
+      }
+      stack.length = 0;
+      stack.push(root);
+      while (stack.length > 0) {
+        let n = stack.pop();
+        if (n instanceof Usage && n.isHelper) {
+          n.remove();
+        } else {
+          stack.push(...n.children());
         }
       }
     }
@@ -9432,7 +9422,21 @@ ${scopes3}
       this.type = type;
       this._children = [];
     }
-    addChild(node) {
+    children() {
+      return this._children;
+    }
+    remove() {
+      if (!this._parent) {
+        return false;
+      }
+      const idx = this._parent._children.indexOf(this);
+      if (idx < 0) {
+        return false;
+      }
+      this._parent._children.splice(idx, 1);
+      return true;
+    }
+    appendChild(node) {
       this._children.push(node);
       node._parent = this;
     }
@@ -9441,27 +9445,25 @@ ${scopes3}
     }
   };
   var Usage = class extends Node {
-    constructor(name, range, kind) {
+    constructor(name, range, isHelper) {
       super(range, 2);
       this.name = name;
       this.range = range;
-      this.kind = kind;
+      this.isHelper = isHelper;
     }
-    addChild(_node) {
+    appendChild(_node) {
     }
     toString() {
       return `use:${this.name}`;
     }
   };
   var Definition = class extends Node {
-    constructor(name, range, scoped, kind) {
+    constructor(name, range) {
       super(range, 1);
       this.name = name;
       this.range = range;
-      this.scoped = scoped;
-      this.kind = kind;
     }
-    addChild(_node) {
+    appendChild(_node) {
     }
     toString() {
       return `def:${this.name}`;
@@ -9589,24 +9591,21 @@ ${indent}`)}`;
     }
     async provideDocumentHighlights(params) {
       const document2 = await this._documents.retrieve(params.textDocument.uri);
-      const info = FileInfo.detailed(document2, this._trees);
+      const info = Locals.create(document2, this._trees);
       const scope = info.root.findScope(params.position);
       const anchor = scope.findDefinitionOrUsage(params.position);
       if (!anchor) {
         return [];
       }
       const result = [];
-      const definitions = scope.findDefinitions(anchor.name);
-      const definitionKinds = new Set();
-      for (let def of definitions) {
+      for (let def of scope.findDefinitions(anchor.name)) {
         result.push(lsp4.DocumentHighlight.create(def.range, lsp4.DocumentHighlightKind.Write));
-        definitionKinds.add(def.kind);
       }
-      const usages4 = scope.findUsages(anchor.name);
-      for (let usage of usages4) {
-        if (definitionKinds.has(usage.kind)) {
-          result.push(lsp4.DocumentHighlight.create(usage.range, lsp4.DocumentHighlightKind.Read));
-        }
+      if (result.length === 0) {
+        return [];
+      }
+      for (let usage of scope.findUsages(anchor.name)) {
+        result.push(lsp4.DocumentHighlight.create(usage.range, lsp4.DocumentHighlightKind.Read));
       }
       return result;
     }

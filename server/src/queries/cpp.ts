@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const definitionsOutline = `
+const outline = `
 (namespace_definition
 	name: (identifier) @definition.module.name
 ) @definition.module
@@ -80,7 +80,7 @@ const comments = `
 `;
 
 export const mod: QueryModule = {
-	definitionsOutline,
+	outline,
 	comments
 };
 

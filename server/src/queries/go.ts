@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const definitionsOutline = `
+const outline = `
 (field_declaration (field_identifier) @definition.field @definition.field.name)
 
 (method_spec
@@ -65,21 +65,6 @@ const definitionsOutline = `
 ) @definition.event
 `;
 
-const definitionsAll = `
-${definitionsOutline}
-(const_spec name: (identifier) @definition.variable.name) @definition.variable
-(var_declaration (var_spec (identifier) @definition.variable.name @definition.variable))
-(parameter_declaration (identifier) @definition.variable.name @definition.variable)
-(short_var_declaration left: (expression_list (identifier) @definition.variable.name)) @definition.variable
-(range_clause left: (expression_list (identifier) @definition.variable.name)) @definition.variable
-(type_switch_statement (expression_list (identifier) @definition.variable @definition.variable.name))
-`;
-
-const usages = `
-(identifier) @usage.variable
-`;
-
-
 const scopes = `
 (method_declaration parameters: (parameter_list) @scope)
 (method_declaration body: (block) @scope.merge)
@@ -89,8 +74,21 @@ const scopes = `
 (for_statement) @scope
 (block) @scope
 (type_switch_statement) @scope
+(composite_literal body: (literal_value)  @scope)
 `;
 
+const locals = `
+(const_spec name: (identifier) @definition)
+(var_declaration (var_spec (identifier) @definition))
+(parameter_declaration (identifier) @definition)
+(short_var_declaration left: (expression_list (identifier) @definition))
+(range_clause left: (expression_list (identifier) @definition))
+(type_switch_statement (expression_list (identifier) @definition))
+
+(identifier) @usage
+
+${scopes}
+`;
 
 const comments = `
 (comment) @comment
@@ -102,10 +100,9 @@ ${comments}
 `;
 
 export const mod: QueryModule = {
-	definitionsOutline,
-	definitionsAll,
+	outline,
 	comments,
-	usages,
+	locals,
 	scopes,
 	folding
 };

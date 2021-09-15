@@ -4,41 +4,29 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, compareRangeByStart, containsPosition, containsRange, isBefore, isBeforeOrEqual, symbolMapping } from '../common';
+import { asLspRange, compareRangeByStart, containsPosition, containsRange, symbolMapping } from '../common';
 import { Trees } from '../trees';
-import { QueryCapture, SyntaxNode } from '../../tree-sitter/tree-sitter';
+import { QueryCapture } from '../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 
-export class FileInfo {
+export class Locals {
 
-	static simple(document: TextDocument, trees: Trees): FileInfo {
-		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
-		const tree = trees.getParseTree(document);
-		if (tree) {
-			const query = Queries.get(document.languageId, 'definitionsOutline', 'usages');
-			const captures = query.captures(tree.rootNode);
-			const nodes: Node[] = [];
-			this._fillInDefinitionsAndUsages(nodes, captures);
-			this._constructTree(root, nodes);
-		}
-		return new FileInfo(document, root);
-	}
-
-	static detailed(document: TextDocument, trees: Trees): FileInfo {
+	static create(document: TextDocument, trees: Trees): Locals {
 		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
 		const tree = trees.getParseTree(document);
 		if (!tree) {
-			return new FileInfo(document, root);
+			return new Locals(document, root);
 		}
 
 		const all: Node[] = [];
+		const query = Queries.get(document.languageId, 'locals');
+		const captures = query.captures(tree.rootNode).sort(this._compareCaptures);
 
 		// Find all scopes and merge some. The challange is that function-bodies "see" their
 		// arguments but function-block-nodes and argument-list-nodes are usually siblings
-		const scopeQuery = Queries.get(document.languageId, 'scopes');
-		const scopeCaptures = scopeQuery.captures(tree.rootNode).sort(this._compareCaptures);
+		const scopeCaptures = captures.filter(capture => capture.name.startsWith('scope'));
 		for (let i = 0; i < scopeCaptures.length; i++) {
 			const capture = scopeCaptures[i];
 			const range = asLspRange(capture.node);
@@ -50,35 +38,29 @@ export class FileInfo {
 		}
 
 		// Find all definitions and usages and mix them with scopes
-		const query = Queries.get(document.languageId, 'definitionsAll', 'usages');
-		const captures = query.captures(tree.rootNode);
 		this._fillInDefinitionsAndUsages(all, captures);
 
 		//
 		this._constructTree(root, all);
 
-		const result = new FileInfo(document, root);
-		// result.debugPrint();
-		return result;
+		const info = new Locals(document, root);
+		// info.debugPrint();
+		return info;
 	}
 
 	private static _fillInDefinitionsAndUsages(bucket: Node[], captures: QueryCapture[]): void {
-		for (let capture of captures) {
-
-			const match = /definition\.(\w+)\.name/.exec(capture.name);
-
-			if (match) {
+		for (const capture of captures) {
+			if (capture.name.startsWith('definition')) {
 				bucket.push(new Definition(
 					capture.node.text,
-					asLspRange(capture.node),
-					capture.name.includes('.variable.'),
-					symbolMapping.getSymbolKind(match[1])
+					asLspRange(capture.node)
+
 				));
-			} else if (capture.name.startsWith('usage.')) {
+			} else if (capture.name.startsWith('usage')) {
 				bucket.push(new Usage(
 					capture.node.text,
 					asLspRange(capture.node),
-					symbolMapping.getSymbolKind(capture.name.substring(capture.name.indexOf('.') + 1))
+					capture.name.endsWith('.void')
 				));
 			}
 		}
@@ -90,7 +72,7 @@ export class FileInfo {
 			while (true) {
 				let parent = stack.pop() ?? root;
 				if (containsRange(parent.range, thing.range)) {
-					parent.addChild(thing);
+					parent.appendChild(thing);
 					stack.push(parent);
 					stack.push(thing);
 					break;
@@ -99,6 +81,18 @@ export class FileInfo {
 					// impossible ?!
 					break;
 				}
+			}
+		}
+
+		// remove helper usage-nodes
+		stack.length = 0;
+		stack.push(root);
+		while (stack.length > 0) {
+			let n = stack.pop()!;
+			if (n instanceof Usage && n.isHelper) {
+				n.remove();
+			} else {
+				stack.push(...n.children());
 			}
 		}
 	}
@@ -121,6 +115,7 @@ export class FileInfo {
 		console.log(this.root.toString());
 	}
 
+
 }
 
 const enum NodeType {
@@ -137,7 +132,23 @@ abstract class Node {
 		readonly type: NodeType
 	) { }
 
-	addChild(node: Node) {
+	children(): readonly Node[] {
+		return this._children;
+	}
+
+	remove(): boolean {
+		if (!this._parent) {
+			return false;
+		}
+		const idx = this._parent._children.indexOf(this);
+		if (idx < 0) {
+			return false;
+		}
+		this._parent._children.splice(idx, 1);
+		return true;
+	}
+
+	appendChild(node: Node) {
 		this._children.push(node);
 		node._parent = this;
 	}
@@ -152,12 +163,12 @@ export class Usage extends Node {
 	constructor(
 		readonly name: string,
 		readonly range: lsp.Range,
-		readonly kind: lsp.SymbolKind
+		readonly isHelper: boolean,
 	) {
 		super(range, NodeType.Usage);
 	}
 
-	addChild(_node: Node) {
+	appendChild(_node: Node) {
 		// console.log('ignored', node.toString());
 	}
 
@@ -170,13 +181,11 @@ export class Definition extends Node {
 	constructor(
 		readonly name: string,
 		readonly range: lsp.Range,
-		readonly scoped: boolean,
-		readonly kind: lsp.SymbolKind
 	) {
 		super(range, NodeType.Definition);
 	}
 
-	addChild(_node: Node) {
+	appendChild(_node: Node) {
 		// console.log('ignored', node.toString());
 	}
 

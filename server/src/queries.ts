@@ -16,12 +16,13 @@ import typescript from './queries/typescript';
 import Languages from './languages';
 
 export type QueryModule = {
-	definitionsOutline?: string;
+	outline?: string;
 	definitionsAll?: string;
 	comments?: string;
 	folding?: string;
 	usages?: string;
 	scopes?: string;
+	locals?: string
 };
 
 export type QueryType = keyof QueryModule;

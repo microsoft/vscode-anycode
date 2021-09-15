@@ -5,7 +5,7 @@
 
 import type { QueryModule } from '../queries';
 
-const definitionsOutline = `
+const outline = `
 (class_declaration
 	name: (identifier) @definition.class.name
 ) @definition.class
@@ -104,7 +104,7 @@ const definitionsOutline = `
 const comments = `(comment) @comment`;
 
 export const mod: QueryModule = {
-	definitionsOutline,
+	outline,
 	comments
 };
 
