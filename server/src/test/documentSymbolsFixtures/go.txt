@@ -1,3 +1,4 @@
+---
 func (me *MySQLError) [Is](err error) bool {
 	if merr, ok := err.(*MySQLError); ok {
 		return merr.Number == me.Number
@@ -17,7 +18,3 @@ var (
 )
 ---
 var [c], [python], [java] bool
----
-type [Vertex] struct {
-	[X], [Y] float64
-}

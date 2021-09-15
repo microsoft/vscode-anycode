@@ -4,8 +4,9 @@
 	"publisher": "ms-vscode",
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
-		"pretest": "npx esbuild --bundle src/test/documentSymbols/documentSymbols.ts --outfile=src/test/documentSymbols/documentSymbols.js --external:fs --external:path && npx esbuild --bundle src/test/documentHighlights/documentHighlights.ts --outfile=src/test/documentHighlights/documentHighlights.js --external:fs --external:path",
-		"test": "node src/test/index.js"
+		"pretest": "npx esbuild --bundle src/test/test.all.ts --outfile=src/test/test.all.js --define:process=\"{\\\"env\\\":{}}\" --external:fs --external:path",
+		"test": "node src/test/test.js"
+
 	},
 	"dependencies": {
 		"vscode-languageserver": "^7.0.0",
@@ -15,6 +16,8 @@
 		"@playwright/test": "^1.14.1",
 		"@types/assert": "^1.5.6",
 		"@types/chai": "^4.2.21",
+		"@types/mocha": "^9.0.0",
+		"assert": "^2.0.0",
 		"mocha": "^9.1.1",
 		"tree-sitter-c": "^0.19.0",
 		"tree-sitter-c-sharp": "^0.19.0",
