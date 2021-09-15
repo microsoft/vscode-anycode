@@ -8,6 +8,7 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
 import { Queries } from '../queries';
+import { BulkRegistration } from 'vscode-languageserver';
 
 export class DocumentHighlightsProvider {
 
@@ -17,8 +18,14 @@ export class DocumentHighlightsProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Queries.supportedLanguages('locals') });
 		connection.onRequest(lsp.DocumentHighlightRequest.type, this.provideDocumentHighlights.bind(this));
+	}
+
+	collectRegistrations(bulk: BulkRegistration): void {
+		const selectors = Queries.supportedLanguages('locals');
+		if (selectors.length > 0) {
+			bulk.add(lsp.DocumentHighlightRequest.type, { documentSelector: selectors });
+		}
 	}
 
 	async provideDocumentHighlights(params: lsp.DocumentHighlightParams): Promise<lsp.DocumentHighlight[]> {

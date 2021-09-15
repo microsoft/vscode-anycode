@@ -10,6 +10,7 @@ import { Trees } from '../trees';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { QueryCapture } from '../../tree-sitter/tree-sitter';
+import { BulkRegistration } from 'vscode-languageserver';
 
 export class DocumentSymbols {
 
@@ -17,6 +18,13 @@ export class DocumentSymbols {
 
 	register(connection: lsp.Connection) {
 		connection.onDocumentSymbol(this.provideDocumentSymbols.bind(this));
+	}
+
+	collectRegistrations(bulk: BulkRegistration): void {
+		const selectors = Queries.supportedLanguages('outline');
+		if (selectors.length > 0) {
+			bulk.add(lsp.DocumentSymbolRequest.type, { documentSelector: selectors });
+		}
 	}
 
 	async provideDocumentSymbols(params: lsp.DocumentSymbolParams): Promise<lsp.DocumentSymbol[]> {
@@ -48,7 +56,7 @@ export class Outline {
 		const captures = query.captures(tree.rootNode);
 
 
-		// build a Node-tree that is based on range containment. This includes true 
+		// build a Node-tree that is based on range containment. This includes true
 		// children as well as the "name-child"
 		const roots: Node[] = [];
 		const stack: Node[] = [];

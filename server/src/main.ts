@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createConnection, BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserver/browser';
-import { InitializeParams, InitializeResult, ServerCapabilities, TextDocumentSyncKind } from 'vscode-languageserver';
+import { BulkRegistration, InitializeParams, InitializeResult, ServerCapabilities, TextDocumentSyncKind, DocumentSymbolRequest } from 'vscode-languageserver';
 import Parser from '../tree-sitter/tree-sitter';
 import { Trees } from './trees';
 import { DocumentSymbols } from './features/documentSymbols';
@@ -30,6 +30,8 @@ const messageWriter = new BrowserMessageWriter(self);
 
 const connection = createConnection(messageReader, messageWriter);
 
+const features: (DocumentSymbols | DocumentHighlightsProvider)[] = [];
+
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
 
 	// (1) init tree sitter before doing anything else
@@ -48,10 +50,17 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	const symbolIndex = new SymbolIndex(trees, documents);
 
 	new WorkspaceSymbol(symbolIndex).register(connection);
-	new DocumentSymbols(documents, trees).register(connection);
+	const documentSymbols = new DocumentSymbols(documents, trees);
+	documentSymbols.register(connection);
+	features.push(documentSymbols);
+
 	new DefinitionProvider(documents, trees, symbolIndex).register(connection);
 	new ReferencesProvider(documents, trees, symbolIndex).register(connection);
-	new DocumentHighlightsProvider(documents, trees).register(connection);
+
+	const highlight = new DocumentHighlightsProvider(documents, trees);
+	highlight.register(connection);
+	features.push(highlight);
+
 	new CompletionItemProvider(symbolIndex).register(connection);
 	new SelectionRangesProvider(documents, trees).register(connection);
 	new FoldingRangeProvider(documents, trees).register(connection);
@@ -59,14 +68,14 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 
 	const capabilities: ServerCapabilities = {
 		textDocumentSync: TextDocumentSyncKind.Incremental,
-		workspaceSymbolProvider: true,
-		documentSymbolProvider: true,
-		definitionProvider: true,
-		referencesProvider: true,
-		documentHighlightProvider: true,
-		completionProvider: {},
-		selectionRangeProvider: true,
-		foldingRangeProvider: true,
+		// workspaceSymbolProvider: true,
+		// documentSymbolProvider: true,
+		// definitionProvider: true,
+		// referencesProvider: true,
+		// documentHighlightProvider: true,
+		// completionProvider: {},
+		// selectionRangeProvider: true,
+		// foldingRangeProvider: true,
 	};
 
 	// (nth) manage symbol index. add/remove files as they are disovered and edited
@@ -81,6 +90,14 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	});
 
 	return { capabilities };
+});
+
+connection.onInitialized(async () => {
+	const bulk = BulkRegistration.create();
+	for (const feature of features) {
+		feature.collectRegistrations(bulk);
+	}
+	connection.client.register(bulk);
 });
 
 

@@ -42,7 +42,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 
 	const clientOptions: LanguageClientOptions = {
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
-		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
+		// documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
 			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
@@ -84,7 +84,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 		client.sendNotification('file-cache/remove', uri.toString());
 	}));
 
-	// serve fileRead request		
+	// serve fileRead request
 	client.onRequest('file/read', async raw => {
 		const uri = vscode.Uri.parse(raw);
 		let languageId = '';
