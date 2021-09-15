@@ -1,21 +1,22 @@
-module [com.foo] { }
+--- module dotted-name
+module [[com.foo]] { }
 ---
-class [Point] {
-  int [x], [y];
-  [Point](int x, int y) {
+class [[Point]] {
+  int [[x]], [[y]];
+  [[Point]](int x, int y) {
     this.x = x;
     this.y = y;
   }
 
-  [Point]() {
+  [[Point]]() {
     this(0, 0);
   }
 }
 ---
-public class [Foo] {
-	public static void [main](String args[]) {}
+public class [[Foo]] {
+	public static void [[main]](String args[]) {}
 }
 ---
-interface [I] {
-	String [foo]();
+interface [[I]] {
+	String [[foo]]();
 }

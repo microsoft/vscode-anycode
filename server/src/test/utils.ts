@@ -8,7 +8,6 @@ import Languages from '../languages';
 import * as lsp from "vscode-languageserver";
 import { DocumentStore } from "../documentStore";
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { TextDocumentItem } from 'vscode-languageserver';
 
 export async function bootstrapWasm() {
 	await Parser.init({
@@ -65,7 +64,7 @@ export class TestDocumentStore extends DocumentStore {
 
 export class FixtureMarks {
 
-	static readonly pattern = /\[[^\]]+\]/g;
+	static readonly pattern = /\[\[[^\]]+\]\]/g;
 
 	constructor(
 		readonly start: number,
@@ -96,16 +95,17 @@ export class Fixture {
 				text += parts[i];
 				let ident = idents[i];
 				if (ident) {
-					let name = ident.slice(1, -1);
+					let name = ident.slice(2, -2);
 					marks.push(new FixtureMarks(text.length, name));
 					text += name;
 				}
 			}
-			result.push(new Fixture(
-				matches?.shift()?.substring(3) ?? String(i),
-				TextDocument.create(`${uri}#${i}`, languageId, 1, text),
-				marks
-			));
+
+			const name = matches?.shift()?.substring(3) ?? String(i);
+			if (name.includes('/SKIP/')) {
+				continue;
+			}
+			result.push(new Fixture(name, TextDocument.create(`${uri}#${i}`, languageId, 1, text), marks));
 		}
 		return result;
 	}

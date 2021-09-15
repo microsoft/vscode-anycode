@@ -1,16 +1,16 @@
 --- ctor-argument 1
 class Point {
   int x, y;
-  Point(int [x], int y) {
-    this.x = [x];
+  Point(int [[x]], int y) {
+    this.x = [[x]];
     this.y = y;
   }
 }
 --- ctor-argument 2
 class Point {
   int x, y;
-  Point(int x, int [y]) {
+  Point(int x, int [[y]]) {
     this.x = x;
-    this.y = [y];
+    this.y = [[y]];
   }
 }

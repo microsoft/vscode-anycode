@@ -1,16 +1,16 @@
-def [print_pattern]():
+def [[print_pattern]]():
     size = 4
     for i in range(size):
         print("*" * size)
 ---
-class [Dog]:
+class [[Dog]]:
 
-    def [__init__](self, name, age):
+    def [[__init__]](self, name, age):
         self.name = name  # Public attribute
         self._age = age   # Non-Public attribute
 
-    def [bark](self):
+    def [[bark]](self):
         print(f"woof-woof. I'm {self.name}")
 ---
-async def [c](a: str):
+async def [[c]](a: str):
   a

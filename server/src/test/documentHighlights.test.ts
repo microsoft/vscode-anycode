@@ -10,7 +10,7 @@ import { DocumentHighlightsProvider } from '../features/documentHighlights';
 import { Trees } from '../trees';
 import { bootstrapWasm, Fixture, TestDocumentStore } from './utils';
 
-suite('DocumentSymbols - Fixtures', function () {
+suite('DocumentHighlight - Fixtures', function () {
 
 	suiteSetup(async function () {
 		await bootstrapWasm();

@@ -1,19 +1,19 @@
-static [LANGUAGE]: &str = "Rust";
-const [THRESHOLD]: i32 = 10;
+static [[LANGUAGE]]: &str = "Rust";
+const [[THRESHOLD]]: i32 = 10;
 ---
-fn [is_big](n: i32) -> bool {
+fn [[is_big]](n: i32) -> bool {
     // Access constant in some function
     n > THRESHOLD
 }
 ---
-impl [Foo] {
-    const default fn [bar]() -> i32 {
+impl [[Foo]] {
+    const default fn [[bar]]() -> i32 {
       default.bar();
     }
 }
 ---
-impl [Show] for i32 {
-    fn [show](&self) -> String {
+impl [[Show]] for i32 {
+    fn [[show]](&self) -> String {
         format!("four-byte signed {}", self)
         format!("four-byte signed {}", self)
     }
