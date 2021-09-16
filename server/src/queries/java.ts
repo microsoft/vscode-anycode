@@ -53,12 +53,6 @@ const outline = `
 ) @definition.module
 `;
 
-
-const usages = `
-(field_access field: (identifier) @usage.field)
-(identifier) @usage.variable
-`;
-
 const scopes = `
 [(class_body) (interface_body) (enum_body)] @scope
 (for_statement) @scope
@@ -71,12 +65,10 @@ const scopes = `
 `;
 
 const locals = `
-;; definitions
 (formal_parameter name: (identifier) @definition)
 (local_variable_declaration declarator: (variable_declarator name: (identifier) @definition))
 (catch_formal_parameter name: (identifier) @definition)
 
-;; usages
 (field_access field: (identifier) @usage.void)
 (identifier) @usage
 
@@ -99,7 +91,6 @@ ${comments}
 
 export const mod: QueryModule = {
 	outline,
-	usages,
 	comments,
 	folding,
 	locals

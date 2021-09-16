@@ -8,7 +8,6 @@ import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
-import { nodeAtPosition } from '../common';
 import { Queries } from '../queries';
 
 export class ReferencesProvider {
@@ -20,7 +19,7 @@ export class ReferencesProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'outline') });
+		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Queries.supportedLanguages('locals') });
 		connection.onRequest(lsp.ReferencesRequest.type, this.provideReferences.bind(this));
 	}
 
@@ -57,33 +56,7 @@ export class ReferencesProvider {
 	private async _findGlobalReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {
 
 		const result: lsp.Location[] = [];
-		const document = await this._documents.retrieve(params.textDocument.uri);
-		const tree = this._trees.getParseTree(document);
-		if (!tree) {
-			return result;
-		}
-
-		const text = nodeAtPosition(tree.rootNode, params.position).text;
-
-		await this._symbols.update();
-
-		const usages = this._symbols.usages.get(text);
-		const definition = this._symbols.definitions.get(text);
-		if (!usages && !definition) {
-			return result;
-		}
-
-		if (usages) {
-			for (let usage of usages) {
-				result.push(usage);
-			}
-		}
-
-		if (definition) {
-			for (let symbol of definition) {
-				result.push(lsp.Location.create(symbol.location.uri, symbol.location.range));
-			}
-		}
+		// @todo@jrieken support "global" references
 		return result;
 	}
 }

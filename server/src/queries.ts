@@ -19,8 +19,7 @@ export type QueryModule = {
 	outline?: string;
 	comments?: string;
 	folding?: string;
-	usages?: string;
-	locals?: string
+	locals?: string;
 };
 
 export type QueryType = keyof QueryModule;
