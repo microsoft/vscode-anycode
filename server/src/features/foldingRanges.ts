@@ -26,11 +26,15 @@ export class FoldingRangeProvider {
 			return [];
 		}
 
-		const query = Queries.get(document.languageId, 'comments', 'folding');
-		const sw = new StopWatch();
 		const result: lsp.FoldingRange[] = [];
+		const sw = new StopWatch();
+		const commentQuery = Queries.get(document.languageId, 'comments');
+		const commentCaptures = commentQuery.captures(tree.rootNode);
 
-		for (const capture of query.captures(tree.rootNode)) {
+		const foldingQuery = Queries.get(document.languageId, 'folding');
+		const foldingCaptures = foldingQuery.captures(tree.rootNode);
+
+		for (const capture of [commentCaptures, foldingCaptures].flat()) {
 			result.push(lsp.FoldingRange.create(
 				capture.node.startPosition.row,
 				capture.node.endPosition.row,

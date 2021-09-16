@@ -41,7 +41,7 @@ export abstract class Queries {
 
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
-	static get(languageId: string, type: QueryType, ...more: QueryType[]): Parser.Query {
+	static get(languageId: string, type: QueryType): Parser.Query {
 
 		const module = this._queryModules.get(languageId);
 		if (!module) {
@@ -49,8 +49,8 @@ export abstract class Queries {
 			return Languages.get(languageId)!.query('');
 		}
 
-		const source = [type, ...more].map(type => module[type] ?? '').join('\n').trim();
-		const key = `${languageId}/${source}`;
+		const source = module[type] ?? '';
+		const key = `${languageId}/${type}`;
 
 		let query = this._queryInstances.get(key);
 		if (!query) {
@@ -58,10 +58,10 @@ export abstract class Queries {
 				query = Languages.get(languageId)!.query(source);
 			} catch (e) {
 				query = Languages.get(languageId)!.query('');
-				console.warn(languageId, e);
+				console.error(languageId, e);
 			}
+			this._queryInstances.set(key, query);
 		}
-		this._queryInstances.set(key, query);
 		return query;
 	}
 
