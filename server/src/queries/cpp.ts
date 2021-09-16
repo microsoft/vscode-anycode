@@ -81,7 +81,7 @@ const comments = `
 `;
 
 const identifiers = `
-${c.identifiers},
+${c.identifiers}
 (namespace_identifier) @identifier
 `;
 

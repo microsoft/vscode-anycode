@@ -128,7 +128,7 @@ const locals = `
 const comments = `(comment) @comment`;
 
 const identifiers = `
-(identifiers) @identifier
+(identifier) @identifier
 `;
 
 export const mod: QueryModule = {

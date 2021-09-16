@@ -41,7 +41,7 @@ export abstract class Queries {
 
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
-	static get(languageId: string, type: QueryType): Parser.Query {
+	static get(languageId: string, type: QueryType, strict = false): Parser.Query {
 
 		const module = this._queryModules.get(languageId);
 		if (!module) {
@@ -59,6 +59,9 @@ export abstract class Queries {
 			} catch (e) {
 				query = Languages.get(languageId)!.query('');
 				console.error(languageId, e);
+				if (strict) {
+					throw e;
+				}
 			}
 			this._queryInstances.set(key, query);
 		}

@@ -3,5 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import './queries.test';
 import './documentSymbols.test';
 import './documentHighlights.test';
