@@ -57,15 +57,16 @@ const _debug = process.argv.includes('--debug');
 
 	const failCount = await mochaDone;
 
+	if (_debug) {
+		return;
+	}
+
 	if (failCount > 0) {
 		console.error(`${failCount} FAILURES`)
 	} else {
 		console.log('all good')
 	}
-
-	if (!_debug) {
-		page.close();
-		server.close();
-		process.exit(failCount)
-	}
+	page.close();
+	server.close();
+	process.exit(failCount)
 })()

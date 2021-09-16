@@ -18,3 +18,9 @@ impl [[Show]] for i32 {
         format!("four-byte signed {}", self)
     }
 }
+---
+impl [[Drop]] for Tree {
+    fn [[drop]](&mut self) {
+        unsafe { ffi::ts_tree_delete(self.0.as_ptr()) }
+    }
+}
