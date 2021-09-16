@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, StopWatch } from '../common';
+import { StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Queries } from '../queries';
@@ -14,7 +14,8 @@ export class FoldingRangeProvider {
 	constructor(private _documents: DocumentStore, private _trees: Trees) { }
 
 	register(connection: lsp.Connection) {
-		connection.onFoldingRanges(this.provideFoldingRanges.bind(this));
+		connection.client.register(lsp.FoldingRangeRequest.type, { documentSelector: Queries.supportedLanguages('folding') });
+		connection.onRequest(lsp.FoldingRangeRequest.type, this.provideFoldingRanges.bind(this));
 	}
 
 	async provideFoldingRanges(params: lsp.FoldingRangeParams) {

@@ -3,22 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CompletionItem, CompletionItemKind, CompletionParams, Connection, SymbolKind } from 'vscode-languageserver';
+import * as lsp from 'vscode-languageserver';
+import { Queries } from '../queries';
 import { SymbolIndex } from './symbolIndex';
 
 export class CompletionItemProvider {
 
 	constructor(private _symbols: SymbolIndex) { }
 
-	register(connection: Connection) {
-		connection.onCompletion(this.provideCompletionItems.bind(this));
+	register(connection: lsp.Connection) {
+		connection.client.register(lsp.CompletionRequest.type, { documentSelector: Queries.supportedLanguages('outline') });
+		connection.onRequest(lsp.CompletionRequest.type, this.provideCompletionItems.bind(this));
 	}
 
-	async provideCompletionItems(params: CompletionParams): Promise<CompletionItem[]> {
+	async provideCompletionItems(params: lsp.CompletionParams): Promise<lsp.CompletionItem[]> {
 
 		await this._symbols.update();
 
-		const result: CompletionItem[] = [];
+		const result: lsp.CompletionItem[] = [];
 		for (let [key, symbols] of this._symbols.definitions) {
 			const [first] = symbols;
 			result.push({
@@ -29,17 +31,17 @@ export class CompletionItemProvider {
 		return result;
 	}
 
-	private static _kindMapping = new Map<SymbolKind, CompletionItemKind>([
-		[SymbolKind.Class, CompletionItemKind.Class],
-		[SymbolKind.Interface, CompletionItemKind.Interface],
-		[SymbolKind.Field, CompletionItemKind.Field],
-		[SymbolKind.Property, CompletionItemKind.Property],
-		[SymbolKind.Event, CompletionItemKind.Event],
-		[SymbolKind.Constructor, CompletionItemKind.Constructor],
-		[SymbolKind.Method, CompletionItemKind.Method],
-		[SymbolKind.Enum, CompletionItemKind.Enum],
-		[SymbolKind.EnumMember, CompletionItemKind.EnumMember],
-		[SymbolKind.Function, CompletionItemKind.Function],
-		[SymbolKind.Variable, CompletionItemKind.Variable],
+	private static _kindMapping = new Map<lsp.SymbolKind, lsp.CompletionItemKind>([
+		[lsp.SymbolKind.Class, lsp.CompletionItemKind.Class],
+		[lsp.SymbolKind.Interface, lsp.CompletionItemKind.Interface],
+		[lsp.SymbolKind.Field, lsp.CompletionItemKind.Field],
+		[lsp.SymbolKind.Property, lsp.CompletionItemKind.Property],
+		[lsp.SymbolKind.Event, lsp.CompletionItemKind.Event],
+		[lsp.SymbolKind.Constructor, lsp.CompletionItemKind.Constructor],
+		[lsp.SymbolKind.Method, lsp.CompletionItemKind.Method],
+		[lsp.SymbolKind.Enum, lsp.CompletionItemKind.Enum],
+		[lsp.SymbolKind.EnumMember, lsp.CompletionItemKind.EnumMember],
+		[lsp.SymbolKind.Function, lsp.CompletionItemKind.Function],
+		[lsp.SymbolKind.Variable, lsp.CompletionItemKind.Variable],
 	]);
 }

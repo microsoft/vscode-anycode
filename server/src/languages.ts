@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DocumentSelector } from 'vscode-languageserver-protocol';
 import Parser from '../tree-sitter/tree-sitter';
 
 export default abstract class Languages {
@@ -23,5 +24,9 @@ export default abstract class Languages {
 			return undefined;
 		}
 		return result;
+	}
+
+	static allAsSelector(): DocumentSelector {
+		return [...this._languages.keys()];
 	}
 }

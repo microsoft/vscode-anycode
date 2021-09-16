@@ -4,20 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type Parser from '../../tree-sitter/tree-sitter';
-import { Connection, SelectionRange, SelectionRangeParams } from 'vscode-languageserver';
+import * as lsp from 'vscode-languageserver';
 import { asLspRange as asLspRange, StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
+import Languages from '../languages';
 
 export class SelectionRangesProvider {
 
 	constructor(private _documents: DocumentStore, private _trees: Trees) { }
 
-	register(connection: Connection) {
-		connection.onSelectionRanges(this.provideSelectionRanges.bind(this));
+	register(connection: lsp.Connection) {
+		connection.client.register(lsp.SelectionRangeRequest.type, { documentSelector: Languages.allAsSelector() });
+		connection.onRequest(lsp.SelectionRangeRequest.type, this.provideSelectionRanges.bind(this));
 	}
 
-	async provideSelectionRanges(params: SelectionRangeParams) {
+	async provideSelectionRanges(params: lsp.SelectionRangeParams) {
 
 		const document = await this._documents.retrieve(params.textDocument.uri);
 		const tree = this._trees.getParseTree(document);
@@ -26,7 +28,7 @@ export class SelectionRangesProvider {
 		}
 
 		const sw = new StopWatch();
-		const result: SelectionRange[] = [];
+		const result: lsp.SelectionRange[] = [];
 
 		for (const position of params.positions) {
 			const stack: Parser.SyntaxNode[] = [];
@@ -48,9 +50,9 @@ export class SelectionRangesProvider {
 				break;
 			}
 
-			let parent: SelectionRange | undefined;
+			let parent: lsp.SelectionRange | undefined;
 			for (let node of stack) {
-				let range = SelectionRange.create(asLspRange(node), parent);
+				let range = lsp.SelectionRange.create(asLspRange(node), parent);
 				parent = range;
 			}
 			if (parent) {

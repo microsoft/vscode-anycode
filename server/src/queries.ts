@@ -67,11 +67,15 @@ export abstract class Queries {
 		return query;
 	}
 
-	static supportedLanguages(type: QueryType): string[] {
+	static supportedLanguages(type: QueryType, ...more: QueryType[]): string[] {
+		const types = new Set([type, ...more]);
 		const result: string[] = [];
 		for (let [language, module] of this._queryModules) {
-			if (module[type]) {
-				result.push(language);
+			for (let type of types) {
+				if (module[type]) {
+					result.push(language);
+					break;
+				}
 			}
 		}
 		return result;

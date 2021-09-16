@@ -16,7 +16,8 @@ export class DocumentSymbols {
 	constructor(private readonly _documents: DocumentStore, private readonly _trees: Trees) { }
 
 	register(connection: lsp.Connection) {
-		connection.onDocumentSymbol(this.provideDocumentSymbols.bind(this));
+		connection.client.register(lsp.DocumentSymbolRequest.type, { documentSelector: Queries.supportedLanguages('outline') });
+		connection.onRequest(lsp.DocumentSymbolRequest.type, this.provideDocumentSymbols.bind(this));
 	}
 
 	async provideDocumentSymbols(params: lsp.DocumentSymbolParams): Promise<lsp.DocumentSymbol[]> {

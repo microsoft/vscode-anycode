@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, SymbolInformation, WorkspaceSymbolParams } from 'vscode-languageserver';
+import * as lsp from 'vscode-languageserver';
 import { StopWatch } from '../common';
 import { SymbolIndex } from './symbolIndex';
 
@@ -11,12 +11,13 @@ export class WorkspaceSymbol {
 
 	constructor(private readonly _symbols: SymbolIndex) { }
 
-	register(connection: Connection) {
-		connection.onWorkspaceSymbol(this.provideWorkspaceSymbols.bind(this));
+	register(connection: lsp.Connection) {
+		connection.client.register(lsp.WorkspaceSymbolRequest.type);
+		connection.onRequest(lsp.WorkspaceSymbolRequest.type, this.provideWorkspaceSymbols.bind(this));
 	}
 
-	async provideWorkspaceSymbols(params: WorkspaceSymbolParams): Promise<SymbolInformation[]> {
-		const result: SymbolInformation[][] = [];
+	async provideWorkspaceSymbols(params: lsp.WorkspaceSymbolParams): Promise<lsp.SymbolInformation[]> {
+		const result: lsp.SymbolInformation[][] = [];
 
 		await this._symbols.update();
 

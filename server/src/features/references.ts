@@ -9,6 +9,7 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
 import { nodeAtPosition } from '../common';
+import { Queries } from '../queries';
 
 export class ReferencesProvider {
 
@@ -19,7 +20,8 @@ export class ReferencesProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.onReferences(this.provideReferences.bind(this));
+		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'outline') });
+		connection.onRequest(lsp.ReferencesRequest.type, this.provideReferences.bind(this));
 	}
 
 	async provideReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {

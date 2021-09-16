@@ -9,6 +9,7 @@ import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { Locals } from './fileInfo';
 import { nodeAtPosition } from '../common';
+import { Queries } from '../queries';
 
 export class DefinitionProvider {
 
@@ -19,7 +20,8 @@ export class DefinitionProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.onDefinition(this.provideDefinitions.bind(this));
+		connection.client.register(lsp.DefinitionRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'outline') });
+		connection.onRequest(lsp.DefinitionRequest.type, this.provideDefinitions.bind(this));
 	}
 
 	async provideDefinitions(params: lsp.DefinitionParams): Promise<lsp.Location[]> {
