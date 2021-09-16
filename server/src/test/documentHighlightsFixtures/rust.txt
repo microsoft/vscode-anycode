@@ -127,8 +127,13 @@ if let Some(3) = [[some_u8_value]] {
     println!("three");
 }
 --- match
- let [[some_u8_value]] = Some(0u8);
+let [[some_u8_value]] = Some(0u8);
 match [[some_u8_value]] {
     Some(3) => println!("three"),
     _ => (),
+}
+--- tuple-pattern
+fn main() {
+    let (x, [[y]], z) = tup;
+    println!("The value of y is: {}", [[y]]);
 }

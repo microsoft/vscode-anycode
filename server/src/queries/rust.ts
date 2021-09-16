@@ -82,6 +82,7 @@ const locals = `
 (parameter pattern: (identifier) @definition)
 (for_expression pattern: (identifier) @definition)
 (reference_pattern (identifier) @definition)
+(tuple_pattern (identifier) @definition)
 
 (scoped_identifier name: (identifier) @usage.void)
 (identifier) @usage
