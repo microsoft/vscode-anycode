@@ -1,67 +1,19 @@
-
 (namespace_definition
-	name: (identifier) @definition.module.name
-) @definition.module
-
-(declaration
-	type: (primitive_type)
-	declarator: (identifier) @definition.variable.name
-) @definition.variable
+	name: (identifier) @definition.module.name) @definition.module
 
 (friend_declaration
-	(type_identifier) @definition.variable.name
-) @definition.variable
-
-(function_definition
-	(function_declarator
-		[
-			(identifier) @definition.function.name
-			(field_identifier) @definition.function.name
-			(scoped_identifier) @definition.function.name
-		]
-	)
-) @definition.function
+	(type_identifier) @definition.variable.name) @definition.variable
 
 (field_declaration
 	(function_declarator
-		[
-			(identifier) @definition.function.name
-			(field_identifier) @definition.function.name
-			(scoped_identifier) @definition.function.name
-		]
-	)
-) @definition.function
+		(scoped_identifier) @definition.function.name)) @definition.function
 
 (declaration
 	(function_declarator
 		[
-			(identifier) @definition.function.name
-			(field_identifier) @definition.function.name
 			(scoped_identifier) @definition.function.name
 			(destructor_name) @definition.function.name
-		]
-	)
-) @definition.function
-
-(pointer_declarator
-	declarator: (function_declarator
-		declarator: (identifier) @definition.function.name
-	) @definition.function
-)
-
-(field_declaration
-	(field_identifier) @definition.field.name
-) @definition.field
-
-(struct_specifier
-	(type_identifier) @definition.struct.name
-) @definition.struct
+		]) @definition.function)
 
 (class_specifier
-	(type_identifier) @definition.class.name
-) @definition.class
-
-(type_definition
-	type: (_)
-	declarator: (type_identifier) @definition.struct.name
-) @definition.struct
+	(type_identifier) @definition.class.name) @definition.class
