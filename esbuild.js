@@ -48,7 +48,22 @@ const server = esbuild.build({
 	console.error(e)
 });
 
-Promise.all([client, server]).then(() => {
+// --- server-tests
+
+const testServer = esbuild.build({
+	entryPoints: ['server/src/test/test.all.ts'],
+	outfile: 'server/src/test/test.all.js',
+	bundle: true,
+	define: { process: '{"env":{}}' }, // assert-lib
+	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
+	target: 'es2020',
+	loader: { '.scm': 'text' },
+	watch
+}).catch((e) => {
+	console.error(e)
+});
+
+Promise.all([client, server, testServer]).then(() => {
 	if (watch) {
 		console.log('done building, watching for file changes')
 	} else {
