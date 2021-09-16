@@ -2,14 +2,17 @@
 
 A language extension that **inaccurately** implements the following features
 
-* expand/shrink selection 
 * outline, quick-outline, and breadcrumbs
-* (experimental) workspace symbol search and go to definition
+* workspace symbol search and go to definition
+* document highlights for locals, arguments, and identifiers
+* identifier based completions
 * (experimental) syntax errors via the `anycode.diagnostics`-setting
+* expand/shrink selection
 
 This extension should be used when running in enviroments that don't allow for running actual language services. 
 
 Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `rust`, `go`, `python`
+
 
 ---
 
