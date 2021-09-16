@@ -44,14 +44,19 @@ export class DefinitionProvider {
 		if (!tree) {
 			return [];
 		}
+
 		const result: lsp.Location[] = [];
-		const text = nodeAtPosition(tree.rootNode, params.position).text;
+		const query = Queries.get(document.languageId, 'identifiers');
+		const candidate = nodeAtPosition(tree.rootNode, params.position);
+		if (query.captures(candidate).length !== 1) {
+			// not an identifier
+			return [];
+		}
+
 		await this._symbols.update();
-		const all = this._symbols.definitions.get(text);
-		if (all) {
-			for (const symbol of all) {
-				result.push(symbol.location);
-			}
+		const all = this._symbols.definitions.get(candidate.text) ?? [];
+		for (const symbol of all) {
+			result.push(symbol.location);
 		}
 		return result;
 	}

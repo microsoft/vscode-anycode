@@ -30,8 +30,13 @@ const comments = `
 (comment) @comment
 `;
 
+const identifiers = `
+(name) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
+	identifiers,
 	comments
 };
 

@@ -127,10 +127,15 @@ const locals = `
 
 const comments = `(comment) @comment`;
 
+const identifiers = `
+(identifiers) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
 	locals,
-	comments
+	comments,
+	identifiers
 };
 
 export default mod;

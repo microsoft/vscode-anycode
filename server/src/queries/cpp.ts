@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { QueryModule } from '../queries';
+import c from './c';
 
 const outline = `
 (namespace_definition
@@ -79,8 +80,14 @@ const comments = `
 (comment) @comment
 `;
 
+const identifiers = `
+${c.identifiers},
+(namespace_identifier) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
+	identifiers,
 	comments
 };
 

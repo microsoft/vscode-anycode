@@ -4,31 +4,52 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
+import { DocumentStore } from '../documentStore';
 import { Queries } from '../queries';
+import { Trees } from '../trees';
 import { SymbolIndex } from './symbolIndex';
 
 export class CompletionItemProvider {
 
-	constructor(private _symbols: SymbolIndex) { }
+	constructor(
+		private readonly _documents: DocumentStore,
+		private readonly _trees: Trees,
+		private _symbols: SymbolIndex
+	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.CompletionRequest.type, { documentSelector: Queries.supportedLanguages('outline') });
+		connection.client.register(lsp.CompletionRequest.type, { documentSelector: Queries.supportedLanguages('identifiers', 'outline') });
 		connection.onRequest(lsp.CompletionRequest.type, this.provideCompletionItems.bind(this));
 	}
 
 	async provideCompletionItems(params: lsp.CompletionParams): Promise<lsp.CompletionItem[]> {
 
-		await this._symbols.update();
+		const document = await this._documents.retrieve(params.textDocument.uri);
+		const tree = this._trees.getParseTree(document);
+		if (!tree) {
+			return [];
+		}
 
-		const result: lsp.CompletionItem[] = [];
+		const result = new Map<string, lsp.CompletionItem>();
+
+		// (1) all identifiers that are used in this file
+		const query = Queries.get(document.languageId, 'identifiers');
+		const captures = query.captures(tree.rootNode);
+		for (let capture of captures) {
+			const text = capture.node.text;
+			result.set(text, { label: text });
+		}
+
+		// (2) all definitions that are known in this project (override less specific local identifiers)
+		await this._symbols.update();
 		for (let [key, symbols] of this._symbols.definitions) {
 			const [first] = symbols;
-			result.push({
+			result.set(key, {
 				label: key,
 				kind: CompletionItemProvider._kindMapping.get(first.kind)
 			});
 		}
-		return result;
+		return Array.from(result.values());
 	}
 
 	private static _kindMapping = new Map<lsp.SymbolKind, lsp.CompletionItemKind>([

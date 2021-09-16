@@ -96,9 +96,17 @@ ${comments}
 (_) body: (_) @fold
 `;
 
+const identifiers = `
+(scoped_identifier) @identifier
+(type_identifier) @identifier
+(field_identifier) @identifier
+(identifier) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
 	locals,
+	identifiers,
 	comments,
 	folding
 };

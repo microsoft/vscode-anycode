@@ -8,6 +8,8 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
 import { Queries } from '../queries';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { asLspRange, nodeAtPosition } from '../common';
 
 export class DocumentHighlightsProvider {
 
@@ -17,7 +19,7 @@ export class DocumentHighlightsProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Queries.supportedLanguages('locals') });
+		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'identifiers') });
 		connection.onRequest(lsp.DocumentHighlightRequest.type, this.provideDocumentHighlights.bind(this));
 	}
 
@@ -28,7 +30,7 @@ export class DocumentHighlightsProvider {
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
 		if (!anchor) {
-			return [];
+			return this._identifierBasedHighlights(document, params.position);
 		}
 		const result: lsp.DocumentHighlight[] = [];
 		for (let def of scope.findDefinitions(anchor.name)) {
@@ -36,11 +38,35 @@ export class DocumentHighlightsProvider {
 		}
 		if (result.length === 0) {
 			// needs a definition
-			return [];
+			return this._identifierBasedHighlights(document, params.position);
 		}
 		for (let usage of scope.findUsages(anchor.name)) {
 			result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
 		}
+		return result;
+	}
+
+	private _identifierBasedHighlights(document: TextDocument, position: lsp.Position): lsp.DocumentHighlight[] {
+		const result: lsp.DocumentHighlight[] = [];
+		const tree = this._trees.getParseTree(document);
+		if (!tree) {
+			return result;
+		}
+
+		const query = Queries.get(document.languageId, 'identifiers');
+		const candidate = nodeAtPosition(tree.rootNode, position);
+		if (query.captures(candidate).length !== 1) {
+			// not one an identifier
+			return result;
+		}
+
+		for (let capture of query.captures(tree.rootNode)) {
+			// same node text, e.g foo vs bar
+			if (capture.node.text === candidate.text) {
+				result.push(lsp.DocumentHighlight.create(asLspRange(capture.node), lsp.DocumentHighlightKind.Text));
+			}
+		}
+
 		return result;
 	}
 }

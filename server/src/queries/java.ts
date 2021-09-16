@@ -89,7 +89,13 @@ ${scopes}
 ${comments}
 `;
 
+const identifiers = `
+(type_identifier) @identifier
+(identifier) @identifier
+`;
+
 export const mod: QueryModule = {
+	identifiers,
 	outline,
 	comments,
 	folding,

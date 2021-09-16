@@ -64,9 +64,16 @@ const comments = `
 (comment) @comment
 `;
 
+const identifiers = `
+(identifier) @identifier
+(field_identifier) @identifier
+(type_identifier) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
-	comments
+	comments,
+	identifiers
 };
 
 export default mod;

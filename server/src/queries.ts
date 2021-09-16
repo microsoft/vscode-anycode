@@ -20,6 +20,7 @@ export type QueryModule = {
 	comments?: string;
 	folding?: string;
 	locals?: string;
+	identifiers?: string;
 };
 
 export type QueryType = keyof QueryModule;

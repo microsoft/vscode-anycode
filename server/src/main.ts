@@ -42,7 +42,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		}
 	});
 
-	// (2) init supported languages and its queries
+	// (1) init supported languages and its queries
 	await Languages.init((<InitOptions>params.initializationOptions).supportedLanguages);
 
 	// (2) setup features
@@ -55,12 +55,10 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	features.push(new DefinitionProvider(documents, trees, symbolIndex));
 	features.push(new ReferencesProvider(documents, trees, symbolIndex));
 	features.push(new DocumentHighlightsProvider(documents, trees));
-	features.push(new CompletionItemProvider(symbolIndex));
+	features.push(new CompletionItemProvider(documents, trees, symbolIndex));
 	features.push(new SelectionRangesProvider(documents, trees));
 	features.push(new FoldingRangeProvider(documents, trees));
 	new Validation(connection, documents, trees);
-
-
 
 	// (nth) manage symbol index. add/remove files as they are disovered and edited
 	documents.all().forEach(doc => symbolIndex.addFile(doc.uri));

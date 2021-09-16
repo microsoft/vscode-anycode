@@ -18,9 +18,14 @@ const comments = `
 (comment) @comment
 `;
 
+const identifiers = `
+(identifier) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
-	comments
+	comments,
+	identifiers
 };
 
 export default mod;

@@ -99,11 +99,19 @@ ${scopes}
 ${comments}
 `;
 
+const identifiers = `
+(type_identifier) @identifier.type
+(field_identifier) @identifier.field
+(package_identifier) @identifier
+(identifier) @identifier
+`;
+
 export const mod: QueryModule = {
 	outline,
 	comments,
 	locals,
-	folding
+	folding,
+	identifiers
 };
 
 export default mod;
