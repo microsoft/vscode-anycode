@@ -1,0 +1,107 @@
+--- for-loop
+for (var [[x]] = 1; [[x]] < 10; [[x]]++) {}
+--- using
+var file = 0;
+using (var [[file]] = new StreamReader("C:\\myfile.txt")) {
+  Foo([[file]]);
+}
+--- linq
+class ImplicitlyTypedLocals2
+{
+    static void Main()
+    {
+        string[] [[words]] = { "aPPLE", "BlUeBeRrY", "cHeRry" };
+        var upperLowerWords =
+             from w in [[words]]
+             select new { ul = w.ToUpper(), w = w.ToLower() };
+    }
+}
+--- foreach, local vs field
+class ImplicitlyTypedLocals2
+{
+    static void Main()
+    {
+        foreach (var [[ul]] in upperLowerWords)
+        {
+            Console.WriteLine("Uppercase: {0}, Lowercase: {1}", [[ul]].ul, [[ul]].ul);
+        }
+    }
+}
+--- query-expression
+var upperLowerWords =
+  from [[w]] in words
+  select new { Upper = [[w]].w(), Lower = [[w]].ToLower() };
+--- method, arguments
+class C {
+  void Foo(int [[Foo]]) {
+    Bar([[Foo]])
+  }
+}
+--- ctor, arguments
+public class Person
+{
+   private string last;
+   public Person(string [[lastName]], string firstName)
+   {
+      last = [[lastName]];
+   }
+}
+--- ctor
+public class Location
+{
+   private string locationName;
+
+   public Location(string [[name]]) => Name = [[name]];
+
+   public string Name
+   {
+      get => locationName;
+      set => locationName = value;
+   }
+}
+--- if-else
+void DisplayWeatherReport(double [[tempInCelsius]])
+{
+    if ([[tempInCelsius]] < 20.0)
+    {
+        var tempInCelsius = true
+    }
+    else
+    {
+        Console.WriteLine("Perfect!");
+    }
+}
+--- if-else-shadow
+void DisplayWeatherReport(double tempInCelsius)
+{
+    if (tempInCelsius < 20.0)
+    {
+        var [[tempInCelsius]] = true
+    }
+    else
+    {
+        Console.WriteLine("Perfect!");
+    }
+}
+--- switch
+void DisplayMeasurement(double [[measurement]])
+{
+    switch ([[measurement]])
+    {
+        case < 0.0:
+            Console.WriteLine($"Measured value is {[[measurement]]}; too low.");
+            break;
+
+        case > 15.0:
+            Console.WriteLine($"Measured value is {[[measurement]]}; too high.");
+            break;
+
+        case double.NaN:
+            Console.WriteLine("Failed measurement.");
+            break;
+
+        default:
+            Console.WriteLine($"Measured value is {[[measurement]]}.");
+            break;
+    }
+}

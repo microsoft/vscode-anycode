@@ -17,11 +17,9 @@ import Languages from './languages';
 
 export type QueryModule = {
 	outline?: string;
-	definitionsAll?: string;
 	comments?: string;
 	folding?: string;
 	usages?: string;
-	scopes?: string;
 	locals?: string
 };
 

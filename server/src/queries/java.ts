@@ -61,10 +61,6 @@ const usages = `
 
 const scopes = `
 [(class_body) (interface_body) (enum_body)] @scope
-(method_declaration (formal_parameters) @scope)
-(method_declaration (block) @scope.merge)
-(constructor_declaration (formal_parameters) @scope)
-(constructor_declaration (constructor_body) @scope.merge)
 (for_statement) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)
@@ -84,7 +80,10 @@ const locals = `
 (field_access field: (identifier) @usage.void)
 (identifier) @usage
 
-;; scopes
+(method_declaration (formal_parameters) @scope)
+(method_declaration (block) @scope.merge)
+(constructor_declaration (formal_parameters) @scope)
+(constructor_declaration (constructor_body) @scope.merge)
 ${scopes}
 `;
 
@@ -96,15 +95,11 @@ const comments = `
 const folding = `
 ${scopes}
 ${comments}
-(
-	(import_declaration)
-	(import_declaration)*
-) @import`;
+`;
 
 export const mod: QueryModule = {
 	outline,
 	usages,
-	scopes,
 	comments,
 	folding,
 	locals

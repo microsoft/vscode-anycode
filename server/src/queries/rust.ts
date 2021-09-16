@@ -65,15 +65,6 @@ const outline = `
 ) @definition.namespace
 `;
 
-
-const scopes = `
-(mod_item body: (declaration_list) @scope)
-(function_item (parameters) @scope)
-(function_item (block) @scope.merge)
-(for_expression) @scope
-(block) @scope
-`;
-
 const locals = `
 (function_item name: (identifier) @definition)
 (const_item name: (identifier) @definition)
@@ -87,7 +78,11 @@ const locals = `
 (scoped_identifier name: (identifier) @usage.void)
 (identifier) @usage
 
-${scopes}
+(mod_item body: (declaration_list) @scope)
+(for_expression) @scope
+(function_item (parameters) @scope)
+(function_item (block) @scope.merge)
+(block) @scope
 `;
 
 const comments = `
@@ -97,14 +92,13 @@ const comments = `
 
 const folding = `
 ${comments}
-${scopes}
+(block) @scope
 (_) body: (_) @fold
 `;
 
 export const mod: QueryModule = {
 	outline,
 	locals,
-	scopes,
 	comments,
 	folding
 };

@@ -14,3 +14,9 @@ class Point {
     this.y = [[y]];
   }
 }
+--- method args 
+class C {
+  void C(int [[C]]) {
+    print([[C]]);
+  }
+}

@@ -103,7 +103,6 @@ export const mod: QueryModule = {
 	outline,
 	comments,
 	locals,
-	scopes,
 	folding
 };
 

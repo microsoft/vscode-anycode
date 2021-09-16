@@ -14,7 +14,7 @@ export class FoldingRangeProvider {
 	constructor(private _documents: DocumentStore, private _trees: Trees) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.FoldingRangeRequest.type, { documentSelector: Queries.supportedLanguages('folding') });
+		connection.client.register(lsp.FoldingRangeRequest.type, { documentSelector: Queries.supportedLanguages('comments', 'folding') });
 		connection.onRequest(lsp.FoldingRangeRequest.type, this.provideFoldingRanges.bind(this));
 	}
 
@@ -26,7 +26,7 @@ export class FoldingRangeProvider {
 			return [];
 		}
 
-		const query = Queries.get(document.languageId, 'scopes', 'comments', 'folding');
+		const query = Queries.get(document.languageId, 'comments', 'folding');
 		const sw = new StopWatch();
 		const result: lsp.FoldingRange[] = [];
 
