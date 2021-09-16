@@ -1,11 +1,4 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from '../queries';
-
-const outline = `
 (struct_specifier
 	name: (type_identifier) @definition.struct.name
 ) @definition.struct
@@ -58,22 +51,4 @@ const outline = `
 			)
 		]
 	) @definition.field
-)`;
-
-const comments = `
-(comment) @comment
-`;
-
-const identifiers = `
-(identifier) @identifier
-(field_identifier) @identifier
-(type_identifier) @identifier
-`;
-
-export const mod: QueryModule = {
-	outline,
-	comments,
-	identifiers
-};
-
-export default mod;
+)

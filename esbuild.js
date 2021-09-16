@@ -42,6 +42,7 @@ const server = esbuild.build({
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
+	loader: { '.scm': 'text' },
 	watch
 }).catch((e) => {
 	console.error(e)

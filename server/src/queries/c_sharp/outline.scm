@@ -1,11 +1,4 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from '../queries';
-
-const outline = `
 (class_declaration
 	name: (identifier) @definition.class.name
 ) @definition.class
@@ -99,43 +92,4 @@ const outline = `
 
 (enum_member_declaration
 	(identifier) @definition.enumMember.name
-) @definition.enumMember`;
-
-const locals = `
-(parameter name: (identifier) @definition)
-(variable_declarator (identifier) @definition)
-(for_each_statement left: (identifier) @definition)
-(query_expression [
-	(from_clause . (identifier) @definition) 
-])
-
-(member_access_expression name: (identifier) @usage.void)
-(identifier) @usage
-
-(constructor_declaration parameters: (parameter_list) @scope) 
-(constructor_declaration body: (_) @scope.merge) 
-(method_declaration parameters: (parameter_list) @scope) 
-(method_declaration body: (_) @scope.merge)
-(if_statement [consequence: (_) @scope alternative: (_) @scope]) 
-(for_each_statement) @scope
-(for_statement) @scope
-(do_statement) @scope
-(while_statement) @scope
-(using_statement) @scope
-(block) @scope
-`;
-
-const comments = `(comment) @comment`;
-
-const identifiers = `
-(identifier) @identifier
-`;
-
-export const mod: QueryModule = {
-	outline,
-	locals,
-	comments,
-	identifiers
-};
-
-export default mod;
+) @definition.enumMember

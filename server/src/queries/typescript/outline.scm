@@ -1,11 +1,4 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from '../queries';
-
-const outline = `
 (interface_declaration
 	name: (type_identifier) @definition.interface.name
 ) @definition.interface
@@ -62,11 +55,3 @@ const outline = `
 (module
 	name: [(identifier)@definition.module.name (string) @definition.module.name]
 ) @definition.module
-`;
-
-
-export const mod: QueryModule = {
-	outline
-};
-
-export default mod;

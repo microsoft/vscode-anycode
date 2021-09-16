@@ -3,29 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from '../queries';
-
-const outline = `(class_definition
-	name: (identifier) @definition.class.name
-) @definition.class
-
-(function_definition
-	name: (identifier) @definition.function.name
-) @definition.function`;
-
-
-const comments = `
-(comment) @comment
-`;
-
-const identifiers = `
-(identifier) @identifier
-`;
+import type { QueryModule } from '..';
+import outline from './outline.scm';
+import locals from './locals.scm';
+import comments from './comments.scm';
+import identifiers from './identifiers.scm';
+import folding from './folding.scm';
 
 export const mod: QueryModule = {
 	outline,
+	locals,
+	identifiers,
 	comments,
-	identifiers
+	folding
 };
 
 export default mod;

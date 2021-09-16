@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from '../tree-sitter/tree-sitter';
-import c_sharp from './queries/c_sharp';
-import c from './queries/c';
-import cpp from './queries/cpp';
-import go from './queries/go';
-import java from './queries/java';
-import php from './queries/php';
-import python from './queries/python';
-import rust from './queries/rust';
-import typescript from './queries/typescript';
-import Languages from './languages';
+import Parser from '../../tree-sitter/tree-sitter';
+import c_sharp from './c_sharp';
+import c from './c';
+import cpp from './cpp';
+import go from './go';
+import java from './java';
+import php from './php';
+import python from './python';
+import rust from './rust';
+import typescript from './typescript';
+import Languages from '../languages';
 
 export type QueryModule = {
 	outline?: string;
