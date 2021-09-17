@@ -95,7 +95,7 @@ class Cache {
 		}
 	}
 
-	toString() {
+	toString(): string {
 		return `symbols: ${this._definitions.size}, usages: ${this._usages.size}`;
 	}
 }
@@ -158,7 +158,7 @@ export class SymbolIndex {
 		}
 	}
 
-	private _createIndexTask(uri: string) {
+	private _createIndexTask(uri: string): () => Promise<void> {
 		return async () => {
 			const document = await this._documents.retrieve(uri);
 			try {
@@ -174,7 +174,6 @@ export class SymbolIndex {
 		// (1) use outline information to feed the global index of definitions
 		const symbols = await Outline.create(document, this._trees);
 		const walkSymbols = (symbols: lsp.DocumentSymbol[], parent: lsp.DocumentSymbol | undefined) => {
-
 			for (let symbol of symbols) {
 				const info = lsp.SymbolInformation.create(
 					symbol.name,
