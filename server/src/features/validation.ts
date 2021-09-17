@@ -15,15 +15,14 @@ export class Validation {
 
 	constructor(
 		private readonly _connection: Connection,
-		private readonly _documents: DocumentStore,
+		documents: DocumentStore,
 		private readonly _trees: Trees
 	) {
-		// this._collection = vscode.languages.createDiagnosticCollection();
-		_documents.all().forEach(this._triggerValidation, this);
-		_documents.onDidChangeContent(e => this._triggerValidation(e.document));
-		_documents.onDidOpen(e => this._triggerValidation(e.document));
+		documents.all().forEach(this._triggerValidation, this);
+		documents.onDidChangeContent(e => this._triggerValidation(e.document));
+		documents.onDidOpen(e => this._triggerValidation(e.document));
 
-		_documents.onDidClose(e => {
+		documents.onDidClose(e => {
 			_connection.sendDiagnostics({ uri: e.document.uri, diagnostics: [] });
 		});
 	}
@@ -34,12 +33,10 @@ export class Validation {
 			return;
 		}
 
-		// todo@jrieken
-		// const enabled = vscode.workspace.getConfiguration('anycode', document).get('diagnostics', false);
-		// if (!enabled) {
-		// 	// disabled for this language
-		// 	return;
-		// }
+		const config: { diagnostics: boolean } = await this._connection.workspace.getConfiguration({ section: 'anycode', scopeUri: document.uri });
+		if (!config.diagnostics) {
+			return;
+		}
 
 		// cancel pending validation
 		let cts = this._currentValidation.get(document);
@@ -59,8 +56,8 @@ export class Validation {
 		if (tree) {
 
 			const sw = new StopWatch();
-			// find MISSING nodes (those that got auto-inserted)
 
+			// find MISSING nodes (those that got auto-inserted)
 			const cursor = tree.walk();
 			const seen = new Set<number>();
 			try {
