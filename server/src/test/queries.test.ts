@@ -14,7 +14,7 @@ suite('Queries', function () {
 		await bootstrapWasm();
 	});
 
-	const types: QueryType[] = ['comments', 'folding', 'identifiers', 'locals', 'outline'];
+	const types: QueryType[] = ['comments', 'folding', 'identifiers', 'locals', 'outline', 'references'];
 
 	for (let type of types) {
 		test(type, function () {

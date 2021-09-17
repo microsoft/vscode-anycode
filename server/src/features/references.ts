@@ -9,6 +9,8 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './fileInfo';
 import { Queries } from '../queries';
+import { containsPosition, nodeAtPosition } from '../common';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export class ReferencesProvider {
 
@@ -47,16 +49,44 @@ export class ReferencesProvider {
 			}
 		}
 
-		// the definition the "anchor" was found or wasn't marked a local/argument and
-		// therefore we try to find all symbols that match this name
-		return await this._findGlobalReferences(params);
+		// find references globally
+		return await this._findGlobalReferences(document, params.position, params.context.includeDeclaration);
 
 	}
 
-	private async _findGlobalReferences(params: lsp.ReferenceParams): Promise<lsp.Location[]> {
+	private async _findGlobalReferences(document: TextDocument, position: lsp.Position, includeDeclaration: boolean): Promise<lsp.Location[]> {
+		const tree = this._trees.getParseTree(document);
+		if (!tree) {
+			return [];
+		}
+
+		const query = Queries.get(document.languageId, 'identifiers');
+		const candidate = nodeAtPosition(tree.rootNode, position);
+		if (query.captures(candidate).length !== 1) {
+			// not an identifier
+			return [];
+		}
+
+		await this._symbols.update();
 
 		const result: lsp.Location[] = [];
-		// @todo@jrieken support "global" references
+		let seenAsUsage = false;
+		let seenAsDef = false;
+		const usages = this._symbols.usages.get(candidate.text) ?? [];
+		for (let usage of usages) {
+			result.push(usage);
+			seenAsUsage = seenAsUsage || containsPosition(usage.range, position);
+		}
+
+		const definitions = this._symbols.definitions.get(candidate.text) ?? [];
+		for (let definition of definitions) {
+			seenAsDef = seenAsDef || containsPosition(definition.location.range, position);
+			if (includeDeclaration) {
+				result.push(definition.location);
+			}
+		}
+
 		return result;
+
 	}
 }

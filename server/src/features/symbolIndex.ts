@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { StopWatch, parallel, isInteresting } from '../common';
+import { StopWatch, parallel, isInteresting, asLspRange } from '../common';
 import { ReadonlyTrie, Trie } from '../util/trie';
 import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
 import { Outline } from './documentSymbols';
+import { Queries } from '../queries';
 
 class Queue {
 
@@ -191,6 +192,15 @@ export class SymbolIndex {
 		walkSymbols(symbols, undefined);
 
 		// (2) Use usage-queries to feed the global index of usages.
-		// todo@jrieken
+		const tree = this._trees.getParseTree(document);
+		if (tree) {
+			const query = Queries.get(document.languageId, 'references');
+			const captures = query.captures(tree.rootNode);
+
+			for (let capture of captures) {
+				const usage = lsp.Location.create(document.uri, asLspRange(capture.node));
+				this._cache.insertUsage(capture.node.text, usage);
+			}
+		}
 	}
 }

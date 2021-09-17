@@ -9,13 +9,15 @@ import locals from './locals.scm';
 import comments from './comments.scm';
 import identifiers from './identifiers.scm';
 import folding from './folding.scm';
+import references from './references.scm';
 
 export const mod: QueryModule = {
 	outline,
 	comments,
 	locals,
 	folding,
-	identifiers
+	identifiers,
+	references
 };
 
 export default mod;

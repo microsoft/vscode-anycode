@@ -21,6 +21,7 @@ export type QueryModule = {
 	folding?: string;
 	locals?: string;
 	identifiers?: string;
+	references?: string;
 };
 
 export type QueryType = keyof QueryModule;
@@ -69,12 +70,17 @@ export abstract class Queries {
 	}
 
 	static supportedLanguages(type: QueryType, ...more: QueryType[]): string[] {
-		const types = new Set([type, ...more]);
 		const result: string[] = [];
-		for (let [language, module] of this._queryModules) {
+		const types = new Set([type, ...more]);
+		for (let languageId of Languages.allAsSelector()) { // USE actually supported languages
+			const module = this._queryModules.get(languageId);
+			if (!module) {
+				console.warn(`${languageId} NOT supported by queries`);
+				continue;
+			}
 			for (let type of types) {
 				if (module[type]) {
-					result.push(language);
+					result.push(languageId);
 					break;
 				}
 			}

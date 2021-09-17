@@ -40,8 +40,13 @@ export class CompletionItemProvider {
 			result.set(text, { label: text });
 		}
 
+
 		// (2) all definitions that are known in this project (override less specific local identifiers)
-		await this._symbols.update();
+
+		// don't wait for the whole index to be updated but use what we have right now,
+		// it is very likely that the current has changed and that we already processed
+		// await this._symbols.update();
+
 		for (let [key, symbols] of this._symbols.definitions) {
 			const [first] = symbols;
 			result.set(key, {
