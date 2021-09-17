@@ -22,6 +22,7 @@ export class Trie<E> {
 	}
 
 	private _size: number = 0;
+	private _depth: number = 0;
 	private readonly _children = new Map<string, Trie<E>>();
 
 	private constructor(readonly ch: string, public element: Entry<E> | undefined) { }
@@ -30,10 +31,15 @@ export class Trie<E> {
 		return this._size;
 	}
 
+	get depth() {
+		return this._depth;
+	}
+
 	set(str: string, element: E): void {
 		let chars = Array.from(str);
 		let node: Trie<E> = this;
 		for (let pos = 0; pos < chars.length; pos++) {
+			node._depth = Math.max(chars.length - pos, node._depth);
 			const ch = chars[pos];
 			let child = node._children.get(ch);
 			if (!child) {
@@ -64,7 +70,7 @@ export class Trie<E> {
 		return node.element?.value;
 	}
 
-	delete(str: string): void {
+	delete(str: string): boolean {
 		let chars = Array.from(str);
 		let node: Trie<E> = this;
 		let path: [string, Trie<E>][] = [];
@@ -72,48 +78,69 @@ export class Trie<E> {
 			const ch = chars[pos];
 			let child = node._children.get(ch);
 			if (!child) {
-				return undefined;
+				return false;
 			}
 			path.push([ch, node]);
 			node = child;
 		}
 
-		// unset element
-		if (node.element) {
-			node.element = undefined;
-			this._size -= 1;
+		if (!node.element) {
+			return false;
 		}
 
-		// cleanup parents
-		while (node._children.size === 0 && !node.element && path.length > 0) {
+		// unset element
+		node.element = undefined;
+		this._size -= 1;
+
+		// cleanup parents and update depths
+		while (path.length > 0) {
 			// parent
-			const tuple = path.pop()!;
-			tuple[1]._children.delete(tuple[0]);
-			node = tuple[1];
+			const [nodeCh, parent] = path.pop()!;
+			if (node._children.size === 0 && !node.element) {
+				parent._children.delete(nodeCh);
+			}
+			node = parent;
+
+			if (node._children.size === 0) {
+				node._depth = 0;
+			} else {
+				let newDepth = 0;
+				for (let child of node._children.values()) {
+					newDepth = Math.max(newDepth, child.depth);
+				}
+				node._depth = 1 + newDepth;
+			}
 		}
+
+		return true;
 	}
 
 	*query(str: string[]): IterableIterator<[string, E]> {
-		let bucket: IterableIterator<[string, E]>[] = [];
+		let bucket = new Set<Trie<E>>();
 		this._query(str, 0, bucket);
 		for (let item of bucket) {
 			yield* item;
 		}
 	}
 
-	private _query(str: string[], pos: number, bucket: IterableIterator<[string, E]>[]) {
+	private _query(str: string[], pos: number, bucket: Set<Trie<E>>) {
+		if (bucket.has(this)) {
+			return;
+		}
 		if (pos >= str.length) {
-			bucket.push(this._entries());
+			bucket.add(this);
+			return;
+		}
+		if (str.length - pos > this._depth) {
+			// there is more characters left than there are nodes
 			return;
 		}
 		for (let [ch, child] of this._children) {
 			if (ch.toLowerCase() === str[pos].toLowerCase()) {
 				child._query(str, pos + 1, bucket);
 			}
-
-			// todo@jrieken - stop when string is longer than children-depth
-			// only proceed if the first character has matched
 			if (pos > 0) {
+				// only proceed fuzzy if the first character has matched
 				child._query(str, pos, bucket);
 			}
 		}
