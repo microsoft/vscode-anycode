@@ -8,6 +8,13 @@ class Entry<E> {
 	constructor(readonly key: string, public value: E) { }
 }
 
+export interface ReadonlyTrie<E> {
+	size: number;
+	get(str: string): E | undefined;
+	query(str: string[]): IterableIterator<[string, E]>;
+	[Symbol.iterator](): IterableIterator<[string, E]>;
+}
+
 export class Trie<E> {
 
 	static create<E>(): Trie<E> {

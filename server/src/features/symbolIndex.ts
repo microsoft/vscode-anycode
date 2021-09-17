@@ -5,7 +5,7 @@
 
 import * as lsp from 'vscode-languageserver';
 import { StopWatch, parallel, isInteresting } from '../common';
-import { Trie } from '../util/trie';
+import { ReadonlyTrie, Trie } from '../util/trie';
 import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
@@ -21,6 +21,10 @@ class Queue {
 		}
 	}
 
+	dequeue(uri: string): void {
+		this._queue.delete(uri);
+	}
+
 	consume(): string[] {
 		const result = Array.from(this._queue.values());
 		this._queue.clear();
@@ -28,18 +32,90 @@ class Queue {
 	}
 }
 
+
+class Cache {
+
+	private readonly _definitions = Trie.create<Set<lsp.SymbolInformation>>();
+	private readonly _usages = Trie.create<Set<lsp.Location>>();
+	private readonly _cleanup = new Map<string, Function[]>();
+
+	get definitions() {
+		return this._definitions;
+	}
+
+	get usages() {
+		return this._usages;
+	}
+
+	insertDefinition(text: string, definition: lsp.SymbolInformation): void {
+		let all = this._definitions.get(text);
+		if (all) {
+			all.add(definition);
+		} else {
+			all = new Set([definition]);
+			this._definitions.set(text, all);
+		}
+		this._addCleanup(definition.location.uri, () => {
+			if (all!.delete(definition) && all!.size === 0) {
+				this._definitions.delete(text);
+			}
+		});
+	}
+
+	insertUsage(text: string, usage: lsp.Location): void {
+		let all = this._usages.get(text);
+		if (all) {
+			all.add(usage);
+		} else {
+			all = new Set([usage]);
+			this._usages.set(text, all);
+		}
+		this._addCleanup(usage.uri, () => {
+			if (all!.delete(usage) && all!.size === 0) {
+				this._usages.delete(text);
+			}
+		});
+	}
+
+	private _addCleanup(uri: string, cleanupFn: () => void) {
+		const arr = this._cleanup.get(uri);
+		if (arr) {
+			arr.push(cleanupFn);
+		} else {
+			this._cleanup.set(uri, [cleanupFn]);
+		}
+	}
+
+	delete(uri: string): void {
+		const callbacks = this._cleanup.get(uri);
+		if (callbacks) {
+			callbacks.forEach(fn => fn());
+			this._cleanup.delete(uri);
+		}
+	}
+
+	toString() {
+		return `symbols: ${this._definitions.size}, usages: ${this._usages.size}`;
+	}
+}
+
 export class SymbolIndex {
 
-	readonly definitions: Trie<Set<lsp.SymbolInformation>> = Trie.create();
-	readonly usages: Trie<Set<lsp.Location>> = Trie.create();
-
+	private readonly _cache = new Cache();
 	private readonly _queue = new Queue();
-	private _currentUpdate: Promise<void> | undefined;
 
 	constructor(
 		private readonly _trees: Trees,
 		private readonly _documents: DocumentStore
 	) { }
+
+	get definitions(): ReadonlyTrie<Set<lsp.SymbolInformation>> {
+		return this._cache.definitions;
+	}
+
+	get usages(): ReadonlyTrie<Set<lsp.Location>> {
+		return this._cache.usages;
+	}
 
 	addFile(uris: string[] | string): void {
 		if (Array.isArray(uris)) {
@@ -50,10 +126,13 @@ export class SymbolIndex {
 	}
 
 	removeFile(uris: string[]): void {
-		// todo@jrieken
-		// (1) remove from queue
-		// (2) remove from tries
+		for (let uri of uris) {
+			this._queue.dequeue(uri);
+			this._cache.delete(uri);
+		}
 	}
+
+	private _currentUpdate: Promise<void> | undefined;
 
 	async update(): Promise<void> {
 		await this._currentUpdate;
@@ -63,41 +142,19 @@ export class SymbolIndex {
 
 	private async _doUpdate(): Promise<void> {
 		const uris = this._queue.consume();
-		if (uris.length === 0) {
-			return;
-		}
-		const sw = new StopWatch();
-		const remove = new Set(uris.map(u => u.toString()));
+		if (uris.length !== 0) {
+			// clear cached info for changed uris
+			const sw = new StopWatch();
+			uris.forEach(this._cache.delete, this._cache);
+			sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
 
-		// symbols
-		for (const [key, value] of this.definitions) {
-			for (let item of value) {
-				if (remove.has(item.location.uri.toString())) {
-					value.delete(item);
-				}
-			}
-			if (value.size === 0) {
-				this.definitions.delete(key);
-			}
+			// schedule a new task to update the cache for`
+			// changed uris
+			sw.reset();
+			const tasks = uris.map(this._createIndexTask, this);
+			await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
+			sw.elapsed(`INDEX ADDED with ${uris.length} files, stats: ${this._cache.toString()}`);
 		}
-
-		// usages
-		for (const [key, value] of this.usages) {
-			for (let item of value) {
-				if (remove.has(item.uri.toString())) {
-					value.delete(item);
-				}
-			}
-			if (value.size === 0) {
-				this.usages.delete(key);
-			}
-		}
-		sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
-
-		sw.reset();
-		const tasks = uris.map(this._createIndexTask, this);
-		await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
-		sw.elapsed(`INDEX ADDED with ${uris.length} files, symbols: ${this.definitions.size}, usages: ${this.usages.size}`);
 	}
 
 	private _createIndexTask(uri: string) {
@@ -125,15 +182,10 @@ export class SymbolIndex {
 					document.uri,
 					parent?.name
 				);
-				let all = this.definitions.get(info.name);
-				if (!all) {
-					this.definitions.set(info.name, new Set([info]));
-				} else {
-					all.add(info);
-				}
 				if (symbol.children) {
 					walkSymbols(symbol.children, symbol);
 				}
+				this._cache.insertDefinition(info.name, info);
 			}
 		};
 		walkSymbols(symbols, undefined);
