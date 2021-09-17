@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { Locals } from './fileInfo';
+import { Locals } from './locals';
 import { Queries } from '../queries';
 import { containsPosition, nodeAtPosition } from '../common';
 import { TextDocument } from 'vscode-languageserver-textdocument';

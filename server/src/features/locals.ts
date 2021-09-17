@@ -10,7 +10,6 @@ import { QueryCapture } from '../../tree-sitter/tree-sitter';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
-
 export class Locals {
 
 	static create(document: TextDocument, trees: Trees): Locals {

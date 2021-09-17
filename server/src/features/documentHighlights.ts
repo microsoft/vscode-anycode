@@ -6,7 +6,7 @@
 import * as lsp from 'vscode-languageserver';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { Locals } from './fileInfo';
+import { Locals } from './locals';
 import { Queries } from '../queries';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { asLspRange, nodeAtPosition } from '../common';
