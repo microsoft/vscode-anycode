@@ -18,3 +18,5 @@ var (
 )
 ---
 var [[c]], [[python]], [[java]] bool
+--- type alias
+type [[MyFloat]] float64

@@ -56,3 +56,8 @@
 	name: (type_identifier) @definition.event.name
 	type: (channel_type)
 ) @definition.event
+
+(type_spec 
+	name: (type_identifier) @definition.class.name
+	type: (type_identifier)
+) @definition.class
