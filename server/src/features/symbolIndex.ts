@@ -153,19 +153,34 @@ export class SymbolIndex {
 			// changed uris
 			sw.reset();
 			const tasks = uris.map(this._createIndexTask, this);
-			await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
-			sw.elapsed(`INDEX ADDED with ${uris.length} files, stats: ${this._cache.toString()}`);
+			const stats = await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
+
+			let totalRetrieve = 0;
+			let totalIndex = 0;
+			for (let stat of stats) {
+				totalRetrieve += stat.durationRetrieve;
+				totalIndex += stat.durationIndex;
+			}
+
+			sw.elapsed(`INDEX ADDED with ${uris.length} files, stats: ${this._cache.toString()}, total_retrieve: ${Math.round(totalRetrieve)}ms, total_index: ${Math.round(totalIndex)}ms`);
 		}
 	}
 
-	private _createIndexTask(uri: string): () => Promise<void> {
+	private _createIndexTask(uri: string): () => Promise<{ durationRetrieve: number, durationIndex: number }> {
 		return async () => {
+			const _t1Retrieve = performance.now();
 			const document = await this._documents.retrieve(uri);
+			const durationRetrieve = performance.now() - _t1Retrieve;
+
+			const _t1Index = performance.now();
 			try {
 				await this._doIndex(document);
 			} catch (e) {
 				console.log(`FAILED to index ${uri}`, e);
 			}
+			const durationIndex = performance.now() - _t1Index;
+
+			return { durationRetrieve, durationIndex };
 		};
 	}
 
