@@ -105,3 +105,31 @@ void DisplayMeasurement(double [[measurement]])
             break;
     }
 }
+--- arguments
+public static class TemperatureConverter
+{
+    public static double FahrenheitToCelsius(string [[temperatureFahrenheit]])
+    {
+        // Convert argument to double for calculations.
+        double fahrenheit = Double.Parse([[temperatureFahrenheit]]);
+
+        // Convert Fahrenheit to Celsius.
+        double celsius = (fahrenheit - 32) * 5 / 9;
+
+        return celsius;
+    }
+}
+--- locals
+public static class TemperatureConverter
+{
+    public static double FahrenheitToCelsius(string temperatureFahrenheit)
+    {
+        // Convert argument to double for calculations.
+        double [[fahrenheit]] = Double.Parse(temperatureFahrenheit);
+
+        // Convert Fahrenheit to Celsius.
+        double celsius = ([[fahrenheit]] - 32) * 5 / 9;
+
+        return celsius;
+    }
+}
