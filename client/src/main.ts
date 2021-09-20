@@ -26,12 +26,12 @@ export function activate(context: vscode.ExtensionContext) {
 	// -- status (NEW proposal)
 	const item = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
 	context.subscriptions.push(item);
-	item.text = `anycode`;
+	item.text = `$(regex)`;
 	let tooltip: string;
 	if (vscode.extensions.getExtension('github.remotehub-insiders')) {
-		tooltip = 'Only basic language support can be offered for this file. For better language support you can [continue working on](command:remoteHub.continueOn \'Continue working on this remote repository elsewhere\') this file elsewhere.';
+		tooltip = 'anycode offers basic language support for this file, you can [continue working on](command:remoteHub.continueOn \'Continue working on this remote repository elsewhere\') this file elsewhere.';
 	} else {
-		tooltip = 'Only basic language support can be offered for this file.';
+		tooltip = 'anycode offers basic language support for this file.';
 	}
 	item.detail = tooltip;
 }
