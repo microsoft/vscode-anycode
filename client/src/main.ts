@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
-import { LanguageClient } from 'vscode-languageclient/browser';
+import { LanguageClient, TranferableMessage } from './browserClient';
 import { SupportedLanguages } from './supportedLanguages';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -107,7 +107,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 			return { data: new Uint8Array(), languageId };
 		}
 		const data = await vscode.workspace.fs.readFile(uri);
-		return { data, languageId };
+		return new TranferableMessage({ buffer: data, languageId }, [data.buffer]);
 	});
 
 	return vscode.Disposable.from(...disposables);
