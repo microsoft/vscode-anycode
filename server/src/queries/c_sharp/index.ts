@@ -8,12 +8,14 @@ import outline from './outline.scm';
 import locals from './locals.scm';
 import comments from './comments.scm';
 import identifiers from './identifiers.scm';
+import references from './references.scm';
 
 export const mod: QueryModule = {
 	outline,
 	locals,
 	comments,
-	identifiers
+	identifiers,
+	references
 };
 
 export default mod;
