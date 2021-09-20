@@ -66,7 +66,14 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 	// file discover and watching. in addition to text documents we annouce and provide
 	// all matching files
 	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, undefined, 0).then(uris => {
+
+	// https://github.com/microsoft/vscode/issues/48674
+	const exclude = `{${[
+		...Object.keys(await vscode.workspace.getConfiguration('search', null).get('exclude') ?? {}),
+		...Object.keys(await vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
+	].join(',')}}`;
+
+	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, 0).then(uris => {
 		uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 		return client.sendRequest('queue/init', uris.map(String));
