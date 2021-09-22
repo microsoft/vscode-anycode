@@ -48,7 +48,7 @@ export const symbolMapping: SymbolMapping = new class {
 	getSymbolKind(symbolKind: string, strict?: true): lsp.SymbolKind | undefined {
 
 		if (symbolKind.startsWith('definition.')) {
-			symbolKind = symbolKind.substring(7);
+			symbolKind = symbolKind.substring('definition.'.length);
 		}
 
 		const res = this._symbolKindMapping.get(symbolKind);
