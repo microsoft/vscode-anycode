@@ -1,6 +1,6 @@
-(formal_parameter name: (identifier) @definition)
-(local_variable_declaration declarator: (variable_declarator name: (identifier) @definition))
-(catch_formal_parameter name: (identifier) @definition)
+(formal_parameter name: (identifier) @local)
+(local_variable_declaration declarator: (variable_declarator name: (identifier) @local))
+(catch_formal_parameter name: (identifier) @local)
 
 (field_access field: (identifier) @usage.void)
 (identifier) @usage

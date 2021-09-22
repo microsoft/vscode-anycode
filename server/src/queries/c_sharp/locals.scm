@@ -1,9 +1,9 @@
 
-(parameter name: (identifier) @definition)
-(variable_declarator (identifier) @definition)
-(for_each_statement left: (identifier) @definition)
+(parameter name: (identifier) @local)
+(variable_declarator (identifier) @local)
+(for_each_statement left: (identifier) @local)
 (query_expression [
-	(from_clause . (identifier) @definition) 
+	(from_clause . (identifier) @local) 
 ])
 
 (member_access_expression name: (identifier) @usage.void)

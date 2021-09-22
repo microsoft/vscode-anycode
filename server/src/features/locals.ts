@@ -49,7 +49,7 @@ export class Locals {
 
 	private static _fillInDefinitionsAndUsages(bucket: Node[], captures: QueryCapture[]): void {
 		for (const capture of captures) {
-			if (capture.name.startsWith('definition')) {
+			if (capture.name.startsWith('local')) {
 				bucket.push(new Definition(
 					capture.node.text,
 					asLspRange(capture.node)

@@ -1,9 +1,9 @@
-(const_spec name: (identifier) @definition)
-(var_declaration (var_spec (identifier) @definition))
-(parameter_declaration (identifier) @definition)
-(short_var_declaration left: (expression_list (identifier) @definition))
-(range_clause left: (expression_list (identifier) @definition))
-(type_switch_statement (expression_list (identifier) @definition))
+(const_spec name: (identifier) @local)
+(var_declaration (var_spec (identifier) @local))
+(parameter_declaration (identifier) @local)
+(short_var_declaration left: (expression_list (identifier) @local))
+(range_clause left: (expression_list (identifier) @local))
+(type_switch_statement (expression_list (identifier) @local))
 
 (identifier) @usage
 
