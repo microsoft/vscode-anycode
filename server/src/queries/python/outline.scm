@@ -1,7 +1,7 @@
 (class_definition
-	name: (identifier) @definition.class.name
-) @definition.class
+	name: (identifier) @class.name
+) @class
 
 (function_definition
-	name: (identifier) @definition.function.name
-) @definition.function
+	name: (identifier) @function.name
+) @function

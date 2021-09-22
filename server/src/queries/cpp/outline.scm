@@ -1,19 +1,19 @@
 (namespace_definition
-	name: (identifier) @definition.module.name) @definition.module
+	name: (identifier) @module.name) @module
 
 (friend_declaration
-	(type_identifier) @definition.variable.name) @definition.variable
+	(type_identifier) @variable.name) @variable
 
 (field_declaration
 	(function_declarator
-		(scoped_identifier) @definition.function.name)) @definition.function
+		(scoped_identifier) @function.name)) @function
 
 (declaration
 	(function_declarator
 		[
-			(scoped_identifier) @definition.function.name
-			(destructor_name) @definition.function.name
-		]) @definition.function)
+			(scoped_identifier) @function.name
+			(destructor_name) @function.name
+		]) @function)
 
 (class_specifier
-	(type_identifier) @definition.class.name) @definition.class
+	(type_identifier) @class.name) @class

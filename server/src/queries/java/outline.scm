@@ -1,46 +1,46 @@
 
 (class_declaration
-	name: (identifier) @definition.class.name
-) @definition.class
+	name: (identifier) @class.name
+) @class
 
 (variable_declarator
-	name: (identifier) @definition.class.name
+	name: (identifier) @class.name
 	value: (object_creation_expression
 		.
 		(_)*
 		(class_body)
 	)
-) @definition.class
+) @class
 
 (interface_declaration
-	name: (identifier) @definition.interface.name
-) @definition.interface
+	name: (identifier) @interface.name
+) @interface
 
 (enum_declaration
-	name: (identifier) @definition.enum.name
-) @definition.enum
+	name: (identifier) @enum.name
+) @enum
 
 (enum_constant
-	name: (identifier) @definition.enumMember.name
-) @definition.enumMember
+	name: (identifier) @enumMember.name
+) @enumMember
 
 (constructor_declaration
-	name: (identifier) @definition.constructor.name
-) @definition.constructor
+	name: (identifier) @constructor.name
+) @constructor
 
 (method_declaration
-	name: (identifier) @definition.method.name
-) @definition.method
+	name: (identifier) @method.name
+) @method
 
 (field_declaration
 	declarator: ((variable_declarator
-		name: (identifier) @definition.field.name)
-	) @definition.field
+		name: (identifier) @field.name)
+	) @field
 )
 
 (module_declaration
 	[
-		(scoped_identifier) @definition.module.name
-		(identifier) @definition.module.name
+		(scoped_identifier) @module.name
+		(identifier) @module.name
 	]
-) @definition.module
+) @module

@@ -1,19 +1,19 @@
 (class_declaration
-	name: (name) @definition.class.name
-) @definition.class
+	name: (name) @class.name
+) @class
 
 (method_declaration
-  name: (name) @definition.method.name
-) @definition.method
+  name: (name) @method.name
+) @method
 
 (property_element
-	(variable_name) @definition.property.name
-) @definition.property
+	(variable_name) @property.name
+) @property
 
 (function_definition
-	name: (name) @definition.function.name
-) @definition.function
+	name: (name) @function.name
+) @function
 
 (trait_declaration
-	name: (name) @definition.property.name
-) @definition.property
+	name: (name) @property.name
+) @property

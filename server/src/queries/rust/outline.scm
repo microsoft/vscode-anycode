@@ -1,44 +1,44 @@
 (mod_item
-	name: (identifier) @definition.module.name) @definition.module
+	name: (identifier) @module.name) @module
 
 (function_item
-	name: (identifier) @definition.function.name) @definition.function
+	name: (identifier) @function.name) @function
 
 (union_item
-	name: (type_identifier) @definition.struct.name) @definition.struct
+	name: (type_identifier) @struct.name) @struct
 
 (field_declaration
-	name: (field_identifier) @definition.field.name) @definition.field
+	name: (field_identifier) @field.name) @field
 
 (struct_item
-	name: (type_identifier) @definition.struct.name) @definition.struct
+	name: (type_identifier) @struct.name) @struct
 
 (enum_item
-	name: (type_identifier) @definition.enum.name) @definition.enum
+	name: (type_identifier) @enum.name) @enum
 
 (enum_variant
-	name: (identifier) @definition.enumMember.name) @definition.enumMember
+	name: (identifier) @enumMember.name) @enumMember
 
 (trait_item
-	name: (type_identifier) @definition.interface.name) @definition.interface
+	name: (type_identifier) @interface.name) @interface
 
 (function_signature_item
-	name: (identifier) @definition.function.name) @definition.function
+	name: (identifier) @function.name) @function
 
 (const_item
-	name: (identifier) @definition.constant.name) @definition.constant
+	name: (identifier) @constant.name) @constant
 
 (static_item
-	name: (identifier) @definition.constant.name) @definition.constant
+	name: (identifier) @constant.name) @constant
 
 (type_item
-	name: (type_identifier) @definition.interface.name) @definition.interface
+	name: (type_identifier) @interface.name) @interface
 
 (impl_item 
-	. (type_identifier) @definition.class.name) @definition.class
+	. (type_identifier) @class.name) @class
 
 (foreign_mod_item
 	[
-		(extern_modifier (string_literal) @definition.namespace.name)
-		(extern_modifier) @definition.namespace.name
-	]) @definition.namespace
+		(extern_modifier (string_literal) @namespace.name)
+		(extern_modifier) @namespace.name
+	]) @namespace

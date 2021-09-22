@@ -1,57 +1,57 @@
 
 (interface_declaration
-	name: (type_identifier) @definition.interface.name
-) @definition.interface
+	name: (type_identifier) @interface.name
+) @interface
 
 (property_signature
-	name: (property_identifier) @definition.field.name
-) @definition.field
+	name: (property_identifier) @field.name
+) @field
 
 (method_signature
-	name: (property_identifier) @definition.method.name
-) @definition.method
+	name: (property_identifier) @method.name
+) @method
 
 (class_declaration
-	name: (type_identifier) @definition.class.name
-) @definition.class
+	name: (type_identifier) @class.name
+) @class
 
 (new_expression
 	constructor: (class
 		body: (class_body)
-	) @definition.class
+	) @class
 )
 
 (method_definition
 	name: [
-		(property_identifier) @definition.method.name
-		(computed_property_name (string) @definition.method.name)
+		(property_identifier) @method.name
+		(computed_property_name (string) @method.name)
 	]
-) @definition.method
+) @method
 
 (public_field_definition
 	name: [
-		(property_identifier) @definition.field.name
-		(computed_property_name (string) @definition.field.name)
+		(property_identifier) @field.name
+		(computed_property_name (string) @field.name)
 	]
-) @definition.field
+) @field
 
 (enum_declaration
-	name: (identifier) @definition.enum.name
-) @definition.enum
+	name: (identifier) @enum.name
+) @enum
 
 (enum_body [
-	(property_identifier) @definition.enumMember
-	(enum_assignment (property_identifier) @definition.enumMember)
+	(property_identifier) @enumMember
+	(enum_assignment (property_identifier) @enumMember)
 ])
 
 (function_declaration
-	name: (identifier) @definition.function.name
-) @definition.function
+	name: (identifier) @function.name
+) @function
 
 (variable_declarator
-	name: (identifier) @definition.variable.name
-) @definition.variable
+	name: (identifier) @variable.name
+) @variable
 
 (module
-	name: [(identifier)@definition.module.name (string) @definition.module.name]
-) @definition.module
+	name: [(identifier)@module.name (string) @module.name]
+) @module

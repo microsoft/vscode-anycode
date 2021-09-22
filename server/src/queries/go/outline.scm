@@ -1,63 +1,63 @@
 
-(field_declaration (field_identifier) @definition.field @definition.field.name)
+(field_declaration (field_identifier) @field @field.name)
 
 (method_spec
-	name: (field_identifier) @definition.method.name
-) @definition.method
+	name: (field_identifier) @method.name
+) @method
 
 (type_alias
-	name: (type_identifier) @definition.string.name
-) @definition.string
+	name: (type_identifier) @string.name
+) @string
 
 (function_declaration
-	name: (identifier) @definition.function.name
-) @definition.function
+	name: (identifier) @function.name
+) @function
 
 (method_declaration
-	name: (field_identifier) @definition.method.name
-) @definition.method
+	name: (field_identifier) @method.name
+) @method
 
 ;; variables defined in the package
 (source_file
 	(var_declaration
 		(var_spec
-			(identifier) @definition.variable.name
-		) @definition.variable
+			(identifier) @variable.name
+		) @variable
 	)
 )
 
 ;; lots of type_spec, must be mutually exclusive
 (type_spec 
-	name: (type_identifier) @definition.interface.name
+	name: (type_identifier) @interface.name
 	type: (interface_type)
-) @definition.interface
+) @interface
 
 (type_spec 
-	name: (type_identifier) @definition.function.name
+	name: (type_identifier) @function.name
 	type: (function_type)
-) @definition.function
+) @function
 
 (type_spec
-	name: (type_identifier) @definition.struct.name
+	name: (type_identifier) @struct.name
 	type: (struct_type)
-) @definition.struct
+) @struct
 
 (type_spec
-	name: (type_identifier) @definition.struct.name
+	name: (type_identifier) @struct.name
 	type: (map_type)
-) @definition.struct
+) @struct
 
 (type_spec
-	name: (type_identifier) @definition.struct.name
+	name: (type_identifier) @struct.name
 	type: (pointer_type)
-) @definition.struct
+) @struct
 
 (type_spec
-	name: (type_identifier) @definition.event.name
+	name: (type_identifier) @event.name
 	type: (channel_type)
-) @definition.event
+) @event
 
 (type_spec 
-	name: (type_identifier) @definition.class.name
+	name: (type_identifier) @class.name
 	type: (type_identifier)
-) @definition.class
+) @class

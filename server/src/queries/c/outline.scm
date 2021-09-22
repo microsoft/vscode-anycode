@@ -1,59 +1,59 @@
 (struct_specifier
-	name: (type_identifier) @definition.struct.name) @definition.struct
+	name: (type_identifier) @struct.name) @struct
 
 (union_specifier
-	name: (type_identifier) @definition.struct.name) @definition.struct
+	name: (type_identifier) @struct.name) @struct
 
 (enum_specifier
-	name: (type_identifier) @definition.enum.name) @definition.enum
+	name: (type_identifier) @enum.name) @enum
 
 (enumerator
-	name: (identifier) @definition.enumMember.name) @definition.enumMember
+	name: (identifier) @enumMember.name) @enumMember
 
 (function_definition
 	declarator: (function_declarator
-		(field_identifier) @definition.function.name)) @definition.function
+		(field_identifier) @function.name)) @function
 
 (pointer_declarator
 	declarator: (function_declarator
-		declarator: (identifier) @definition.function.name) @definition.function)
+		declarator: (identifier) @function.name) @function)
 
 (declaration
 	declarator: (function_declarator
 		[
-			(identifier) @definition.function.name
-			(field_identifier) @definition.function.name
-		]) @definition.function)
+			(identifier) @function.name
+			(field_identifier) @function.name
+		]) @function)
 
 (declaration
 	type: (primitive_type) 
-	declarator: (identifier) @definition.variable.name) @definition.variable
+	declarator: (identifier) @variable.name) @variable
 
 (type_definition
 	type: (_)
-	declarator: (type_identifier) @definition.struct.name) @definition.struct
+	declarator: (type_identifier) @struct.name) @struct
 
 (linkage_specification
-	value: (string_literal) @definition.struct.name) @definition.struct
+	value: (string_literal) @struct.name) @struct
 
 (field_declaration
 	(function_declarator
 		[
-			(identifier) @definition.function.name
-			(field_identifier) @definition.function.name
+			(identifier) @function.name
+			(field_identifier) @function.name
 		]
-	)) @definition.function
+	)) @function
 
 
 (field_declaration
-	(field_identifier) @definition.field.name) @definition.field
+	(field_identifier) @field.name) @field
 
 (field_declaration_list
 	(field_declaration
 		[
-			declarator: (field_identifier) @definition.field.name
+			declarator: (field_identifier) @field.name
 			(array_declarator
-				declarator: (field_identifier) @definition.field.name
+				declarator: (field_identifier) @field.name
 			)
 		]
-	) @definition.field)
+	) @field)

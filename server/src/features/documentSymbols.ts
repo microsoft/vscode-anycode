@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { asLspRange, containsRange, StopWatch, symbolMapping } from '../common';
+import { asLspRange, containsRange, symbolMapping } from '../common';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
 import { Queries } from '../queries';
@@ -79,7 +79,7 @@ export class Outline {
 			let children: lsp.DocumentSymbol[] = [];
 			let nameNode: Node | undefined;
 			for (let child of node.children) {
-				if (!nameNode && child.capture.name === `${node.capture.name}.name`) {
+				if (!nameNode && child.capture.name.endsWith('.name') && child.capture.name.startsWith(node.capture.name)) {
 					nameNode = child;
 				} else {
 					build(child, children);

@@ -1,95 +1,95 @@
 
 (class_declaration
-	name: (identifier) @definition.class.name
-) @definition.class
+	name: (identifier) @class.name
+) @class
 
 (interface_declaration 
-	name: (identifier) @definition.interface.name
-) @definition.interface
+	name: (identifier) @interface.name
+) @interface
 
 (record_declaration 
-	name: (identifier) @definition.record.name
-) @definition.record
+	name: (identifier) @record.name
+) @record
 
 (record_declaration
 	(parameter_list
 		(parameter
-			name: (identifier) @definition.property.name
-		) @definition.property
+			name: (identifier) @property.name
+		) @property
 	)
 )
 
 (constructor_declaration
-	name: (identifier) @definition.constructor.name
-) @definition.constructor
+	name: (identifier) @constructor.name
+) @constructor
 
 (destructor_declaration
-	(identifier) @definition.method.name
-) @definition.method
+	(identifier) @method.name
+) @method
 
 (indexer_declaration
-	(bracketed_parameter_list) @definition.method.name
-) @definition.method
+	(bracketed_parameter_list) @method.name
+) @method
 
 (method_declaration
-	name: (identifier) @definition.method.name
-) @definition.method
+	name: (identifier) @method.name
+) @method
 
 (property_declaration
-	name: (identifier) @definition.property.name
-) @definition.property
+	name: (identifier) @property.name
+) @property
 
 (delegate_declaration
-	name: (identifier) @definition.function.name
-) @definition.function
+	name: (identifier) @function.name
+) @function
 
 (field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @definition.field.name
+			(identifier) @field.name
 		)
 	)
-) @definition.field
+) @field
 
 (event_field_declaration
 	(variable_declaration
 		(variable_declarator
-			(identifier) @definition.event.name
+			(identifier) @event.name
 		)
 	)
-) @definition.event
+) @event
 
 (global_attribute_list
 	(attribute
-		(identifier) @definition.constant.name
-	) @definition.constant
+		(identifier) @constant.name
+	) @constant
 )
 
 (global_statement
 	(local_declaration_statement
 		(variable_declaration
 			(variable_declarator
-				(identifier) @definition.variable.name
+				(identifier) @variable.name
 			)
 		)
 	)
 )
 
 (enum_declaration name:
-	(identifier) @definition.enum.name
-) @definition.enum
+	(identifier) @enum.name
+) @enum
 
 (struct_declaration
-	(identifier) @definition.struct.name
-) @definition.struct
+	(identifier) @struct.name
+) @struct
 
 (namespace_declaration
 	[
-		name: (identifier) @definition.module.name
-		name: (qualified_name) @definition.module.name
+		name: (identifier) @module.name
+		name: (qualified_name) @module.name
 	]
-) @definition.module
+) @module
 
 (enum_member_declaration
-	(identifier) @definition.enumMember.name
-) @definition.enumMember
+	(identifier) @enumMember.name
+) @enumMember
