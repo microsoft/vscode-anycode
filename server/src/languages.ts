@@ -41,19 +41,23 @@ const _queryModules = new Map<string, QueryModule>([
 
 export default abstract class Languages {
 
-	private static _config = new Map<string, FeatureConfig>();
-	private static _languages = new Map<string, Parser.Language>();
+	private static readonly _languageInstances = new Map<string, Parser.Language>();
+	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
-	static async init(langInfo: LanguageConfiguration) {
-		for (const [entry, config] of langInfo) {
+	private static readonly _configurations = new Map<string, FeatureConfig>();
+	private static _langConfiguration: LanguageConfiguration;
+
+	static async init(langConfiguration: LanguageConfiguration) {
+		this._langConfiguration = langConfiguration;
+		for (const [entry, config] of langConfiguration) {
 			const lang = await Parser.Language.load(entry.wasmUri);
-			this._languages.set(entry.languageId, lang);
-			this._config.set(entry.languageId, config);
+			this._languageInstances.set(entry.languageId, lang);
+			this._configurations.set(entry.languageId, config);
 		}
 	}
 
 	static getLanguage(languageId: string): Parser.Language | undefined {
-		let result = this._languages.get(languageId);
+		let result = this._languageInstances.get(languageId);
 		if (!result) {
 			console.warn(`UNKNOWN languages: '${languageId}'`);
 			return undefined;
@@ -62,10 +66,9 @@ export default abstract class Languages {
 	}
 
 	static allAsSelector(): string[] {
-		return [...this._languages.keys()];
+		return [...this._languageInstances.keys()];
 	}
 
-	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
 	static getQuery(languageId: string, type: QueryType, strict = false): Parser.Query {
 
@@ -96,19 +99,39 @@ export default abstract class Languages {
 
 	static getSupportedLanguages(feature: keyof FeatureConfig, types: QueryType[]): string[] {
 		const result: string[] = [];
-		for (let languageId of this._languages.keys()) { // USE actually supported languages
+		for (let languageId of this._languageInstances.keys()) { // USE actually supported languages
 			const module = _queryModules.get(languageId);
 			if (!module) {
 				console.warn(`${languageId} NOT supported by queries`);
 				continue;
 			}
 			for (let type of types) {
-				if (module[type] && this._config.get(languageId)?.[feature]) {
+				if (module[type] && this._configurations.get(languageId)?.[feature]) {
 					result.push(languageId);
 					break;
 				}
 			}
 		}
 		return result;
+	}
+
+	static getLanguageIdByUri(uri: string): string {
+		let end = uri.lastIndexOf('?');
+		if (end < 0) {
+			end = uri.lastIndexOf('#');
+		}
+		if (end > 0) {
+			uri = uri.substring(0, end);
+		}
+		const start = uri.lastIndexOf('.');
+		const suffix = uri.substring(start + 1);
+		for (let [info] of this._langConfiguration) {
+			for (let candidate of info.suffixes) {
+				if (candidate === suffix) {
+					return info.languageId;
+				}
+			}
+		}
+		return `unknown/${uri}`;
 	}
 }

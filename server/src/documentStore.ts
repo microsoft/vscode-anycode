@@ -6,6 +6,7 @@
 import * as lsp from 'vscode-languageserver';
 import { TextDocuments } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import Languages from './languages';
 import { LRUMap } from './util/lruMap';
 
 export interface TextDocumentChange2 {
@@ -79,8 +80,8 @@ export class DocumentStore extends TextDocuments<TextDocument> {
 	}
 
 	private async _requestDocument(uri: string): Promise<TextDocument> {
-		type ResponseData = { data: Uint8Array; languageId: string; };
-		const reply = await this._connection.sendRequest<ResponseData>('file/read', uri);
-		return TextDocument.create(uri, reply.languageId, 1, this._decoder.decode(reply.data));
+		const reply = await this._connection.sendRequest<ArrayBuffer>('file/read', uri);
+		return TextDocument.create(uri, Languages.getLanguageIdByUri(uri), 1, this._decoder.decode(reply));
 	}
+
 }

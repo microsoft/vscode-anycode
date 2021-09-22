@@ -104,20 +104,16 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 	// serve fileRead request		
 	client.onRequest('file/read', async raw => {
 		const uri = vscode.Uri.parse(raw);
-		let languageId = '';
-		for (let [item] of supportedLanguages.getSupportedLanguages()) {
-			if (item.suffixes.some(suffix => uri.path.endsWith(`.${suffix}`))) {
-				languageId = item.languageId;
-				break;
-			}
-		}
+		let data: Uint8Array;
 		const stat = await vscode.workspace.fs.stat(uri);
 		if (stat.size > 1024 ** 2) {
 			console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
-			return { data: new Uint8Array(), languageId };
+			data = new Uint8Array();
+		} else {
+			data = await vscode.workspace.fs.readFile(uri);
 		}
-		const data = await vscode.workspace.fs.readFile(uri);
-		return new TranferableMessage({ buffer: data, languageId }, [data.buffer]);
+		const buffer = data.buffer.slice(data.byteOffset, data.byteLength);
+		return new TranferableMessage(buffer, [buffer]);
 	});
 
 	return vscode.Disposable.from(...disposables);

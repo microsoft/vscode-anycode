@@ -87,12 +87,14 @@ class Cache {
 		}
 	}
 
-	delete(uri: string): void {
+	delete(uri: string): boolean {
 		const callbacks = this._cleanup.get(uri);
 		if (callbacks) {
 			callbacks.forEach(fn => fn());
 			this._cleanup.delete(uri);
+			return true;
 		}
+		return false;
 	}
 
 	toString(): string {
@@ -146,8 +148,8 @@ export class SymbolIndex {
 		if (uris.length !== 0) {
 			// clear cached info for changed uris
 			const sw = new StopWatch();
-			uris.forEach(this._cache.delete, this._cache);
-			sw.elapsed(`INDEX REMOVED with ${uris.length} files`);
+			const delCount = uris.map(this._cache.delete, this._cache).filter(Boolean).length;
+			sw.elapsed(`INDEX REMOVED: ${delCount} files`);
 
 			// schedule a new task to update the cache for`
 			// changed uris
@@ -162,7 +164,7 @@ export class SymbolIndex {
 				totalIndex += stat.durationIndex;
 			}
 
-			sw.elapsed(`INDEX ADDED with ${uris.length} files, stats: ${this._cache.toString()}, total_retrieve: ${Math.round(totalRetrieve)}ms, total_index: ${Math.round(totalIndex)}ms`);
+			sw.elapsed(`INDEX ADDED:  ${uris.length} files, stats: ${this._cache.toString()}, total_retrieve: ${Math.round(totalRetrieve)}ms, total_index: ${Math.round(totalIndex)}ms`);
 		}
 	}
 
