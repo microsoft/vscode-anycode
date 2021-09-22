@@ -32,62 +32,56 @@
 		"configuration": {
 			"title": "Anycode",
 			"properties": {
-				"anycode.diagnostics": {
-					"type": "boolean",
-					"default": false,
-					"description": "Show parse errors as diagnostics (experimental).",
-					"scope": "language-overridable"
-				},
 				"anycode.symbolIndexSize": {
 					"type": "number",
 					"default": 100,
 					"minimum": 0,
-					"description": "Size of the symbol index that is used for features like symbol search and go to definition."
+					"markdownDescription": "Size of the index that is used for features like symbol search and go to definition."
 				},
-				"anycode.language.c.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'c'-lang"
-				},
-				"anycode.language.cpp.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'cpp'-lang"
-				},
-				"anycode.language.csharp.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'csharp'-lang"
-				},
-				"anycode.language.go.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'go'-lang"
-				},
-				"anycode.language.java.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'java'-lang"
-				},
-				"anycode.language.php.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'php'-lang"
-				},
-				"anycode.language.python.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'python'-lang"
-				},
-				"anycode.language.rust.enabled": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enable support for 'rust'-lang"
-				},
-				"anycode.language.typescript.enabled": {
-					"type": "boolean",
-					"default": false,
-					"description": "Enable support for 'typescript'-lang"
+				"anycode.language.features": {
+					"markdownDescription": "Control features that anycode offers.",
+					"type": "object",
+					"scope": "language-overridable",
+					"additionalProperties": false,
+					"properties": {
+						"definitions": {
+							"type": "boolean",
+							"description": "Go to Definition based on identifiers and local variables"
+						},
+						"references": {
+							"type": "boolean",
+							"description": "Find References based on identifiers and local variables"
+						},
+						"workspaceSymbols": {
+							"type": "boolean",
+							"description": "Add symbols to workspace symbol search"
+						},
+						"highlights": {
+							"type": "boolean",
+							"description": "Highlight Occurrences of identifiers and local variables"
+						},
+						"outline": {
+							"type": "boolean",
+							"description": "Populate Outline, Quick-outline, and Breadcrumbs"
+						},
+						"completions": {
+							"type": "boolean",
+							"description": "Completions based on identifiers and symbol names"
+						},
+						"diagnostics": {
+							"type": "boolean",
+							"description": "(experimental) Parse errors show as problems"
+						}
+					},
+					"default": {
+						"completions": true,
+						"definitions": true,
+						"references": true,
+						"highlights": true,
+						"outline": true,
+						"workspaceSymbols": true,
+						"diagnostics": false
+					}
 				}
 			}
 		}

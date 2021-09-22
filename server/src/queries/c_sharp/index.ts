@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { QueryModule } from '..';
+import type { QueryModule } from '../../languages';
 import outline from './outline.scm';
 import locals from './locals.scm';
 import comments from './comments.scm';

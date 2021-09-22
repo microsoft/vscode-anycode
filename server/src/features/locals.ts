@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { asLspRange, compareRangeByStart, containsPosition, containsRange, symbolMapping } from '../common';
 import { Trees } from '../trees';
 import { QueryCapture } from '../../tree-sitter/tree-sitter';
-import { Queries } from '../queries';
+import Languages from '../languages';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export class Locals {
@@ -20,7 +20,7 @@ export class Locals {
 		}
 
 		const all: Node[] = [];
-		const query = Queries.get(document.languageId, 'locals');
+		const query = Languages.getQuery(document.languageId, 'locals');
 		const captures = query.captures(tree.rootNode).sort(this._compareCaptures);
 
 		// Find all scopes and merge some. The challange is that function-bodies "see" their

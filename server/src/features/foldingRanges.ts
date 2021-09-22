@@ -7,14 +7,14 @@ import * as lsp from 'vscode-languageserver';
 import { StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
-import { Queries } from '../queries';
+import Languages from '../languages';
 
 export class FoldingRangeProvider {
 
 	constructor(private _documents: DocumentStore, private _trees: Trees) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.FoldingRangeRequest.type, { documentSelector: Queries.supportedLanguages('comments', 'folding') });
+		connection.client.register(lsp.FoldingRangeRequest.type, { documentSelector: Languages.getSupportedLanguages('folding', ['comments', 'folding']) });
 		connection.onRequest(lsp.FoldingRangeRequest.type, this.provideFoldingRanges.bind(this));
 	}
 
@@ -28,10 +28,10 @@ export class FoldingRangeProvider {
 
 		const result: lsp.FoldingRange[] = [];
 		const sw = new StopWatch();
-		const commentQuery = Queries.get(document.languageId, 'comments');
+		const commentQuery = Languages.getQuery(document.languageId, 'comments');
 		const commentCaptures = commentQuery.captures(tree.rootNode);
 
-		const foldingQuery = Queries.get(document.languageId, 'folding');
+		const foldingQuery = Languages.getQuery(document.languageId, 'folding');
 		const foldingCaptures = foldingQuery.captures(tree.rootNode);
 
 		for (const capture of [commentCaptures, foldingCaptures].flat()) {

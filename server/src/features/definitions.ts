@@ -9,7 +9,7 @@ import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { Locals } from './locals';
 import { nodeAtPosition } from '../common';
-import { Queries } from '../queries';
+import Languages from '../languages';
 
 export class DefinitionProvider {
 
@@ -20,7 +20,7 @@ export class DefinitionProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.DefinitionRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'outline') });
+		connection.client.register(lsp.DefinitionRequest.type, { documentSelector: Languages.getSupportedLanguages('definitions', ['locals', 'outline']) });
 		connection.onRequest(lsp.DefinitionRequest.type, this.provideDefinitions.bind(this));
 	}
 
@@ -46,7 +46,7 @@ export class DefinitionProvider {
 		}
 
 		const result: lsp.Location[] = [];
-		const query = Queries.get(document.languageId, 'identifiers');
+		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const candidate = nodeAtPosition(tree.rootNode, params.position);
 		if (query.captures(candidate).length !== 1) {
 			// not an identifier

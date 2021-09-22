@@ -10,7 +10,7 @@ import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
 import { Outline } from './documentSymbols';
-import { Queries } from '../queries';
+import Languages from '../languages';
 
 class Queue {
 
@@ -208,7 +208,7 @@ export class SymbolIndex {
 		// (2) Use usage-queries to feed the global index of usages.
 		const tree = this._trees.getParseTree(document);
 		if (tree) {
-			const query = Queries.get(document.languageId, 'references');
+			const query = Languages.getQuery(document.languageId, 'references');
 			const captures = query.captures(tree.rootNode);
 
 			for (let capture of captures) {

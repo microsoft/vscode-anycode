@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './locals';
-import { Queries } from '../queries';
+import Languages from '../languages';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { asLspRange, nodeAtPosition } from '../common';
 
@@ -19,7 +19,7 @@ export class DocumentHighlightsProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Queries.supportedLanguages('locals', 'identifiers') });
+		connection.client.register(lsp.DocumentHighlightRequest.type, { documentSelector: Languages.getSupportedLanguages('highlights', ['locals', 'identifiers']) });
 		connection.onRequest(lsp.DocumentHighlightRequest.type, this.provideDocumentHighlights.bind(this));
 	}
 
@@ -53,7 +53,7 @@ export class DocumentHighlightsProvider {
 			return result;
 		}
 
-		const query = Queries.get(document.languageId, 'identifiers');
+		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const candidate = nodeAtPosition(tree.rootNode, position);
 		if (query.captures(candidate).length !== 1) {
 			// not one an identifier

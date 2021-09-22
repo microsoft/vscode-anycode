@@ -59,7 +59,15 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 
 	await client.onReady();
 
-	const langPattern = `**/*.{${supportedLanguages.getSupportedLanguages().map(item => item.suffixes).flat().join(',')}}`;
+	// Build a glob-patterns for languages which have features enables, like workspace symbol search, 
+	// and use this pattern for initial file discovery and file watching
+	const findAndSearchSuffixes: string[][] = [];
+	for (let [info, config] of supportedLanguages.getSupportedLanguages()) {
+		if (config.workspaceSymbols || config.references || config.definitions) {
+			findAndSearchSuffixes.push(info.suffixes);
+		}
+	}
+	const langPattern = `**/*.{${findAndSearchSuffixes.join(',')}}`;
 	const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
 	disposables.push(watcher);
 
@@ -69,14 +77,16 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 
 	// https://github.com/microsoft/vscode/issues/48674
 	const exclude = `{${[
-		...Object.keys(await vscode.workspace.getConfiguration('search', null).get('exclude') ?? {}),
-		...Object.keys(await vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
+		...Object.keys(vscode.workspace.getConfiguration('search', null).get('exclude') ?? {}),
+		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
 	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, 0).then(uris => {
+		const p = new Promise(resolve => disposables.push(new vscode.Disposable(resolve))); // stop on server-end
+
 		uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
-		return client.sendRequest('queue/init', uris.map(String));
+		return Promise.race([p, client.sendRequest('queue/init', uris.map(String))]);
 	}));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => init);
 	disposables.push(watcher.onDidCreate(uri => {
@@ -95,7 +105,7 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 	client.onRequest('file/read', async raw => {
 		const uri = vscode.Uri.parse(raw);
 		let languageId = '';
-		for (let item of supportedLanguages.getSupportedLanguages()) {
+		for (let [item] of supportedLanguages.getSupportedLanguages()) {
 			if (item.suffixes.some(suffix => uri.path.endsWith(`.${suffix}`))) {
 				languageId = item.languageId;
 				break;

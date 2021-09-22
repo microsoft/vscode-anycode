@@ -9,17 +9,34 @@ export class LanguageInfo {
 	constructor(
 		readonly languageId: string,
 		readonly wasmUri: string,
-		readonly suffixes: string[],
+		readonly suffixes: string[]
 	) { }
 }
 
+export interface FeatureConfig {
+	completions?: boolean;
+	definitions?: boolean;
+	references?: boolean;
+	highlights?: boolean;
+	outline?: boolean;
+	folding?: boolean;
+	workspaceSymbols?: boolean;
+	diagnostics?: boolean;
+	[key: string]: boolean | undefined;
+};
+
 export class SupportedLanguages {
+
+	private readonly _overrideConfigurations = new Map<string, { extension: string, config: FeatureConfig }>([
+		['python', { extension: 'ms-python.python', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: false } }],
+		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: undefined } }]
+	]);
 
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
 	readonly onDidChange = this._onDidChange.event;
 
 	private readonly _all: readonly LanguageInfo[];
-	private _filteredAll: readonly LanguageInfo[] | undefined;
+	private _tuples?: Map<LanguageInfo, FeatureConfig>;
 
 	private readonly _disposable: vscode.Disposable;
 
@@ -53,36 +70,43 @@ export class SupportedLanguages {
 	}
 
 	private _reset(): void {
-		this._filteredAll = undefined;
+		this._tuples = undefined;
 		this._onDidChange.fire(this);
 	}
 
-	getSupportedLanguages(): readonly LanguageInfo[] {
-		if (!this._filteredAll) {
-			// ignore languages that well-known extensions support (when those are present)
-			const wellKnownIgnored = new Set<string>();
-			if (vscode.extensions.getExtension('vscode.typescript-language-features')) {
-				wellKnownIgnored.add('typescript');
-			}
-			if (vscode.extensions.getExtension('ms-python.python')) {
-				wellKnownIgnored.add('python');
-			}
+	getSupportedLanguages(): ReadonlyMap<LanguageInfo, FeatureConfig> {
 
-			const config = vscode.workspace.getConfiguration('anycode');
-			this._filteredAll = this._all.filter(item => {
-				if (wellKnownIgnored.has(item.languageId)) {
-					return false;
+		if (!this._tuples) {
+			this._tuples = new Map();
+
+			for (let info of this._all) {
+				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
+
+				let overrideConfig: FeatureConfig | undefined;
+				const overrideInfo = this._overrideConfigurations.get(info.languageId);
+				if (overrideInfo && vscode.extensions.getExtension(overrideInfo.extension)) {
+					overrideConfig = overrideInfo.config;
 				}
-				if (!config.get(`language.${item.languageId}.enabled`)) {
-					return false;
+
+				const featureConfig: FeatureConfig = {
+					...config.get<FeatureConfig>(`language.features`),
+					...overrideConfig,
+					folding: true
+				};
+
+				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
+				if (empty) {
+					continue;
 				}
-				return true;
-			});
+
+				this._tuples.set(info, featureConfig);
+			}
 		}
-		return this._filteredAll;
+
+		return this._tuples;
 	}
 
 	getSupportedLanguagesAsSelector(): string[] {
-		return this.getSupportedLanguages().map(item => item.languageId);
+		return Array.from(this.getSupportedLanguages().keys()).map(info => info.languageId);
 	}
 }

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createConnection, BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserver/browser';
-import { Connection, InitializeParams, InitializeResult, ServerCapabilities, TextDocumentSyncKind } from 'vscode-languageserver';
+import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import Parser from '../tree-sitter/tree-sitter';
 import { Trees } from './trees';
 import { DocumentSymbols } from './features/documentSymbols';
@@ -19,10 +19,11 @@ import { DocumentStore } from './documentStore';
 import Languages from './languages';
 import { FoldingRangeProvider } from './features/foldingRanges';
 import { DocumentHighlightsProvider } from './features/documentHighlights';
+import { LanguageConfiguration } from './common';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
-	supportedLanguages: { languageId: string, wasmUri: string, suffixes: string[] }[]
+	supportedLanguages: LanguageConfiguration
 };
 
 const messageReader = new BrowserMessageReader(self);
@@ -35,15 +36,17 @@ const features: { register(connection: Connection): any }[] = [];
 
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
 
+	const initData = <InitOptions>params.initializationOptions;
+
 	// (1) init tree sitter before doing anything else
 	await Parser.init({
 		locateFile() {
-			return (<InitOptions>params.initializationOptions).treeSitterWasmUri;
+			return initData.treeSitterWasmUri;
 		}
 	});
 
 	// (1) init supported languages and its queries
-	await Languages.init((<InitOptions>params.initializationOptions).supportedLanguages);
+	await Languages.init(initData.supportedLanguages);
 
 	// (2) setup features
 	const documents = new DocumentStore(connection);
@@ -75,11 +78,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		capabilities: { textDocumentSync: TextDocumentSyncKind.Incremental }
 	};
 });
-
 connection.onInitialized(async () => {
 	for (let feature of features) {
 		feature.register(connection);
 	}
-});
-
-connection.listen();
+}); connection.listen();

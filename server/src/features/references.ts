@@ -8,7 +8,7 @@ import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './locals';
-import { Queries } from '../queries';
+import Languages from '../languages';
 import { containsPosition, nodeAtPosition } from '../common';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -21,7 +21,7 @@ export class ReferencesProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Queries.supportedLanguages('locals') });
+		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Languages.getSupportedLanguages('references', ['locals', 'identifiers']) });
 		connection.onRequest(lsp.ReferencesRequest.type, this.provideReferences.bind(this));
 	}
 
@@ -60,7 +60,7 @@ export class ReferencesProvider {
 			return [];
 		}
 
-		const query = Queries.get(document.languageId, 'identifiers');
+		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const candidate = nodeAtPosition(tree.rootNode, position);
 		if (query.captures(candidate).length !== 1) {
 			// not an identifier

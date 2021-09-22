@@ -72,7 +72,7 @@ export class Trees {
 			return info.tree;
 		}
 
-		const language = Languages.get(documentOrUri.languageId);
+		const language = Languages.getLanguage(documentOrUri.languageId);
 		if (!language) {
 			return undefined;
 		}

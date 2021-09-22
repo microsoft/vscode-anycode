@@ -16,17 +16,17 @@ export async function bootstrapWasm() {
 		}
 	});
 
-	await Languages.init([
-		{ languageId: 'csharp', wasmUri: '/server/tree-sitter-c_sharp.wasm', suffixes: [] },
-		{ languageId: 'c', wasmUri: '/server/tree-sitter-c.wasm', suffixes: [] },
-		{ languageId: 'cpp', wasmUri: '/server/tree-sitter-cpp.wasm', suffixes: [] },
-		{ languageId: 'go', wasmUri: '/server/tree-sitter-go.wasm', suffixes: [] },
-		{ languageId: 'java', wasmUri: '/server/tree-sitter-java.wasm', suffixes: [] },
-		{ languageId: 'php', wasmUri: '/server/tree-sitter-php.wasm', suffixes: [] },
-		{ languageId: 'python', wasmUri: '/server/tree-sitter-python.wasm', suffixes: [] },
-		{ languageId: 'rust', wasmUri: '/server/tree-sitter-rust.wasm', suffixes: [] },
-		{ languageId: 'typescript', wasmUri: '/server/tree-sitter-typescript.wasm', suffixes: [] },
-	]);
+	await Languages.init(new Map([
+		[{ languageId: 'csharp', wasmUri: '/server/tree-sitter-c_sharp.wasm', suffixes: [] }, {}],
+		[{ languageId: 'c', wasmUri: '/server/tree-sitter-c.wasm', suffixes: [] }, {}],
+		[{ languageId: 'cpp', wasmUri: '/server/tree-sitter-cpp.wasm', suffixes: [] }, {}],
+		[{ languageId: 'go', wasmUri: '/server/tree-sitter-go.wasm', suffixes: [] }, {}],
+		[{ languageId: 'java', wasmUri: '/server/tree-sitter-java.wasm', suffixes: [] }, {}],
+		[{ languageId: 'php', wasmUri: '/server/tree-sitter-php.wasm', suffixes: [] }, {}],
+		[{ languageId: 'python', wasmUri: '/server/tree-sitter-python.wasm', suffixes: [] }, {}],
+		[{ languageId: 'rust', wasmUri: '/server/tree-sitter-rust.wasm', suffixes: [] }, {}],
+		[{ languageId: 'typescript', wasmUri: '/server/tree-sitter-typescript.wasm', suffixes: [] }, {}],
+	]));
 }
 
 export function mock<T>(): { new(): T } {

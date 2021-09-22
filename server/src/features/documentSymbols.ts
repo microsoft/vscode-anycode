@@ -7,7 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { asLspRange, containsRange, symbolMapping } from '../common';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
-import { Queries } from '../queries';
+import Languages from '../languages';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { QueryCapture } from '../../tree-sitter/tree-sitter';
 
@@ -16,7 +16,7 @@ export class DocumentSymbols {
 	constructor(private readonly _documents: DocumentStore, private readonly _trees: Trees) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.DocumentSymbolRequest.type, { documentSelector: Queries.supportedLanguages('outline') });
+		connection.client.register(lsp.DocumentSymbolRequest.type, { documentSelector: Languages.getSupportedLanguages('outline', ['outline']) });
 		connection.onRequest(lsp.DocumentSymbolRequest.type, this.provideDocumentSymbols.bind(this));
 	}
 
@@ -45,7 +45,7 @@ export class Outline {
 		if (!tree) {
 			return [];
 		}
-		const query = Queries.get(document.languageId, 'outline');
+		const query = Languages.getQuery(document.languageId, 'outline');
 		const captures = query.captures(tree.rootNode);
 
 

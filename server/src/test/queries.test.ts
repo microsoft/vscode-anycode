@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import Languages from '../languages';
-import { Queries, QueryType } from '../queries';
+import Languages, { QueryModule, QueryType } from '../languages';
 import { bootstrapWasm } from './utils';
 
 suite('Queries', function () {
@@ -21,7 +20,7 @@ suite('Queries', function () {
 			const languages = Languages.allAsSelector();
 			for (let languageId of languages) {
 				try {
-					const q = Queries.get(languageId, type, true);
+					const q = Languages.getQuery(languageId, type, true);
 					assert.ok(q);
 				} catch (err) {
 					assert.fail(`INVALID ${languageId}/ ${type}`);

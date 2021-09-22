@@ -5,7 +5,7 @@
 
 import * as lsp from 'vscode-languageserver';
 import { DocumentStore } from '../documentStore';
-import { Queries } from '../queries';
+import Languages from '../languages';
 import { Trees } from '../trees';
 import { SymbolIndex } from './symbolIndex';
 
@@ -18,7 +18,7 @@ export class CompletionItemProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.CompletionRequest.type, { documentSelector: Queries.supportedLanguages('identifiers', 'outline') });
+		connection.client.register(lsp.CompletionRequest.type, { documentSelector: Languages.getSupportedLanguages('completions', ['identifiers', 'outline']) });
 		connection.onRequest(lsp.CompletionRequest.type, this.provideCompletionItems.bind(this));
 	}
 
@@ -33,7 +33,7 @@ export class CompletionItemProvider {
 		const result = new Map<string, lsp.CompletionItem>();
 
 		// (1) all identifiers that are used in this file
-		const query = Queries.get(document.languageId, 'identifiers');
+		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const captures = query.captures(tree.rootNode);
 		for (let capture of captures) {
 			const text = capture.node.text;
