@@ -39,7 +39,7 @@
 					"markdownDescription": "Size of the index that is used for features like symbol search and go to definition."
 				},
 				"anycode.language.features": {
-					"markdownDescription": "Control features that anycode offers.",
+					"markdownDescription": "Control the language features that anycode offers. This can be configured for each supported language: [Learn How to Do That](https://code.visualstudio.com/docs/getstarted/settings#_languagespecific-editor-settings)",
 					"type": "object",
 					"scope": "language-overridable",
 					"additionalProperties": false,
