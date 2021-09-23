@@ -48,9 +48,12 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 
 	const disposables: vscode.Disposable[] = [];
 
-	const continueOnCommand = 'remoteHub.continueOn';
+	const _continueOnCommand = 'remoteHub.continueOn';
+	const _mementoKey = 'didShowMessage';
 	const continueOnAvailable = vscode.extensions.getExtension('github.remotehub-insiders');
-	const didShowExplainer = context.globalState.get('didShowMessage', false);
+	const didShowExplainer = context.globalState.get(_mementoKey, false);
+
+	vscode.commands.registerCommand('anycode.resetDidShowMessage', () => context.globalState.update(_mementoKey, false));
 
 	// --- language status item
 
@@ -60,7 +63,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	statusItem.text = `$(regex)`;
 	let tooltip: string;
 	if (continueOnAvailable) {
-		tooltip = `Only basic language support is offered for this file, you can [continue working on](command:${continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
+		tooltip = `Only basic language support is offered for this file, you can [continue working on](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
 	} else {
 		tooltip = 'Only basic language support is offered for this file.';
 	}
@@ -78,15 +81,15 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 				const ctnBtn = { title: 'Continue Elsewhere' };
 				const selection = await vscode.window.showInformationMessage('Only basic language support is offered in this context, results may be inaccurate and incomplete. You can continue working on this remote repository elsewhere', ctnBtn);
 				if (selection === ctnBtn) {
-					vscode.commands.executeCommand(continueOnCommand);
+					vscode.commands.executeCommand(_continueOnCommand);
 				}
 			}
 		};
 
 		const provideFyi = async () => {
 			registrations.dispose();
-			context.globalState.update('didShowExplainer', true);
-			context.globalState.setKeysForSync(['didShowExplainer']);
+			context.globalState.update(_mementoKey, true);
+			context.globalState.setKeysForSync([_mementoKey]);
 			showMessage();
 			return undefined;
 		};
