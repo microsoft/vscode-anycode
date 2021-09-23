@@ -60,9 +60,9 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	statusItem.text = `$(regex)`;
 	let tooltip: string;
 	if (continueOnAvailable) {
-		tooltip = `anycode offers basic language support for this file, you can [continue working on](command:${continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
+		tooltip = `Only basic language support is offered for this file, you can [continue working on](command:${continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
 	} else {
-		tooltip = 'anycode offers basic language support for this file.';
+		tooltip = 'Only basic language support is offered for this file.';
 	}
 	statusItem.detail = tooltip;
 
@@ -73,10 +73,10 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 
 		async function showMessage() {
 			if (!continueOnAvailable) {
-				await vscode.window.showInformationMessage('anycode offers basic language support in this context, results are likely inaccurate and incomplete.');
+				await vscode.window.showInformationMessage('Only basic language support is offered in this context, results may be inaccurate and incomplete.');
 			} else {
 				const ctnBtn = { title: 'Continue Elsewhere' };
-				const selection = await vscode.window.showInformationMessage('anycode offers basic language support in this context, results are likely inaccurate and incomplete. You can continue working on this remote repository elsewhere', ctnBtn);
+				const selection = await vscode.window.showInformationMessage('Only basic language support is offered in this context, results may be inaccurate and incomplete. You can continue working on this remote repository elsewhere', ctnBtn);
 				if (selection === ctnBtn) {
 					vscode.commands.executeCommand(continueOnCommand);
 				}
