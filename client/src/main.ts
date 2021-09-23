@@ -12,43 +12,99 @@ export function activate(context: vscode.ExtensionContext) {
 
 	const supportedLanguages = new SupportedLanguages(context);
 
-	let serverHandles: Promise<vscode.Disposable>[] = [startServer(context.extensionUri, supportedLanguages)];
+	let serverHandles: Promise<vscode.Disposable>[] = [];
+	startServer();
+
+	function startServer() {
+		serverHandles.push(
+			_startServer(context.extensionUri, supportedLanguages),
+			_showStatusAndInfo(context, supportedLanguages)
+		);
+	}
+
+	async function stopServers() {
+		const oldHandles = serverHandles.slice(0);
+		serverHandles = [];
+		const result = await Promise.allSettled(oldHandles);
+		for (const item of result) {
+			if (item.status === 'fulfilled') {
+				item.value.dispose();
+			}
+		}
+	}
 
 	context.subscriptions.push(supportedLanguages);
 	context.subscriptions.push(supportedLanguages.onDidChange(() => {
 		// restart server when supported languages change
 		stopServers();
-		serverHandles = [startServer(context.extensionUri, supportedLanguages)];
+		startServer();
 	}));
-
-	function stopServers() {
-		Promise.allSettled(serverHandles.slice()).then(d => {
-			for (let item of d) {
-				if (item.status === 'fulfilled') {
-					item.value.dispose();
-				}
-			}
-		});
-		serverHandles = [];
-	}
 
 	// stop server on deactivate
 	context.subscriptions.push(new vscode.Disposable(stopServers));
+}
 
-	// -- status (NEW proposal)
-	const item = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
-	context.subscriptions.push(item);
-	item.text = `$(regex)`;
+async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages): Promise<vscode.Disposable> {
+
+	const disposables: vscode.Disposable[] = [];
+
+	const continueOnCommand = 'remoteHub.continueOn';
+	const continueOnAvailable = vscode.extensions.getExtension('github.remotehub-insiders');
+	const didShowExplainer = context.globalState.get('didShowMessage', false);
+
+	// --- language status item
+
+	const statusItem = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
+	disposables.push(statusItem);
+	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
+	statusItem.text = `$(regex)`;
 	let tooltip: string;
-	if (vscode.extensions.getExtension('github.remotehub-insiders')) {
-		tooltip = 'anycode offers basic language support for this file, you can [continue working on](command:remoteHub.continueOn \'Continue working on this remote repository elsewhere\') this file elsewhere.';
+	if (continueOnAvailable) {
+		tooltip = `anycode offers basic language support for this file, you can [continue working on](command:${continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
 	} else {
 		tooltip = 'anycode offers basic language support for this file.';
 	}
-	item.detail = tooltip;
+	statusItem.detail = tooltip;
+
+
+	// --- notifications message on interaction
+
+	if (!didShowExplainer) {
+
+		async function showMessage() {
+			if (!continueOnAvailable) {
+				await vscode.window.showInformationMessage('anycode offers basic language support in this context, results are likely inaccurate and incomplete.');
+			} else {
+				const ctnBtn = { title: 'Continue Elsewhere' };
+				const selection = await vscode.window.showInformationMessage('anycode offers basic language support in this context, results are likely inaccurate and incomplete. You can continue working on this remote repository elsewhere', ctnBtn);
+				if (selection === ctnBtn) {
+					vscode.commands.executeCommand(continueOnCommand);
+				}
+			}
+		};
+
+		const provideFyi = async () => {
+			registrations.dispose();
+			context.globalState.update('didShowExplainer', true);
+			context.globalState.setKeysForSync(['didShowExplainer']);
+			showMessage();
+			return undefined;
+		};
+		const selector = supportedLanguages.getSupportedLanguagesAsSelector();
+		const registrations = vscode.Disposable.from(
+			vscode.languages.registerCompletionItemProvider(selector, { provideCompletionItems: provideFyi }),
+			vscode.languages.registerDocumentSymbolProvider(selector, { provideDocumentSymbols: provideFyi }),
+			vscode.languages.registerDefinitionProvider(selector, { provideDefinition: provideFyi }),
+			vscode.languages.registerReferenceProvider(selector, { provideReferences: provideFyi }),
+			vscode.languages.registerWorkspaceSymbolProvider({ provideWorkspaceSymbols: provideFyi }),
+		);
+		disposables.push(registrations);
+	}
+
+	return vscode.Disposable.from(...disposables);
 }
 
-async function startServer(extensionUri: vscode.Uri, supportedLanguages: SupportedLanguages): Promise<vscode.Disposable> {
+async function _startServer(extensionUri: vscode.Uri, supportedLanguages: SupportedLanguages): Promise<vscode.Disposable> {
 
 	const disposables: vscode.Disposable[] = [];
 
