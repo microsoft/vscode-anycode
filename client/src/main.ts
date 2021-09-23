@@ -11,17 +11,29 @@ import { SupportedLanguages } from './supportedLanguages';
 export function activate(context: vscode.ExtensionContext) {
 
 	const supportedLanguages = new SupportedLanguages(context);
-	let serverHandle = startServer(context.extensionUri, supportedLanguages);
+
+	let serverHandles: Promise<vscode.Disposable>[] = [startServer(context.extensionUri, supportedLanguages)];
+
 	context.subscriptions.push(supportedLanguages);
 	context.subscriptions.push(supportedLanguages.onDidChange(() => {
 		// restart server when supported languages change
-		serverHandle.then(handle => handle.dispose());
-		serverHandle = startServer(context.extensionUri, supportedLanguages);
+		stopServers();
+		serverHandles = [startServer(context.extensionUri, supportedLanguages)];
 	}));
-	context.subscriptions.push(new vscode.Disposable(() => {
-		// stop server on deactivate
-		serverHandle.then(handle => handle.dispose());
-	}));
+
+	function stopServers() {
+		Promise.allSettled(serverHandles.slice()).then(d => {
+			for (let item of d) {
+				if (item.status === 'fulfilled') {
+					item.value.dispose();
+				}
+			}
+		});
+		serverHandles = [];
+	}
+
+	// stop server on deactivate
+	context.subscriptions.push(new vscode.Disposable(stopServers));
 
 	// -- status (NEW proposal)
 	const item = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
@@ -73,22 +85,22 @@ async function startServer(extensionUri: vscode.Uri, supportedLanguages: Support
 
 	// file discover and watching. in addition to text documents we annouce and provide
 	// all matching files
-	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
 
-	// https://github.com/microsoft/vscode/issues/48674
+	// workaround for https://github.com/microsoft/vscode/issues/48674
 	const exclude = `{${[
 		...Object.keys(vscode.workspace.getConfiguration('search', null).get('exclude') ?? {}),
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, 0).then(uris => {
-		const p = new Promise(resolve => disposables.push(new vscode.Disposable(resolve))); // stop on server-end
-
-		uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
+	// stop on server-end
+	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
+	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
-		return Promise.race([p, client.sendRequest('queue/init', uris.map(String))]);
+		await client.sendRequest('queue/init', uris.map(String));
 	}));
-	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => init);
+	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
+	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
+
 	disposables.push(watcher.onDidCreate(uri => {
 		client.sendNotification('queue/add', [uri.toString()]);
 	}));
