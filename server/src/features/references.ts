@@ -21,7 +21,7 @@ export class ReferencesProvider {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Languages.getSupportedLanguages('references', ['locals', 'identifiers']) });
+		connection.client.register(lsp.ReferencesRequest.type, { documentSelector: Languages.getSupportedLanguages('references', ['locals', 'identifiers', 'references']) });
 		connection.onRequest(lsp.ReferencesRequest.type, this.provideReferences.bind(this));
 	}
 

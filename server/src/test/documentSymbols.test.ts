@@ -38,7 +38,7 @@ suite('DocumentSymbols - Fixtures', function () {
 		}
 	}
 
-	['go', 'java', 'python', 'rust', 'csharp'].forEach(async langId => {
+	['go', 'java', 'python', 'rust', 'csharp', 'typescript'].forEach(async langId => {
 		test(langId, async function () {
 
 			const fixtures = await Fixture.parse(`/server/src/test/documentSymbolsFixtures/${langId}.txt`, langId);

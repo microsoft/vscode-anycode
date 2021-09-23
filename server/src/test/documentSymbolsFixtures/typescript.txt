@@ -1,0 +1,7 @@
+--- declared modules
+declare module [['fff']] {
+    export namespace [[env]] {
+        export const [[foo]]:number;
+        export function [[openExternal]](target: Uri): Thenable<boolean>;
+    }
+}
