@@ -69,24 +69,41 @@ export class ReferencesProvider {
 
 		await this._symbols.update();
 
+		let sameLanguageOffset = 0;
 		const result: lsp.Location[] = [];
 		let seenAsUsage = false;
 		let seenAsDef = false;
 		const usages = this._symbols.usages.get(candidate.text) ?? [];
 		for (let usage of usages) {
-			result.push(usage);
 			seenAsUsage = seenAsUsage || containsPosition(usage.range, position);
-		}
-
-		const definitions = this._symbols.definitions.get(candidate.text) ?? [];
-		for (let definition of definitions) {
-			seenAsDef = seenAsDef || containsPosition(definition.location.range, position);
-			if (includeDeclaration) {
-				result.push(definition.location);
+			if (Languages.getLanguageIdByUri(usage.uri) === document.languageId) {
+				result.unshift(usage);
+				sameLanguageOffset++;
+			} else {
+				result.push(usage);
 			}
 		}
 
-		return result;
+		const definitions = this._symbols.definitions.get(candidate.text) ?? [];
+		for (const { location } of definitions) {
+			seenAsDef = seenAsDef || containsPosition(location.range, position);
+			if (includeDeclaration) {
+				if (Languages.getLanguageIdByUri(location.uri) === document.languageId) {
+					result.unshift(location);
+					sameLanguageOffset++;
+				} else {
+					result.push(location);
+				}
+			}
+		}
 
+		if (!seenAsUsage && !seenAsDef) {
+			// flishy results because we didn't see the location at which we requested references
+			return [];
+		}
+
+		// only return results that are of the same language unless there are only 
+		// results from other languages
+		return result.slice(0, sameLanguageOffset || undefined);
 	}
 }

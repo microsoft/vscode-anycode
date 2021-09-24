@@ -45,7 +45,6 @@ export class DefinitionProvider {
 			return [];
 		}
 
-		const result: lsp.Location[] = [];
 		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const candidate = nodeAtPosition(tree.rootNode, params.position);
 		if (query.captures(candidate).length !== 1) {
@@ -54,10 +53,21 @@ export class DefinitionProvider {
 		}
 
 		await this._symbols.update();
+
+		let sameLanguageOffset = 0;
+		const result: lsp.Location[] = [];
 		const all = this._symbols.definitions.get(candidate.text) ?? [];
 		for (const symbol of all) {
-			result.push(symbol.location);
+			const isSameLanguage = Languages.getLanguageIdByUri(symbol.location.uri) === document.languageId;
+			if (isSameLanguage) {
+				result.unshift(symbol.location);
+				sameLanguageOffset++;
+			} else {
+				result.push(symbol.location);
+			}
 		}
-		return result;
+		// only return results that are of the same language unless there are only 
+		// results from other languages
+		return result.slice(0, sameLanguageOffset || undefined);
 	}
 }
