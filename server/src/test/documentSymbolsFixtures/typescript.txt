@@ -5,3 +5,5 @@ declare module [['fff']] {
         export function [[openExternal]](target: Uri): Thenable<boolean>;
     }
 }
+--- type alias
+type [[FooDooBarBazz]] = number;

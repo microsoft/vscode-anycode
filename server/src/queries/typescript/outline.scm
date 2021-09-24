@@ -47,3 +47,6 @@
 
 (internal_module
 	name: (identifier) @module.name) @module
+
+(type_alias_declaration
+	name: (type_identifier) @interface.name) @interface
