@@ -29,7 +29,7 @@ export class SupportedLanguages {
 
 	private readonly _overrideConfigurations = new Map<string, { extension: string, config: FeatureConfig }>([
 		['python', { extension: 'ms-python.python', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: false } }],
-		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: undefined } }]
+		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: false } }]
 	]);
 
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
@@ -90,8 +90,8 @@ export class SupportedLanguages {
 
 				const featureConfig: FeatureConfig = {
 					...config.get<FeatureConfig>(`language.features`),
+					folding: true,
 					...overrideConfig,
-					folding: true
 				};
 
 				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
