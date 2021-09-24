@@ -1,18 +1,24 @@
 ## Anycode 
 
-A language extension that **inaccurately** implements the following features
+A language extension that _inaccurately_ implements popular features like "Go to Definition", "Outline", or "Workspce Symbol Search". This extension should be used when running in enviroments that don't allow for running actual language services (like github.dev). 
 
-* outline, quick-outline, and breadcrumbs
-* workspace symbol search and go to definition
-* document highlights for locals, arguments, and identifiers
-* identifier based completions
-* (experimental) syntax errors via the `anycode.diagnostics`-setting
-* expand/shrink selection
+The services provided by this extension are meant to be better than full text search but fall short when compared to real language services. The table below shows what features have been implemented for what language (various levels of completness apply), the following paragrath outlines how things are implemented.
 
-This extension should be used when running in enviroments that don't allow for running actual language services. 
+|  | `c` | `cpp` | `csharp` | `java` | `php` | `rust` | `go` | `python` | `typescript` | _notes_
+|---|---|---|---|---|---|---|---|---|---|---|
+| [Outline](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-symbol) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ 
+| [Workspace Symbol Search](https://code.visualstudio.com/docs/editor/editingevolved#_open-symbol-by-name) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Anything that would show in outline can be found via workspace symbol search|
+| [Go to Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Reference Search | ⭕️ | ⭕️ | ✅ | ✅ | ⭕️ | ✅ | ✅ | ⭕️ | ✅ |
+| Document Highlights | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ⭕️<sup>1</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> |  <sup>1</sup> Identifiers with the same value are highlighted <sup>2</sup> Local variables and parameters are highlighted correctly else identifer-based highlights are used |
+| [Completions](https://code.visualstudio.com/docs/editor/intellisense) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Expand/Shrink Selection | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| [Folding](https://code.visualstudio.com/docs/editor/codebasics#_folding) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-Currently, the following languages are supported:  `c`, `cpp`, `csharp`, `java`, `php`, `rust`, `go`, `python`
 
+For each file anycode creates a (Tree-sitter) syntax tree. All features are based on these syntax trees and there is no semantic information, e.g no guarantee for correctness. Syntax trees allow to identify declarations, e.g "these lines define a function named `foo`" and allow to identity usages, e.g "this is an invocation of function `bar`". In essence, anycode compares names of usages and declarations - go to definition will search for any declaration matching the word under the cursor, reference search finds all usages and declaration etc. The approach often yields surprisingly good results but can easily tricked be with repeated/shadowed names and declarations. Anycode is no replacement for a language service but better source code full text search.
+
+There are two settings that define how anycode works: `anycode.language.features` controls what feature is avialable, either for all or specific languages and `anycode.symbolIndexSize` defines how many files should be eagerly fetched. This is important for cross file features like workspace symbol search or go to definition. The default is 100 and depending on your project higher values might be needed.
 
 ---
 
