@@ -139,14 +139,13 @@ export function containsLocation(loc: lsp.Location, uri: string, position: lsp.P
 }
 
 export class StopWatch {
-	private t1: number = Date.now();
+	private t1: number = performance.now();
 
 	reset() {
-		this.t1 = Date.now();
+		this.t1 = performance.now();
 	}
-	elapsed(msg: string) {
-		const du = Date.now() - this.t1;
-		console.debug(`${msg}, ${du}ms`);
+	elapsed() {
+		return (performance.now() - this.t1).toFixed(2);
 	}
 }
 

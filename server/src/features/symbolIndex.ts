@@ -98,7 +98,7 @@ class Cache {
 	}
 
 	toString(): string {
-		return `symbols: ${this._definitions.size}, usages: ${this._usages.size}`;
+		return `${this._definitions.size} symbols, ${this._usages.size} usages`;
 	}
 }
 
@@ -149,7 +149,7 @@ export class SymbolIndex {
 			// clear cached info for changed uris
 			const sw = new StopWatch();
 			const delCount = uris.map(this._cache.delete, this._cache).filter(Boolean).length;
-			sw.elapsed(`INDEX REMOVED: ${delCount} files`);
+			console.log(`[index] removed ${delCount} files ${sw.elapsed()}ms`);
 
 			// schedule a new task to update the cache for`
 			// changed uris
@@ -164,7 +164,8 @@ export class SymbolIndex {
 				totalIndex += stat.durationIndex;
 			}
 
-			sw.elapsed(`INDEX ADDED:  ${uris.length} files, stats: ${this._cache.toString()}, total_retrieve: ${Math.round(totalRetrieve)}ms, total_index: ${Math.round(totalIndex)}ms`);
+			console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms, retrieval: ${Math.round(totalRetrieve)}ms, index: ${Math.round(totalIndex)}ms`);
+			console.log(`[usage] info: ${this._cache.toString()}`);
 		}
 	}
 

@@ -5,7 +5,7 @@
 
 import { CancellationTokenSource, Connection, Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { asLspRange, StopWatch, isInteresting } from '../common';
+import { asLspRange, isInteresting } from '../common';
 import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
 
@@ -54,9 +54,6 @@ export class Validation {
 		const tree = this._trees.getParseTree(document);
 		const diagnostics: Diagnostic[] = [];
 		if (tree) {
-
-			const sw = new StopWatch();
-
 			// find MISSING nodes (those that got auto-inserted)
 			const cursor = tree.walk();
 			const seen = new Set<number>();
@@ -113,7 +110,6 @@ export class Validation {
 			// } finally {
 			// 	query?.delete();
 			// }
-			sw.elapsed('DIAGNOSTICS');
 		}
 
 		this._connection.sendDiagnostics({ uri: document.uri, diagnostics });

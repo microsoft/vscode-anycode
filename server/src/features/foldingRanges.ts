@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { StopWatch } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import Languages from '../languages';
@@ -27,7 +26,6 @@ export class FoldingRangeProvider {
 		}
 
 		const result: lsp.FoldingRange[] = [];
-		const sw = new StopWatch();
 		const commentQuery = Languages.getQuery(document.languageId, 'comments');
 		const commentCaptures = commentQuery.captures(tree.rootNode);
 
@@ -43,8 +41,6 @@ export class FoldingRangeProvider {
 				capture.name
 			));
 		}
-
-		sw.elapsed('folding RANGES');
 		return result;
 	}
 

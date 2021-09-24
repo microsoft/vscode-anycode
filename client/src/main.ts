@@ -112,6 +112,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	const disposables: vscode.Disposable[] = [];
 
 	const clientOptions: LanguageClientOptions = {
+		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},

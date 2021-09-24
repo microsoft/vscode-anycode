@@ -31,6 +31,10 @@ const messageWriter = new BrowserMessageWriter(self);
 
 const connection = createConnection(messageReader, messageWriter);
 
+// patch console.log/warn/error calls
+console.log = connection.console.log.bind(connection.console);
+console.warn = connection.console.warn.bind(connection.console);
+console.error = connection.console.error.bind(connection.console);
 
 const features: { register(connection: Connection): any }[] = [];
 
@@ -38,14 +42,13 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 
 	const initData = <InitOptions>params.initializationOptions;
 
-	// (1) init tree sitter before doing anything else
-	await Parser.init({
+	// (1) init tree sitter and languages before doing anything else
+	const options: object | undefined = {
 		locateFile() {
 			return initData.treeSitterWasmUri;
 		}
-	});
-
-	// (1) init supported languages and its queries
+	};
+	await Parser.init(options);
 	await Languages.init(initData.supportedLanguages);
 
 	// (2) setup features
@@ -74,12 +77,17 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 		return symbolIndex.update();
 	});
 
+	console.log('Tree-sitter, languages, and features are READY');
+
 	return {
 		capabilities: { textDocumentSync: TextDocumentSyncKind.Incremental }
 	};
 });
+
 connection.onInitialized(async () => {
 	for (let feature of features) {
 		feature.register(connection);
 	}
-}); connection.listen();
+});
+
+connection.listen();

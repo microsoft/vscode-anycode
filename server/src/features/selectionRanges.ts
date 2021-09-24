@@ -5,7 +5,7 @@
 
 import type Parser from '../../tree-sitter/tree-sitter';
 import * as lsp from 'vscode-languageserver';
-import { asLspRange as asLspRange, StopWatch } from '../common';
+import { asLspRange as asLspRange } from '../common';
 import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import Languages from '../languages';
@@ -27,7 +27,6 @@ export class SelectionRangesProvider {
 			return [];
 		}
 
-		const sw = new StopWatch();
 		const result: lsp.SelectionRange[] = [];
 
 		for (const position of params.positions) {
@@ -59,7 +58,7 @@ export class SelectionRangesProvider {
 				result.push(parent);
 			}
 		}
-		sw.elapsed('selection RANGES');
+
 		return result;
 	}
 
