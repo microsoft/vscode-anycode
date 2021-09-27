@@ -95,11 +95,11 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 		};
 		const selector = supportedLanguages.getSupportedLanguagesAsSelector();
 		const registrations = vscode.Disposable.from(
-			vscode.languages.registerCompletionItemProvider(selector, { provideCompletionItems: provideFyi }),
-			vscode.languages.registerDocumentSymbolProvider(selector, { provideDocumentSymbols: provideFyi }),
+			// vscode.languages.registerCompletionItemProvider(selector, { provideCompletionItems: provideFyi }),
+			// vscode.languages.registerDocumentSymbolProvider(selector, { provideDocumentSymbols: provideFyi }),
 			vscode.languages.registerDefinitionProvider(selector, { provideDefinition: provideFyi }),
 			vscode.languages.registerReferenceProvider(selector, { provideReferences: provideFyi }),
-			vscode.languages.registerWorkspaceSymbolProvider({ provideWorkspaceSymbols: provideFyi }),
+			// vscode.languages.registerWorkspaceSymbolProvider({ provideWorkspaceSymbols: provideFyi }),
 		);
 		disposables.push(registrations);
 	}
