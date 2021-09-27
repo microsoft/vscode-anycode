@@ -6,9 +6,11 @@
 (for_expression pattern: (identifier) @local)
 (reference_pattern (identifier) @local)
 (tuple_pattern (identifier) @local)
+(self_parameter (self) @local)
 
 (scoped_identifier name: (identifier) @usage.void)
 (identifier) @usage
+(self) @usage
 
 (mod_item body: (declaration_list) @scope)
 (for_expression) @scope

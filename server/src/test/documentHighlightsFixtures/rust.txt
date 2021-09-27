@@ -137,3 +137,9 @@ fn main() {
     let (x, [[y]], z) = tup;
     println!("The value of y is: {}", [[y]]);
 }
+--- self-parameter
+impl Encode {
+    pub fn as_str(&[[self]]) -> &str {
+        str::from_utf8(&[[self]].buf).unwrap()
+    }
+}
