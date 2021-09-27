@@ -9,8 +9,8 @@ The services provided by this extension are meant to be better than full text se
 | [Outline](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-symbol) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ 
 | [Workspace Symbol Search](https://code.visualstudio.com/docs/editor/editingevolved#_open-symbol-by-name) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | Anything that would show in outline can be found via workspace symbol search|
 | [Go to Definition](https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Reference Search | ⭕️ | ⭕️ | ✅ | ✅ | ⭕️ | ✅ | ✅ | ⭕️ | ✅ |
-| Document Highlights | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ⭕️<sup>1</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> |  <sup>1</sup> Identifiers with the same value are highlighted <sup>2</sup> Local variables and parameters are highlighted correctly else identifer-based highlights are used |
+| Reference Search | ⭕️ | ⭕️ | ✅ | ✅ | ⭕️ | ✅ | ✅ | ✅ | ✅ |
+| Document Highlights | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ✅<sup>2</sup> | ⭕️<sup>1</sup> | ⭕️<sup>1</sup> |  <sup>1</sup> Identifiers with the same value are highlighted <sup>2</sup> Local variables and parameters are highlighted correctly else identifer-based highlights are used |
 | [Completions](https://code.visualstudio.com/docs/editor/intellisense) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Expand/Shrink Selection | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | [Folding](https://code.visualstudio.com/docs/editor/codebasics#_folding) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
