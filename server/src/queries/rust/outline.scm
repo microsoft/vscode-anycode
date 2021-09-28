@@ -38,7 +38,4 @@
 	. (type_identifier) @class.name) @class
 
 (foreign_mod_item
-	[
-		(extern_modifier (string_literal) @namespace.name)
-		(extern_modifier) @namespace.name
-	]) @namespace
+	(extern_modifier (string_literal) @namespace.name)) @namespace
