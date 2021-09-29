@@ -34,3 +34,11 @@ func do(i interface{}) {
 		fmt.Printf("I don't know about type %T!\n", [[v]])
 	}
 }
+--- comments
+// Vertex
+type [[Vertex]] struct {
+	X, Y float64
+}
+func (v [[Vertex]]) Abs() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
