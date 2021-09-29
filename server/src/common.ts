@@ -5,6 +5,7 @@
 
 import * as lsp from 'vscode-languageserver';
 import type Parser from '../tree-sitter/tree-sitter';
+import { Query } from '../tree-sitter/tree-sitter';
 
 
 export type SymbolMapping = {
@@ -82,10 +83,34 @@ export function asLspRange(node: Parser.SyntaxNode): lsp.Range {
 	return lsp.Range.create(node.startPosition.row, node.startPosition.column, node.endPosition.row, node.endPosition.column);
 }
 
-export function nodeAtPosition(node: Parser.SyntaxNode, position: lsp.Position): Parser.SyntaxNode {
-	for (let child of node.children) {
-		if (containsPosition(asLspRange(child), position)) {
-			return nodeAtPosition(child, position);
+export function identifierAtPosition(identQuery: Parser.Query, node: Parser.SyntaxNode, position: lsp.Position): Parser.SyntaxNode | undefined {
+
+	// `foo|::bar` -> finds `::`
+	let candidate = nodeAtPosition(node, position, false);
+	let capture = identQuery.captures(candidate);
+	if (capture.length === 1) {
+		return candidate;
+	}
+
+	// `foo|::bar` -> finds `foo`
+	candidate = nodeAtPosition(node, position, true);
+	capture = identQuery.captures(candidate);
+	if (capture.length === 1) {
+		return candidate;
+	}
+	return undefined;
+}
+
+export function nodeAtPosition(node: Parser.SyntaxNode, position: lsp.Position, leftBias: boolean = false): Parser.SyntaxNode {
+	for (const child of node.children) {
+		const range = asLspRange(child);
+		if (isBeforeOrEqual(range.start, position)) {
+			if (isBefore(position, range.end)) {
+				return nodeAtPosition(child, position, leftBias);
+			}
+			if (leftBias && isBeforeOrEqual(position, range.end)) {
+				return nodeAtPosition(child, position, leftBias);
+			}
 		}
 	}
 	return node;
@@ -128,6 +153,10 @@ export function compareRangeByStart(a: lsp.Range, b: lsp.Range): number {
 
 export function containsPosition(range: lsp.Range, position: lsp.Position): boolean {
 	return isBeforeOrEqual(range.start, position) && isBeforeOrEqual(position, range.end);
+}
+
+export function containsPositionStrict(range: lsp.Range, position: lsp.Position): boolean {
+	return isBefore(range.start, position) && isBefore(position, range.end);
 }
 
 export function containsRange(range: lsp.Range, other: lsp.Range): boolean {

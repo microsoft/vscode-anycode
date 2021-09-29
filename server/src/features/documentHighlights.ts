@@ -9,7 +9,7 @@ import { DocumentStore } from '../documentStore';
 import { Locals } from './locals';
 import Languages from '../languages';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { asLspRange, nodeAtPosition } from '../common';
+import { asLspRange, identifierAtPosition } from '../common';
 
 export class DocumentHighlightsProvider {
 
@@ -54,9 +54,9 @@ export class DocumentHighlightsProvider {
 		}
 
 		const query = Languages.getQuery(document.languageId, 'identifiers');
-		const candidate = nodeAtPosition(tree.rootNode, position);
-		if (query.captures(candidate).length !== 1) {
-			// not one an identifier
+		const candidate = identifierAtPosition(query, tree.rootNode, position);
+		if (!candidate) {
+			// not on an identifier
 			return result;
 		}
 

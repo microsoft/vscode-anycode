@@ -9,7 +9,7 @@ import { Trees } from '../trees';
 import { DocumentStore } from '../documentStore';
 import { Locals } from './locals';
 import Languages from '../languages';
-import { containsPosition, nodeAtPosition } from '../common';
+import { containsPosition, identifierAtPosition } from '../common';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export class ReferencesProvider {
@@ -61,8 +61,8 @@ export class ReferencesProvider {
 		}
 
 		const query = Languages.getQuery(document.languageId, 'identifiers');
-		const candidate = nodeAtPosition(tree.rootNode, position);
-		if (query.captures(candidate).length !== 1) {
+		const candidate = identifierAtPosition(query, tree.rootNode, position);
+		if (!candidate) {
 			// not an identifier
 			return [];
 		}

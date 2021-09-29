@@ -8,7 +8,7 @@ import { DocumentStore } from '../documentStore';
 import { SymbolIndex } from './symbolIndex';
 import { Trees } from '../trees';
 import { Locals } from './locals';
-import { nodeAtPosition } from '../common';
+import { identifierAtPosition } from '../common';
 import Languages from '../languages';
 
 export class DefinitionProvider {
@@ -46,8 +46,8 @@ export class DefinitionProvider {
 		}
 
 		const query = Languages.getQuery(document.languageId, 'identifiers');
-		const candidate = nodeAtPosition(tree.rootNode, params.position);
-		if (query.captures(candidate).length !== 1) {
+		const candidate = identifierAtPosition(query, tree.rootNode, params.position);
+		if (!candidate) {
 			// not an identifier
 			return [];
 		}
