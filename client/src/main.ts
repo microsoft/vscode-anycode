@@ -152,13 +152,12 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	// stop on server-end
-	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, 0).then(async uris => {
-		uris = uris.slice(0, size); // https://github.com/microsoft/vscode-remotehub/issues/255
+	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
+	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 		await client.sendRequest('queue/init', uris.map(String));
 	}));
+	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
