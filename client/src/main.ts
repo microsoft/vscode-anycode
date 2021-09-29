@@ -53,7 +53,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	const continueOnAvailable = vscode.extensions.getExtension('github.remotehub-insiders');
 	const didShowExplainer = context.globalState.get(_mementoKey, false);
 
-	vscode.commands.registerCommand('anycode.resetDidShowMessage', () => context.globalState.update(_mementoKey, false));
+	disposables.push(vscode.commands.registerCommand('anycode.resetDidShowMessage', () => context.globalState.update(_mementoKey, false)));
 
 	// --- language status item
 
