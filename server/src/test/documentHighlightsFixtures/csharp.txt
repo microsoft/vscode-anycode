@@ -147,3 +147,20 @@ if (maybe is int [[number]])
 {
     Console.WriteLine($"The nullable int 'maybe' has the value {[[number]]}");
 }
+--- parameter array
+static class Foo {
+    public static string GenerateMessage(params string[] [[parts]])
+    {
+        switch ([[parts]].Length)
+        {
+            case 0:
+                return "No elements to the input";
+            case 1:
+                return $"One element: {[[parts]][0]}";
+            case 2:
+                return $"Two elements: {[[parts]][0]}, {[[parts]][1]}";
+            default:
+                return $"Many elements. Too many to write";
+        }
+    }
+}

@@ -1,5 +1,5 @@
-
 (parameter name: (identifier) @local)
+(parameter_array (identifier) @local)
 (variable_declarator (identifier) @local)
 (for_each_statement left: (identifier) @local)
 (query_expression [
