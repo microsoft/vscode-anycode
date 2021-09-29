@@ -1,6 +1,6 @@
 ## Anycode 
 
-A language extension that _inaccurately_ implements popular features like "Go to Definition", "Outline", or "Workspce Symbol Search". This extension should be used when running in enviroments that don't allow for running actual language services (like github.dev). 
+A language extension that _inaccurately_ implements popular features like "Go to Definition", "Outline", or "Workspace Symbol Search". This extension should be used when running in enviroments that don't allow for running actual language services (like github.dev). 
 
 The services provided by this extension are meant to be better than full text search but fall short when compared to real language services. The table below shows what features have been implemented for what language (various levels of completness apply), the following paragrath outlines how things are implemented.
 
