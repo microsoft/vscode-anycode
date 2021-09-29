@@ -20,3 +20,13 @@ var (
 var [[c]], [[python]], [[java]] bool
 --- type alias
 type [[MyFloat]] float64
+--- https://github.com/microsoft/vscode-anycode/issues/4
+func [[TestReverse]]() {
+	for _, c := range []struct {
+    	[[in]], [[want]] string
+    }{
+		{"",""}
+    }{
+		
+    }
+}
