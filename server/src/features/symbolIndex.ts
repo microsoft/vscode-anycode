@@ -190,7 +190,7 @@ export class SymbolIndex {
 	private async _doIndex(document: TextDocument): Promise<void> {
 
 		// (1) use outline information to feed the global index of definitions
-		const symbols = await Outline.create(document, this._trees);
+		const symbols = Outline.create(document, this._trees);
 		const walkSymbols = (symbols: lsp.DocumentSymbol[], parent: lsp.DocumentSymbol | undefined) => {
 			for (let symbol of symbols) {
 				const info = lsp.SymbolInformation.create(

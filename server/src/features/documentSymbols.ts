@@ -21,10 +21,8 @@ export class DocumentSymbols {
 	}
 
 	async provideDocumentSymbols(params: lsp.DocumentSymbolParams): Promise<lsp.DocumentSymbol[]> {
-
 		const document = await this._documents.retrieve(params.textDocument.uri);
 		return Outline.create(document, this._trees);
-
 	}
 }
 
@@ -39,7 +37,7 @@ class Node {
 
 export class Outline {
 
-	static async create(document: TextDocument, trees: Trees): Promise<lsp.DocumentSymbol[]> {
+	static create(document: TextDocument, trees: Trees): lsp.DocumentSymbol[] {
 
 		const tree = trees.getParseTree(document);
 		if (!tree) {
