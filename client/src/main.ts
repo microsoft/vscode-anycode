@@ -185,8 +185,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		} else {
 			data = await vscode.workspace.fs.readFile(uri);
 		}
-		const buffer = data.buffer.slice(data.byteOffset, data.byteLength);
-		return buffer;
+		return data;
 	});
 
 	return vscode.Disposable.from(...disposables);
