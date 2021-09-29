@@ -90,7 +90,6 @@ export class SupportedLanguages {
 
 				const featureConfig: FeatureConfig = {
 					...config.get<FeatureConfig>(`language.features`),
-					folding: true,
 					...overrideConfig,
 				};
 
@@ -99,7 +98,7 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				this._tuples.set(info, featureConfig);
+				this._tuples.set(info, { ...featureConfig, folding: true });
 			}
 		}
 
