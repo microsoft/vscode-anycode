@@ -32,7 +32,7 @@ export class ReferencesProvider {
 		const info = Locals.create(document, this._trees);
 		const scope = info.root.findScope(params.position);
 		const anchor = scope.findDefinitionOrUsage(params.position);
-		if (anchor) {
+		if (!scope.likelyExports && anchor) {
 			const definitions = scope.findDefinitions(anchor.name);
 			if (definitions.length > 0) {
 				const result: lsp.Location[] = [];

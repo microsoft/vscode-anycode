@@ -12,7 +12,7 @@
 (identifier) @usage
 (self) @usage
 
-(mod_item body: (declaration_list) @scope)
+(mod_item body: (declaration_list) @scope.exports)
 (for_expression) @scope
 (function_item (parameters) @scope)
 (function_item (block) @scope.merge)

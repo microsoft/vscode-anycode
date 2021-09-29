@@ -9,6 +9,7 @@
 (member_access_expression name: (identifier) @usage.void)
 (identifier) @usage
 
+(namespace_declaration body: (_) @scope.exports)
 (constructor_declaration parameters: (parameter_list) @scope) 
 (constructor_declaration body: (_) @scope.merge) 
 (method_declaration parameters: (parameter_list) @scope) 

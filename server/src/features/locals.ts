@@ -13,7 +13,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 export class Locals {
 
 	static create(document: TextDocument, trees: Trees): Locals {
-		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0));
+		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0), true);
 		const tree = trees.getParseTree(document);
 		if (!tree) {
 			return new Locals(document, root);
@@ -32,7 +32,7 @@ export class Locals {
 			if (capture.name.endsWith('.merge')) {
 				all[all.length - 1].range.end = range.end;
 			} else {
-				all.push(new Scope(range));
+				all.push(new Scope(range, capture.name.endsWith('.exports')));
 			}
 		}
 
@@ -195,8 +195,11 @@ export class Definition extends Node {
 
 export class Scope extends Node {
 
-	constructor(range: lsp.Range) {
+	readonly likelyExports: boolean;
+
+	constructor(range: lsp.Range, likelyExports: boolean) {
 		super(range, NodeType.Scope);
+		this.likelyExports = likelyExports;
 	}
 
 	*definitions() {
