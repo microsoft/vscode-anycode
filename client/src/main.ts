@@ -78,7 +78,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 			if (!continueOnAvailable) {
 				await vscode.window.showInformationMessage('Only basic language support is offered in this context, results may be inaccurate and incomplete.');
 			} else {
-				const ctnBtn = { title: 'Continue Elsewhere' };
+				const ctnBtn = { title: 'Continue On...' };
 				const selection = await vscode.window.showInformationMessage('Only basic language support is offered in this context, results may be inaccurate and incomplete. You can continue working on this remote repository elsewhere', ctnBtn);
 				if (selection === ctnBtn) {
 					vscode.commands.executeCommand(_continueOnCommand);
