@@ -12,7 +12,10 @@
 
 (function_definition
 	declarator: (function_declarator
-		(field_identifier) @function.name)) @function
+		[
+			(identifier) @function.name
+			(field_identifier) @function.name
+		])) @function
 
 (pointer_declarator
 	declarator: (function_declarator
