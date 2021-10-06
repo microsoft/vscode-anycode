@@ -61,6 +61,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
 	statusItem.text = `$(regex)`;
+
 	let tooltip: string;
 	if (continueOnAvailable) {
 		tooltip = `Only basic language support is offered for this file, you can [continue working on](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
@@ -68,6 +69,13 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 		tooltip = 'Only basic language support is offered for this file.';
 	}
 	statusItem.detail = tooltip;
+	statusItem.command = {
+		title: 'Learn More',
+		command: 'vscode.open',
+		arguments: [
+			vscode.Uri.parse('https://aka.ms/vscode-anycode'),
+		]
+	};
 
 
 	// --- notifications message on interaction
