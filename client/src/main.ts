@@ -60,13 +60,13 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	const statusItem = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
-	statusItem.text = `$(regex)`;
+	statusItem.text = `Partial Mode`;
 
 	let tooltip: string;
 	if (continueOnAvailable) {
-		tooltip = `Only basic language support is offered for this file, you can [continue working on](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
+		tooltip = `Language support for this file is inaccurate, you can [continue working on](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') this file elsewhere.`;
 	} else {
-		tooltip = 'Only basic language support is offered for this file.';
+		tooltip = 'Language support for this file is inaccurate.';
 	}
 	statusItem.detail = tooltip;
 	statusItem.command = {
