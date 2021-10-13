@@ -63,7 +63,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	statusItem.text = `Partial Mode`;
 
 	let tooltip: string;
-	if (continueOnAvailable || 1) {
+	if (continueOnAvailable) {
 		tooltip = `Language support for this file is inaccurate. You can [continue working](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') in a different environment`;
 	} else {
 		tooltip = 'Language support for this file is inaccurate.';
