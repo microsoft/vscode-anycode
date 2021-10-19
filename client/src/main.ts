@@ -48,9 +48,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 
 	const disposables: vscode.Disposable[] = [];
 
-	const _continueOnCommand = 'remoteHub.continueOn';
 	const _mementoKey = 'didShowMessage';
-	const continueOnAvailable = vscode.extensions.getExtension('github.remotehub-insiders');
 	const didShowExplainer = context.globalState.get(_mementoKey, false);
 
 	disposables.push(vscode.commands.registerCommand('anycode.resetDidShowMessage', () => context.globalState.update(_mementoKey, false)));
@@ -61,14 +59,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
 	statusItem.text = `Partial Mode`;
-
-	let tooltip: string;
-	if (continueOnAvailable) {
-		tooltip = `Language support for this file is inaccurate. You can [continue working](command:${_continueOnCommand} \'Continue working on this remote repository elsewhere\') in a different environment`;
-	} else {
-		tooltip = 'Language support for this file is inaccurate.';
-	}
-	statusItem.detail = tooltip;
+	statusItem.detail = 'Language support for this file is inaccurate.';
 	statusItem.command = {
 		title: 'Learn More',
 		command: 'vscode.open',
@@ -83,15 +74,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	if (!didShowExplainer) {
 
 		async function showMessage() {
-			if (!continueOnAvailable) {
-				await vscode.window.showInformationMessage('Language support is inaccurate in this context, results may be imprecise and incomplete.');
-			} else {
-				const ctnBtn = { title: 'Continue On...' };
-				const selection = await vscode.window.showInformationMessage('Language support is inaccurate in this context, results may be imprecise and incomplete. You can continue working in a different environment', ctnBtn);
-				if (selection === ctnBtn) {
-					vscode.commands.executeCommand(_continueOnCommand);
-				}
-			}
+			await vscode.window.showInformationMessage('Language support is inaccurate in this context, results may be imprecise and incomplete.');
 		};
 
 		const provideFyi = async () => {
