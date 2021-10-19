@@ -2,7 +2,7 @@
 
 A [Tree-sitter](https://tree-sitter.github.io/tree-sitter/)-based language extension that _inaccurately_ implements popular features like "Outline & Breadcrumbs", "Go to Symbol in Workspace", "Document Highlights" and more. This extension should be used when running in enviroments that don't allow for running actual language services, like http://github.dev. 
 
-The features provided by this extension are meant to be better than full text search, but fall short when compared to real language services. The table below shows what features have been implemented for what language. The following paragrath outlines how things are implemented.
+The features provided by this extension are meant to be better than full text search, but fall short when compared to real language services. The table below shows what features have been implemented for what language. The following paragraph outlines how things are implemented.
 
 |  | `rust` | `go` | `csharp` | `java` | `php` | `c` | `cpp` |
 |---|---|---|---|---|---|---|---|
