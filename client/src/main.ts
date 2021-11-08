@@ -7,9 +7,11 @@ import * as vscode from 'vscode';
 import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/browser';
 import { SupportedLanguages } from './supportedLanguages';
+import TelemetryReporter from 'vscode-extension-telemetry';
 
 export function activate(context: vscode.ExtensionContext) {
 
+	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
 	const supportedLanguages = new SupportedLanguages(context);
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
@@ -17,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function startServer() {
 		serverHandles.push(
-			_startServer(context.extensionUri, supportedLanguages),
+			_startServer(context.extensionUri, supportedLanguages, telemetry),
 			_showStatusAndInfo(context, supportedLanguages)
 		);
 	}
@@ -98,9 +100,19 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	return vscode.Disposable.from(...disposables);
 }
 
-async function _startServer(extensionUri: vscode.Uri, supportedLanguages: SupportedLanguages): Promise<vscode.Disposable> {
+async function _startServer(extensionUri: vscode.Uri, supportedLanguages: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
 
 	const disposables: vscode.Disposable[] = [];
+
+	function _sendFeatureTelementry(name: string, language: string) {
+		/* __GDPR__
+			"feature" : {
+				"name" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
+				"language" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
+			}
+		*/
+		telemetry.sendTelemetryEvent('feature', { name, language });
+	}
 
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
@@ -111,6 +123,24 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages: supportedLanguages.getSupportedLanguages()
 		},
+		middleware: {
+			provideWorkspaceSymbols(query, token, next) {
+				_sendFeatureTelementry('workspaceSymbols', '');
+				return next(query, token);
+			},
+			provideDefinition(document, position, token, next) {
+				_sendFeatureTelementry('definition', document.languageId);
+				return next(document, position, token);
+			},
+			provideReferences(document, position, options, token, next) {
+				_sendFeatureTelementry('references', document.languageId);
+				return next(document, position, options, token);
+			},
+			provideDocumentHighlights(document, position, token, next) {
+				_sendFeatureTelementry('documentHighlights', document.languageId);
+				return next(document, position, token);
+			}
+		}
 	};
 
 	const serverMain = vscode.Uri.joinPath(extensionUri, 'dist/anycode.server.js');
@@ -144,9 +174,17 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	].join(',')}}`;
 
 	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size).then(async uris => {
+	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size + 1).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 		await client.sendRequest('queue/init', uris.map(String));
+		/* __GDPR__
+			"init" : {
+				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
+				"indexSize" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
+			}
+		*/
+		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size });
+
 	}));
 	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
