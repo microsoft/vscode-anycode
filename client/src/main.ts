@@ -179,7 +179,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		await client.sendRequest('queue/init', uris.map(String));
 		/* __GDPR__
 			"init" : {
-				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
+				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
 				"indexSize" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
 			}
 		*/
