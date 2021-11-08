@@ -107,7 +107,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	function _sendFeatureTelementry(name: string, language: string) {
 		/* __GDPR__
 			"feature" : {
-				"name" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
+				"name" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" },
 				"language" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 			}
 		*/
