@@ -176,14 +176,17 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
 	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size + 1).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
+
+		const t1 = performance.now();
 		await client.sendRequest('queue/init', uris.map(String));
 		/* __GDPR__
 			"init" : {
 				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
-				"indexSize" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
+				"indexSize" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
+				"duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
 			}
 		*/
-		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size });
+		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size, duration: performance.now() - t1 });
 
 	}));
 	// stop on server-end
