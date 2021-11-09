@@ -61,8 +61,8 @@ export class ReferencesProvider {
 		}
 
 		const query = Languages.getQuery(document.languageId, 'identifiers');
-		const candidate = identifierAtPosition(query, tree.rootNode, position);
-		if (!candidate) {
+		const ident = identifierAtPosition(query, tree.rootNode, position)?.text;
+		if (!ident) {
 			// not an identifier
 			return [];
 		}
@@ -73,7 +73,7 @@ export class ReferencesProvider {
 		const result: lsp.Location[] = [];
 		let seenAsUsage = false;
 		let seenAsDef = false;
-		const usages = this._symbols.usages.get(candidate.text) ?? [];
+		const usages = this._symbols.usages.get(ident) ?? [];
 		for (let usage of usages) {
 			seenAsUsage = seenAsUsage || containsPosition(usage.range, position);
 			if (Languages.getLanguageIdByUri(usage.uri) === document.languageId) {
@@ -84,7 +84,7 @@ export class ReferencesProvider {
 			}
 		}
 
-		const definitions = this._symbols.definitions.get(candidate.text) ?? [];
+		const definitions = this._symbols.definitions.get(ident) ?? [];
 		for (const { location } of definitions) {
 			seenAsDef = seenAsDef || containsPosition(location.range, position);
 			if (includeDeclaration) {

@@ -49,6 +49,9 @@ class Cache {
 	}
 
 	insertDefinition(text: string, definition: lsp.SymbolInformation): void {
+		if (text === 'DebugLauncher') {
+			console.trace('HERE');
+		}
 		let all = this._definitions.get(text);
 		if (all) {
 			all.add(definition);
@@ -177,7 +180,7 @@ export class SymbolIndex {
 
 			const _t1Index = performance.now();
 			try {
-				await this._doIndex(document);
+				this._doIndex(document);
 			} catch (e) {
 				console.log(`FAILED to index ${uri}`, e);
 			}
@@ -187,7 +190,7 @@ export class SymbolIndex {
 		};
 	}
 
-	private async _doIndex(document: TextDocument): Promise<void> {
+	private _doIndex(document: TextDocument): void {
 
 		// (1) use outline information to feed the global index of definitions
 		const symbols = Outline.create(document, this._trees);

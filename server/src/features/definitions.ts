@@ -46,8 +46,8 @@ export class DefinitionProvider {
 		}
 
 		const query = Languages.getQuery(document.languageId, 'identifiers');
-		const candidate = identifierAtPosition(query, tree.rootNode, params.position);
-		if (!candidate) {
+		const ident = identifierAtPosition(query, tree.rootNode, params.position)?.text;
+		if (!ident) {
 			// not an identifier
 			return [];
 		}
@@ -56,7 +56,7 @@ export class DefinitionProvider {
 
 		let sameLanguageOffset = 0;
 		const result: lsp.Location[] = [];
-		const all = this._symbols.definitions.get(candidate.text) ?? [];
+		const all = this._symbols.definitions.get(ident) ?? [];
 		for (const symbol of all) {
 			const isSameLanguage = Languages.getLanguageIdByUri(symbol.location.uri) === document.languageId;
 			if (isSameLanguage) {
