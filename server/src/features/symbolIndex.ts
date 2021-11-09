@@ -49,9 +49,6 @@ class Cache {
 	}
 
 	insertDefinition(text: string, definition: lsp.SymbolInformation): void {
-		if (text === 'DebugLauncher') {
-			console.trace('HERE');
-		}
 		let all = this._definitions.get(text);
 		if (all) {
 			all.add(definition);
