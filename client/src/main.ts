@@ -173,8 +173,9 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
+	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
 	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size + 1).then(async uris => {
+	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, remoteHub ? undefined : size + 1).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
@@ -189,6 +190,11 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size, duration: performance.now() - t1 });
 
 	}));
+	// if RemoteHub is installed, wait for all workspaces' contents to finish loading before initializing
+	const remoteHubApi = await remoteHub?.activate();
+	if (remoteHubApi && remoteHubApi.workspaceContentsLoaded && vscode.workspace.workspaceFolders) {
+		init = Promise.all(vscode.workspace.workspaceFolders.map(folder => remoteHubApi.workspaceContentsLoaded(folder.uri))).then(async () => init);
+	}
 	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
