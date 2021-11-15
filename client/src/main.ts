@@ -177,8 +177,8 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	// do not set a maxResults limit if RemoteHub has the full workspace contents
 	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
 	const remoteHubApi = await remoteHub?.activate();
-	let hasFullWorkspaceContents = false;
-	if (remoteHubApi && remoteHubApi.hasWorkspaceContents && vscode.workspace.workspaceFolders) {
+	let hasFullWorkspaceContents = true;
+	if (remoteHubApi?.hasWorkspaceContents && vscode.workspace.workspaceFolders) {
 		for (const folder of vscode.workspace.workspaceFolders) {
 			hasFullWorkspaceContents = hasFullWorkspaceContents && (await remoteHubApi.hasWorkspaceContents(folder.uri));
 		}
