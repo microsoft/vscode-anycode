@@ -173,8 +173,17 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	const size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
-	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size + 1).then(async uris => {
+	let size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
+	// do not set a maxResults limit if RemoteHub has the full workspace contents
+	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
+	const remoteHubApi = await remoteHub?.activate();
+	let hasFullWorkspaceContents = true;
+	if (remoteHubApi?.hasWorkspaceContents && vscode.workspace.workspaceFolders) {
+		for (const folder of vscode.workspace.workspaceFolders) {
+			hasFullWorkspaceContents = hasFullWorkspaceContents && (await remoteHubApi.hasWorkspaceContents(folder.uri));
+		}
+	}
+	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, hasFullWorkspaceContents ? undefined : size + 1).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
