@@ -173,7 +173,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	let size = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
+	let size: number | undefined = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
 	// do not set a maxResults limit if RemoteHub has the full workspace contents
 	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
 	const remoteHubApi = await remoteHub?.activate();
@@ -183,7 +183,12 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 			hasFullWorkspaceContents = hasFullWorkspaceContents && (await remoteHubApi.hasWorkspaceContents(folder.uri));
 		}
 	}
-	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, hasFullWorkspaceContents ? undefined : size + 1).then(async uris => {
+	if (hasFullWorkspaceContents) {
+		size = undefined;
+	} else {
+		size += 1;
+	}
+	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, size).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
@@ -195,7 +200,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 				"duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
 			}
 		*/
-		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size, duration: performance.now() - t1 });
+		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: size ?? -1, duration: performance.now() - t1 });
 
 	}));
 	// stop on server-end
