@@ -21,8 +21,15 @@ export class WorkspaceSymbol {
 		await this._symbols.update();
 
 		const all = this._symbols.definitions.query(Array.from(params.query));
+		let totalLen = 0;
 		for (let [, symbols] of all) {
-			result.push(Array.from(symbols));
+			const arr = Array.from(symbols);
+			result.push(arr);
+			totalLen += arr.length;
+
+			if (totalLen > 20_000) {
+				break;
+			}
 		}
 
 		return result.flat();

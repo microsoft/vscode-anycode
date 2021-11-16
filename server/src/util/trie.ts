@@ -15,7 +15,7 @@ export interface ReadonlyTrie<E> {
 	[Symbol.iterator](): IterableIterator<[string, E]>;
 }
 
-export class Trie<E> {
+export class Trie<E> implements ReadonlyTrie<E> {
 
 	static create<E>(): Trie<E> {
 		return new Trie('', undefined);
@@ -146,16 +146,16 @@ export class Trie<E> {
 		}
 	}
 
-	private *_entries(): IterableIterator<[string, E]> {
-		if (this.element) {
-			yield [this.element.key, this.element.value];
+	*[Symbol.iterator](): IterableIterator<[string, E]> {
+		const stack: Trie<E>[] = [this];
+		while (stack.length > 0) {
+			const node = stack.shift()!;
+			if (node.element) {
+				yield [node.element.key, node.element.value];
+			}
+			for (let child of node._children.values()) {
+				stack.push(child);
+			}
 		}
-		for (let child of this._children.values()) {
-			yield* child._entries();
-		}
-	}
-
-	[Symbol.iterator](): IterableIterator<[string, E]> {
-		return this._entries();
 	}
 }
