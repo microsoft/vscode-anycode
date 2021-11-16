@@ -173,7 +173,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	let size: number | undefined = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 100));
+	let size: number | undefined = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
 	// do not set a maxResults limit if RemoteHub has the full workspace contents
 	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
 	const remoteHubApi = await remoteHub?.activate();
