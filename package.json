@@ -37,7 +37,7 @@
 			"properties": {
 				"anycode.symbolIndexSize": {
 					"type": "number",
-					"default": 100,
+					"default": 500,
 					"minimum": 0,
 					"markdownDescription": "Size of the index that is used for features like symbol search and go to definition."
 				},
