@@ -192,10 +192,16 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 			"init" : {
 				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
 				"indexSize" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
+				"hasWorkspaceContents" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
 				"duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
 			}
 		*/
-		telemetry.sendTelemetryEvent('init', undefined, { numOfFiles: uris.length, indexSize: hasFullWorkspaceContents ? -1 : size, duration: performance.now() - t1 });
+		telemetry.sendTelemetryEvent('init', undefined, {
+			numOfFiles: uris.length,
+			indexSize: hasFullWorkspaceContents ? -1 : size,
+			hasWorkspaceContents: hasFullWorkspaceContents ? 1 : 0,
+			duration: performance.now() - t1,
+		});
 
 	}));
 	// stop on server-end
