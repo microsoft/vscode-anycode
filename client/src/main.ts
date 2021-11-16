@@ -174,17 +174,10 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	].join(',')}}`;
 
 	const size: number = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
+
 	// do not set a maxResults limit if RemoteHub has the full workspace contents
-	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
-	const remoteHubApi = await remoteHub?.activate();
-	let hasFullWorkspaceContents = true;
-	if (remoteHubApi?.hasWorkspaceContents && vscode.workspace.workspaceFolders) {
-		for (const folder of vscode.workspace.workspaceFolders) {
-			hasFullWorkspaceContents = hasFullWorkspaceContents && (await remoteHubApi.hasWorkspaceContents(folder.uri));
-		}
-	} else {
-		hasFullWorkspaceContents = false;
-	}
+	const hasFullWorkspaceContents = await _hasFullWorkspaceContents();
+
 	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, hasFullWorkspaceContents ? undefined : size + 1).then(async uris => {
 		console.info(`FOUND ${uris.length} files for ${langPattern}`);
 
@@ -237,4 +230,23 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 	});
 
 	return vscode.Disposable.from(...disposables);
+}
+
+async function _hasFullWorkspaceContents() {
+	if (!vscode.workspace.workspaceFolders) {
+		// no workspace
+		return false;
+	}
+	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
+	const remoteHubApi = await remoteHub?.activate();
+	if (!remoteHubApi?.hasWorkspaceContents) {
+		// no remotehub or bad version
+		return false;
+	}
+	for (const folder of vscode.workspace.workspaceFolders) {
+		if (!await remoteHubApi.hasWorkspaceContents(folder.uri)) {
+			return false;
+		}
+	}
+	return true;
 }
