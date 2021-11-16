@@ -28,8 +28,8 @@ export interface FeatureConfig {
 export class SupportedLanguages {
 
 	private readonly _overrideConfigurations = new Map<string, { extension: string, config: FeatureConfig }>([
-		['python', { extension: 'ms-python.python', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: false } }],
-		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: false } }]
+		['python', { extension: 'ms-python.python', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: true } }],
+		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: false, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: true } }]
 	]);
 
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
