@@ -117,18 +117,23 @@ export class Trie<E> implements ReadonlyTrie<E> {
 
 	*query(str: string[]): IterableIterator<[string, E]> {
 		let bucket = new Set<Trie<E>>();
-		this._query(str, 0, bucket);
+		this._query(str, 0, 0, bucket);
 		for (let item of bucket) {
 			yield* item;
 		}
 	}
 
-	private _query(str: string[], pos: number, bucket: Set<Trie<E>>) {
+	private _query(str: string[], pos: number, skipped: number, bucket: Set<Trie<E>>) {
 		if (bucket.has(this)) {
 			return;
 		}
 		if (pos >= str.length) {
 			bucket.add(this);
+			return;
+		}
+		if (skipped > 10) {
+			// skipped too many times! 
+			// this is the safeguard for super long text nodes would be traversed forever
 			return;
 		}
 		if (str.length - pos > this._depth) {
@@ -137,11 +142,11 @@ export class Trie<E> implements ReadonlyTrie<E> {
 		}
 		for (let [ch, child] of this._children) {
 			if (ch.toLowerCase() === str[pos].toLowerCase()) {
-				child._query(str, pos + 1, bucket);
+				child._query(str, pos + 1, skipped, bucket);
 			}
 			if (pos > 0) {
 				// only proceed fuzzy if the first character has matched
-				child._query(str, pos, bucket);
+				child._query(str, pos, skipped + 1, bucket);
 			}
 		}
 	}
