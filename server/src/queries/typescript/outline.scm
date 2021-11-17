@@ -12,6 +12,7 @@
 
 (new_expression
 	constructor: (class
+		name: (type_identifier)? @class.name
 		body: (class_body)) @class)
 
 (method_definition

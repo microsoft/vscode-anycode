@@ -7,3 +7,8 @@ declare module [['fff']] {
 }
 --- type alias
 type [[FooDooBarBazz]] = number;
+--- class types
+const [[nullReporter]] = new class [[NullTelemetryReporter]] implements TelemetryReporter {
+	[[sendTelemetryEvent]]() { /** noop */ }
+	[[dispose]]() { /** noop */ }
+};
