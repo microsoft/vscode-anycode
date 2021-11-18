@@ -8,7 +8,7 @@ import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } 
 import Parser from '../tree-sitter/tree-sitter';
 import { Trees } from './trees';
 import { DocumentSymbols } from './features/documentSymbols';
-import { SymbolIndex } from './features/symbolIndex';
+import { IndexedCache, SymbolIndex } from './features/symbolIndex';
 import { SelectionRangesProvider } from './features/selectionRanges';
 import { CompletionItemProvider } from './features/completions';
 import { WorkspaceSymbol } from './features/workspaceSymbols';
@@ -23,7 +23,8 @@ import { LanguageConfiguration } from './common';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
-	supportedLanguages: LanguageConfiguration
+	supportedLanguages: LanguageConfiguration,
+	databaseName: string;
 };
 
 const messageReader = new BrowserMessageReader(self);
@@ -51,10 +52,15 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	await Parser.init(options);
 	await Languages.init(initData.supportedLanguages);
 
+	// indexeddb for analysis results
+	const indexeddbCache = new IndexedCache(initData.databaseName);
+	await indexeddbCache.open();
+	connection.onExit(() => indexeddbCache.close());
+
 	// (2) setup features
 	const documents = new DocumentStore(connection);
 	const trees = new Trees(documents);
-	const symbolIndex = new SymbolIndex(trees, documents);
+	const symbolIndex = new SymbolIndex(trees, documents, indexeddbCache);
 
 	features.push(new WorkspaceSymbol(symbolIndex));
 	features.push(new DocumentSymbols(documents, trees));
@@ -73,8 +79,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	connection.onNotification('queue/remove', uris => symbolIndex.removeFile(uris));
 	connection.onNotification('queue/add', uris => symbolIndex.addFile(uris));
 	connection.onRequest('queue/init', uris => {
-		symbolIndex.addFile(uris);
-		return symbolIndex.update();
+		return symbolIndex.initFiles(uris);
 	});
 
 	console.log('Tree-sitter, languages, and features are READY');

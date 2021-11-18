@@ -11,6 +11,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore } from '../documentStore';
 import { Outline } from './documentSymbols';
 import Languages from '../languages';
+import { resolve } from 'path/posix';
 
 class Queue {
 
@@ -102,6 +103,122 @@ class Cache {
 	}
 }
 
+interface IndexedEntry {
+	definitions: lsp.SymbolInformation[],
+	usages: { name: string, location: lsp.Location }[]
+}
+
+export class IndexedCache {
+
+	private readonly _version = 1;
+	private readonly _store = 'definitionsAndUsages';
+	private _db?: IDBDatabase;
+
+	constructor(private readonly _name: string) { }
+
+	async open() {
+
+		if (this._db) {
+			return;
+		}
+
+		await new Promise((resolve, reject) => {
+			const request = indexedDB.open(this._name, this._version);
+			request.onerror = () => reject(request.error);
+			request.onsuccess = () => {
+				const db = request.result;
+				if (!db.objectStoreNames.contains(this._store)) {
+					console.error(`Error while opening IndexedDB. Could not find '${this._store}' object store`);
+					return resolve(this._delete(db).then(() => this.open()));
+				} else {
+					resolve(undefined);
+					this._db = db;
+				}
+			};
+			request.onupgradeneeded = () => {
+				const db = request.result;
+				if (!db.objectStoreNames.contains(this._store)) {
+					db.createObjectStore(this._store);
+				}
+			};
+		});
+	}
+
+	close(): void {
+		if (this._db) {
+			this._db.close();
+		}
+	}
+
+	private _delete(db: IDBDatabase): Promise<void> {
+		return new Promise((resolve, reject) => {
+			// Close any opened connections
+			db.close();
+
+			// Delete the db
+			const deleteRequest = indexedDB.deleteDatabase(this._name);
+			deleteRequest.onerror = () => reject(deleteRequest.error);
+			deleteRequest.onsuccess = () => resolve();
+		});
+	}
+
+	insert(entries: Map<string, IndexedEntry>) {
+		if (!this._db) {
+			throw new Error('invalid state');
+		}
+		const t = this._db.transaction(this._store, 'readwrite');
+		for (let [uri, entry] of entries) {
+			t.objectStore(this._store).put(JSON.stringify(entry), uri);
+		}
+		return new Promise((resolve, reject) => {
+			t.oncomplete = () => resolve(undefined);
+			t.onerror = (err) => reject(err);
+		});
+	}
+
+	getAll(): Promise<Map<string, IndexedEntry>> {
+		if (!this._db) {
+			throw new Error('invalid state');
+		}
+		const entries = new Map<string, IndexedEntry>();
+		const t = this._db.transaction(this._store, 'readonly');
+
+		return new Promise((resolve, reject) => {
+			const store = t.objectStore(this._store);
+			const cursor = store.openCursor();
+			cursor.onsuccess = () => {
+				if (!cursor.result) {
+					resolve(entries);
+					return;
+				}
+				entries.set(String(cursor.result.key), JSON.parse(cursor.result.value));
+				cursor.result.continue();
+			};
+
+			cursor.onerror = () => reject(cursor.error);
+			t.onerror = () => reject(t.error);
+		});
+	}
+
+	delete(uris: Set<string>) {
+		if (!this._db) {
+			throw new Error('invalid state');
+		}
+		const entries = new Map<string, IndexedEntry>();
+		const t = this._db.transaction(this._store, 'readwrite');
+		const store = t.objectStore(this._store);
+
+		for (const uri of uris) {
+			const request = store.delete(uri);
+			request.onerror = e => console.error(e);
+		}
+		return new Promise((resolve, reject) => {
+			t.oncomplete = () => resolve(entries);
+			t.onerror = (err) => reject(err);
+		});
+	}
+}
+
 export class SymbolIndex {
 
 	private readonly _cache = new Cache();
@@ -109,7 +226,8 @@ export class SymbolIndex {
 
 	constructor(
 		private readonly _trees: Trees,
-		private readonly _documents: DocumentStore
+		private readonly _documents: DocumentStore,
+		private readonly _persistedCache: IndexedCache
 	) { }
 
 	get definitions(): ReadonlyTrie<Set<lsp.SymbolInformation>> {
@@ -187,7 +305,12 @@ export class SymbolIndex {
 		};
 	}
 
+	private _persistData = new Map<string, IndexedEntry>();
+	private _persistTimer: any;
+
 	private _doIndex(document: TextDocument): void {
+
+		const dbEntry: IndexedEntry = { definitions: [], usages: [] };
 
 		// (1) use outline information to feed the global index of definitions
 		const symbols = Outline.create(document, this._trees);
@@ -204,6 +327,7 @@ export class SymbolIndex {
 					walkSymbols(symbol.children, symbol);
 				}
 				this._cache.insertDefinition(info.name, info);
+				dbEntry.definitions.push(info);
 			}
 		};
 		walkSymbols(symbols, undefined);
@@ -215,9 +339,57 @@ export class SymbolIndex {
 			const captures = query.captures(tree.rootNode);
 
 			for (let capture of captures) {
-				const usage = lsp.Location.create(document.uri, asLspRange(capture.node));
-				this._cache.insertUsage(capture.node.text, usage);
+				const location = lsp.Location.create(document.uri, asLspRange(capture.node));
+				this._cache.insertUsage(capture.node.text, location);
+				dbEntry.usages.push({ name: capture.node.text, location });
 			}
 		}
+
+		// (3) persist in indexeddb
+		this._persistData.set(document.uri, dbEntry);
+		clearTimeout(this._persistTimer);
+		this._persistTimer = setTimeout(() => {
+			//TODO@jrieken document-hash!
+			const data = new Map(this._persistData);
+			this._persistData.clear();
+			this._persistedCache.insert(data).catch(err => {
+				console.error('FAILED to update INDEXED_DB');
+				console.error(err);
+			});
+		}, 100);
+	}
+
+	async initFiles(_uris: string[]) {
+		const uris = new Set(_uris);
+		const sw = new StopWatch();
+
+		console.log(`[index] building index for ${uris.size} files.`);
+		const obsolete = new Set<string>();
+		const persisted = await this._persistedCache.getAll();
+
+		for (const [uri, entry] of persisted) {
+			if (!uris.delete(uri)) {
+				// this file isn't requested anymore, skip and remove later
+				obsolete.add(uri);
+				continue;
+			}
+			for (let def of entry.definitions) {
+				this._cache.insertDefinition(def.name, def);
+			}
+			for (let usage of entry.usages) {
+				this._cache.insertUsage(usage.name, usage.location);
+			}
+		}
+
+		if (uris.size > 0) {
+			this.addFile([...uris]);
+		}
+		if (obsolete.size > 0) {
+			await this._persistedCache.delete(obsolete);
+		}
+
+		console.log(`[index] added FROM CACHE ${persisted.size} files ${sw.elapsed()}ms\n\t${uris.size} files still need to be fetched\n\t${obsolete.size} files are obsolete in cache`);
+
+		await this.update();
 	}
 }

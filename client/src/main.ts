@@ -19,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function startServer() {
 		serverHandles.push(
-			_startServer(context.extensionUri, supportedLanguages, telemetry),
+			_startServer(context, supportedLanguages, telemetry),
 			_showStatusAndInfo(context, supportedLanguages)
 		);
 	}
@@ -100,7 +100,7 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	return vscode.Disposable.from(...disposables);
 }
 
-async function _startServer(extensionUri: vscode.Uri, supportedLanguages: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
+async function _startServer(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
 
 	const disposables: vscode.Disposable[] = [];
 
@@ -114,14 +114,18 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		telemetry.sendTelemetryEvent('feature', { name, language });
 	}
 
+	const databaseName = context.workspaceState.get('databaseName', `anycode_cache_${Math.random().toString(32).slice(2)}`);
+	context.workspaceState.update('databaseName', databaseName);
+
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
-			treeSitterWasmUri: vscode.Uri.joinPath(extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
-			supportedLanguages: supportedLanguages.getSupportedLanguages()
+			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
+			supportedLanguages: supportedLanguages.getSupportedLanguages(),
+			databaseName
 		},
 		middleware: {
 			provideWorkspaceSymbols(query, token, next) {
@@ -143,7 +147,7 @@ async function _startServer(extensionUri: vscode.Uri, supportedLanguages: Suppor
 		}
 	};
 
-	const serverMain = vscode.Uri.joinPath(extensionUri, 'dist/anycode.server.js');
+	const serverMain = vscode.Uri.joinPath(context.extensionUri, 'dist/anycode.server.js');
 	const worker = new Worker(serverMain.toString());
 	const client = new LanguageClient('anycode', 'anycode', clientOptions, worker);
 
