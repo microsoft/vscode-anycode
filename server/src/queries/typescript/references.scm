@@ -1,5 +1,5 @@
-(property_identifier) @ref.field
-(type_identifier) @ref.type
+(property_identifier) @ref.field.method
+(type_identifier) @ref.class.interface.enum
 (new_expression
 	constructor: (identifier) @ref.class)
-(call_expression (identifier) @ref.call)
+(call_expression (identifier) @ref.function)
