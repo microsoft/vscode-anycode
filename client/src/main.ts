@@ -208,14 +208,14 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	disposables.push(watcher.onDidCreate(uri => {
-		client.sendNotification('queue/add', [uri.toString()]);
+		client.sendNotification('queue/add', uri.toString());
 	}));
 	disposables.push(watcher.onDidDelete(uri => {
-		client.sendNotification('queue/remove', [uri.toString()]);
+		client.sendNotification('queue/remove', uri.toString());
 		client.sendNotification('file-cache/remove', uri.toString());
 	}));
 	disposables.push(watcher.onDidChange(uri => {
-		client.sendNotification('queue/add', [uri.toString()]);
+		client.sendNotification('queue/add', uri.toString());
 		client.sendNotification('file-cache/remove', uri.toString());
 	}));
 

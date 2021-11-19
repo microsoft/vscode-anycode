@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { SymbolIndex } from './symbolIndex';
-import { Trees } from '../trees';
-import { DocumentStore } from '../documentStore';
-import { Locals } from './locals';
-import Languages from '../languages';
-import { containsPosition, identifierAtPosition } from '../common';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { asLspRange, containsPosition, identifierAtPosition } from '../common';
+import { DocumentStore } from '../documentStore';
+import Languages from '../languages';
+import { Trees } from '../trees';
+import { Locals } from './locals';
+import { SymbolIndex } from './symbolIndex';
 
 export class ReferencesProvider {
 
@@ -67,33 +67,21 @@ export class ReferencesProvider {
 			return [];
 		}
 
-		await this._symbols.update();
-
-		let sameLanguageOffset = 0;
 		const result: lsp.Location[] = [];
 		let seenAsUsage = false;
 		let seenAsDef = false;
-		const usages = this._symbols.usages.get(ident) ?? [];
+
+		const usages = await this._symbols.getUsages(ident, document);
 		for (let usage of usages) {
 			seenAsUsage = seenAsUsage || containsPosition(usage.range, position);
-			if (Languages.getLanguageIdByUri(usage.uri) === document.languageId) {
-				result.unshift(usage);
-				sameLanguageOffset++;
-			} else {
-				result.push(usage);
-			}
+			result.push(usage);
 		}
 
-		const definitions = this._symbols.definitions.get(ident) ?? [];
+		const definitions = await this._symbols.getDefinitions(ident, document);
 		for (const { location } of definitions) {
 			seenAsDef = seenAsDef || containsPosition(location.range, position);
 			if (includeDeclaration) {
-				if (Languages.getLanguageIdByUri(location.uri) === document.languageId) {
-					result.unshift(location);
-					sameLanguageOffset++;
-				} else {
-					result.push(location);
-				}
+				result.push(location);
 			}
 		}
 
@@ -102,8 +90,36 @@ export class ReferencesProvider {
 			return [];
 		}
 
-		// only return results that are of the same language unless there are only 
-		// results from other languages
-		return result.slice(0, sameLanguageOffset || undefined);
+		return result;
 	}
+}
+
+export interface IUsage {
+	name: string;
+	range: lsp.Range;
+	kind: lsp.SymbolKind;
+}
+
+export function getDocumentUsages(document: TextDocument, trees: Trees): IUsage[] {
+	const tree = trees.getParseTree(document);
+	if (!tree) {
+		return [];
+	}
+
+	const query = Languages.getQuery(document.languageId, 'references');
+	const captures = query.captures(tree.rootNode);
+
+	const result: IUsage[] = [];
+
+	for (let capture of captures) {
+		const name = capture.node.text;
+		const range = asLspRange(capture.node);
+		result.push({
+			name,
+			range,
+			kind: lsp.SymbolKind.File
+		});
+	}
+
+	return result;
 }

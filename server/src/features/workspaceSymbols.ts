@@ -16,22 +16,27 @@ export class WorkspaceSymbol {
 	}
 
 	async provideWorkspaceSymbols(params: lsp.WorkspaceSymbolParams): Promise<lsp.SymbolInformation[]> {
-		const result: lsp.SymbolInformation[][] = [];
+		const result: lsp.SymbolInformation[] = [];
 
 		await this._symbols.update();
 
-		const all = this._symbols.definitions.query(Array.from(params.query));
-		let totalLen = 0;
-		for (let [, symbols] of all) {
-			const arr = Array.from(symbols);
-			result.push(arr);
-			totalLen += arr.length;
+		const all = this._symbols.definitions.query(params.query);
 
-			if (totalLen > 20_000) {
-				break;
+		out: for (let [name, map] of all) {
+			for (let [uri, kinds] of map) {
+				for (let kind of kinds) {
+					const newLen = result.push(lsp.SymbolInformation.create(name, kind, lsp.Range.create(0, 0, 0, 0), uri));
+					if (newLen > 20_000) {
+						break out;
+					}
+				}
 			}
 		}
 
-		return result.flat();
+		return result;
+	}
+
+	async resolveWorkspaceSymbol() {
+		// TODO@jrieken fill in location
 	}
 }

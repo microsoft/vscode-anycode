@@ -3,23 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createConnection, BrowserMessageReader, BrowserMessageWriter } from 'vscode-languageserver/browser';
 import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
+import { BrowserMessageReader, BrowserMessageWriter, createConnection } from 'vscode-languageserver/browser';
 import Parser from '../tree-sitter/tree-sitter';
-import { Trees } from './trees';
-import { DocumentSymbols } from './features/documentSymbols';
-import { IndexedCache, SymbolIndex } from './features/symbolIndex';
-import { SelectionRangesProvider } from './features/selectionRanges';
-import { CompletionItemProvider } from './features/completions';
-import { WorkspaceSymbol } from './features/workspaceSymbols';
-import { DefinitionProvider } from './features/definitions';
-import { ReferencesProvider } from './features/references';
-import { Validation } from './features/validation';
-import { DocumentStore } from './documentStore';
-import Languages from './languages';
-import { FoldingRangeProvider } from './features/foldingRanges';
-import { DocumentHighlightsProvider } from './features/documentHighlights';
 import { LanguageConfiguration } from './common';
+import { DocumentStore } from './documentStore';
+import { CompletionItemProvider } from './features/completions';
+import { DefinitionProvider } from './features/definitions';
+import { DocumentHighlightsProvider } from './features/documentHighlights';
+import { DocumentSymbols } from './features/documentSymbols';
+import { FoldingRangeProvider } from './features/foldingRanges';
+import { ReferencesProvider } from './features/references';
+import { SelectionRangesProvider } from './features/selectionRanges';
+import { PersistedIndex, SymbolIndex } from './features/symbolIndex';
+import { Validation } from './features/validation';
+import { WorkspaceSymbol } from './features/workspaceSymbols';
+import Languages from './languages';
+import { Trees } from './trees';
 
 type InitOptions = {
 	treeSitterWasmUri: string;
@@ -53,7 +53,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	await Languages.init(initData.supportedLanguages);
 
 	// indexeddb for analysis results
-	const indexeddbCache = new IndexedCache(initData.databaseName);
+	const indexeddbCache = new PersistedIndex(initData.databaseName);
 	await indexeddbCache.open();
 	connection.onExit(() => indexeddbCache.close());
 
@@ -76,8 +76,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 	documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 	documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
-	connection.onNotification('queue/remove', uris => symbolIndex.removeFile(uris));
-	connection.onNotification('queue/add', uris => symbolIndex.addFile(uris));
+	connection.onNotification('queue/remove', uri => symbolIndex.removeFile(uri));
+	connection.onNotification('queue/add', uri => symbolIndex.addFile(uri));
 	connection.onRequest('queue/init', uris => {
 		return symbolIndex.initFiles(uris);
 	});

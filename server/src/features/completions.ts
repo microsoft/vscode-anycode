@@ -47,11 +47,11 @@ export class CompletionItemProvider {
 		// it is very likely that the current has changed and that we already processed
 		// await this._symbols.update();
 
-		for (let [key, symbols] of this._symbols.definitions) {
-			const [first] = symbols;
+		for (let [key, map] of this._symbols.definitions) {
+			const [[, [firstKind]]] = map;
 			result.set(key, {
 				label: key,
-				kind: CompletionItemProvider._kindMapping.get(first.kind)
+				kind: CompletionItemProvider._kindMapping.get(firstKind)
 			});
 		}
 		return Array.from(result.values());

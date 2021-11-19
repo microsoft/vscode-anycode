@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
+import { identifierAtPosition } from '../common';
 import { DocumentStore } from '../documentStore';
-import { SymbolIndex } from './symbolIndex';
+import Languages from '../languages';
 import { Trees } from '../trees';
 import { Locals } from './locals';
-import { identifierAtPosition } from '../common';
-import Languages from '../languages';
+import { SymbolIndex } from './symbolIndex';
 
 export class DefinitionProvider {
 
@@ -52,22 +52,7 @@ export class DefinitionProvider {
 			return [];
 		}
 
-		await this._symbols.update();
-
-		let sameLanguageOffset = 0;
-		const result: lsp.Location[] = [];
-		const all = this._symbols.definitions.get(ident) ?? [];
-		for (const symbol of all) {
-			const isSameLanguage = Languages.getLanguageIdByUri(symbol.location.uri) === document.languageId;
-			if (isSameLanguage) {
-				result.unshift(symbol.location);
-				sameLanguageOffset++;
-			} else {
-				result.push(symbol.location);
-			}
-		}
-		// only return results that are of the same language unless there are only 
-		// results from other languages
-		return result.slice(0, sameLanguageOffset || undefined);
+		const symbols = await this._symbols.getDefinitions(ident, document);
+		return symbols.map(s => s.location);
 	}
 }

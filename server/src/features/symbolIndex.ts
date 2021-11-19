@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import { StopWatch, parallel, isInteresting, asLspRange } from '../common';
-import { ReadonlyTrie, Trie } from '../util/trie';
-import { Trees } from '../trees';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { isInteresting, parallel, StopWatch } from '../common';
 import { DocumentStore } from '../documentStore';
-import { Outline } from './documentSymbols';
-import Languages from '../languages';
-import { resolve } from 'path/posix';
+import { Trees } from '../trees';
+import { Trie } from '../util/trie';
+import { getDocumentSymbols } from './documentSymbols';
+import { getDocumentUsages } from './references';
 
 class Queue {
 
@@ -27,88 +26,30 @@ class Queue {
 		this._queue.delete(uri);
 	}
 
-	consume(): string[] {
-		const result = Array.from(this._queue.values());
-		this._queue.clear();
+	consume(n?: number): string[] {
+		if (n === undefined) {
+			const result = Array.from(this._queue.values());
+			this._queue.clear();
+			return result;
+		}
+
+		const result: string[] = [];
+		const iter = this._queue.values();
+		for (; n > 0; n--) {
+			const r = iter.next();
+			if (r.done) {
+				break;
+			}
+			const uri = r.value;
+			result.push(uri);
+			this._queue.delete(uri);
+		}
 		return result;
 	}
 }
 
 
-class Cache {
-
-	private readonly _definitions = Trie.create<Set<lsp.SymbolInformation>>();
-	private readonly _usages = Trie.create<Set<lsp.Location>>();
-	private readonly _cleanup = new Map<string, Function[]>();
-
-	get definitions() {
-		return this._definitions;
-	}
-
-	get usages() {
-		return this._usages;
-	}
-
-	insertDefinition(text: string, definition: lsp.SymbolInformation): void {
-		let all = this._definitions.get(text);
-		if (all) {
-			all.add(definition);
-		} else {
-			all = new Set([definition]);
-			this._definitions.set(text, all);
-		}
-		this._addCleanup(definition.location.uri, () => {
-			if (all!.delete(definition) && all!.size === 0) {
-				this._definitions.delete(text);
-			}
-		});
-	}
-
-	insertUsage(text: string, usage: lsp.Location): void {
-		let all = this._usages.get(text);
-		if (all) {
-			all.add(usage);
-		} else {
-			all = new Set([usage]);
-			this._usages.set(text, all);
-		}
-		this._addCleanup(usage.uri, () => {
-			if (all!.delete(usage) && all!.size === 0) {
-				this._usages.delete(text);
-			}
-		});
-	}
-
-	private _addCleanup(uri: string, cleanupFn: () => void) {
-		const arr = this._cleanup.get(uri);
-		if (arr) {
-			arr.push(cleanupFn);
-		} else {
-			this._cleanup.set(uri, [cleanupFn]);
-		}
-	}
-
-	delete(uri: string): boolean {
-		const callbacks = this._cleanup.get(uri);
-		if (callbacks) {
-			callbacks.forEach(fn => fn());
-			this._cleanup.delete(uri);
-			return true;
-		}
-		return false;
-	}
-
-	toString(): string {
-		return `${this._definitions.size} symbols, ${this._usages.size} usages`;
-	}
-}
-
-interface IndexedEntry {
-	definitions: lsp.SymbolInformation[],
-	usages: { name: string, location: lsp.Location }[]
-}
-
-export class IndexedCache {
+export class PersistedIndex {
 
 	private readonly _version = 1;
 	private readonly _store = 'definitionsAndUsages';
@@ -144,8 +85,9 @@ export class IndexedCache {
 		});
 	}
 
-	close(): void {
+	async close(): Promise<void> {
 		if (this._db) {
+			await this._bulkInsert();
 			this._db.close();
 		}
 	}
@@ -162,13 +104,31 @@ export class IndexedCache {
 		});
 	}
 
-	insert(entries: Map<string, IndexedEntry>) {
+	private _insertQueue = new Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>();
+	private _insertHandle: any;
+
+	insert(uri: string, definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>>) {
+		this._insertQueue.set(uri, { definitions, usages });
+		clearTimeout(this._insertHandle);
+		this._insertHandle = setTimeout(() => {
+			this._bulkInsert().catch(err => {
+				console.error(err);
+			});
+		}, 50);
+	}
+
+	private async _bulkInsert(): Promise<void> {
+		if (this._insertQueue.size === 0) {
+			return;
+		}
 		if (!this._db) {
 			throw new Error('invalid state');
 		}
 		const t = this._db.transaction(this._store, 'readwrite');
-		for (let [uri, entry] of entries) {
-			t.objectStore(this._store).put(JSON.stringify(entry), uri);
+		const toInsert = new Map(this._insertQueue);
+		this._insertQueue.clear();
+		for (let [uri, data] of toInsert) {
+			t.objectStore(this._store).put(data, uri);
 		}
 		return new Promise((resolve, reject) => {
 			t.oncomplete = () => resolve(undefined);
@@ -176,11 +136,11 @@ export class IndexedCache {
 		});
 	}
 
-	getAll(): Promise<Map<string, IndexedEntry>> {
+	getAll(): Promise<Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>> {
 		if (!this._db) {
 			throw new Error('invalid state');
 		}
-		const entries = new Map<string, IndexedEntry>();
+		const entries = new Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>();
 		const t = this._db.transaction(this._store, 'readonly');
 
 		return new Promise((resolve, reject) => {
@@ -191,7 +151,7 @@ export class IndexedCache {
 					resolve(entries);
 					return;
 				}
-				entries.set(String(cursor.result.key), JSON.parse(cursor.result.value));
+				entries.set(String(cursor.result.key), cursor.result.value);
 				cursor.result.continue();
 			};
 
@@ -204,7 +164,6 @@ export class IndexedCache {
 		if (!this._db) {
 			throw new Error('invalid state');
 		}
-		const entries = new Map<string, IndexedEntry>();
 		const t = this._db.transaction(this._store, 'readwrite');
 		const store = t.objectStore(this._store);
 
@@ -213,65 +172,110 @@ export class IndexedCache {
 			request.onerror = e => console.error(e);
 		}
 		return new Promise((resolve, reject) => {
-			t.oncomplete = () => resolve(entries);
+			t.oncomplete = () => resolve(undefined);
 			t.onerror = (err) => reject(err);
 		});
 	}
 }
 
+class Index {
+
+	private readonly _index = Trie.create<Map<lsp.DocumentUri, Set<lsp.SymbolKind>>>();
+	private readonly _cleanup = new Map<string, Function[]>();
+
+	get(text: string) {
+		return this._index.get(text);
+	}
+
+	query(query: string): IterableIterator<[string, Map<lsp.DocumentUri, Set<lsp.SymbolKind>>]> {
+		return this._index.query(Array.from(query));
+	}
+
+	[Symbol.iterator](): IterableIterator<[string, Map<lsp.DocumentUri, Set<lsp.SymbolKind>>]> {
+		return this._index[Symbol.iterator]();
+	}
+
+	update(uri: string, value: Map<string, Set<lsp.SymbolKind>>) {
+		for (const [name, kinds] of value) {
+			const all = this._index.get(name);
+			if (all) {
+				all.set(uri, kinds);
+			} else {
+				this._index.set(name, new Map([[uri, kinds]]));
+			}
+		}
+
+		this._addCleanup(uri, () => {
+			for (let [name] of value) {
+				const all = this._index.get(name);
+				if (all) {
+					if (all.delete(uri) && all.size === 0) {
+						this._index.delete(name);
+					}
+				}
+			}
+		});
+	}
+
+	private _addCleanup(uri: string, cleanupFn: () => void) {
+		const arr = this._cleanup.get(uri);
+		if (arr) {
+			arr.push(cleanupFn);
+		} else {
+			this._cleanup.set(uri, [cleanupFn]);
+		}
+	}
+
+	delete(uri: string): boolean {
+		const callbacks = this._cleanup.get(uri);
+		if (callbacks) {
+			callbacks.forEach(fn => fn());
+			this._cleanup.delete(uri);
+			return true;
+		}
+		return false;
+	}
+}
+
 export class SymbolIndex {
 
-	private readonly _cache = new Cache();
-	private readonly _queue = new Queue();
+	readonly definitions = new Index();
+	readonly usages = new Index();
+
+	private readonly _syncQueue = new Queue();
+	private readonly _asyncQueue = new Queue();
 
 	constructor(
 		private readonly _trees: Trees,
 		private readonly _documents: DocumentStore,
-		private readonly _persistedCache: IndexedCache
+		private readonly _persistedIndex: PersistedIndex
 	) { }
 
-	get definitions(): ReadonlyTrie<Set<lsp.SymbolInformation>> {
-		return this._cache.definitions;
+	addFile(uri: string): void {
+		this._syncQueue.enqueue(uri);
+		this._asyncQueue.dequeue(uri);
 	}
 
-	get usages(): ReadonlyTrie<Set<lsp.Location>> {
-		return this._cache.usages;
-	}
-
-	addFile(uris: string[] | string): void {
-		if (Array.isArray(uris)) {
-			uris.forEach(this._queue.enqueue, this._queue);
-		} else {
-			this._queue.enqueue(uris);
-		}
-	}
-
-	removeFile(uris: string[]): void {
-		for (let uri of uris) {
-			this._queue.dequeue(uri);
-			this._cache.delete(uri);
-		}
+	removeFile(uri: string): void {
+		this._syncQueue.dequeue(uri);
+		this._asyncQueue.dequeue(uri);
+		this.definitions.delete(uri);
+		this.usages.delete(uri);
 	}
 
 	private _currentUpdate: Promise<void> | undefined;
 
 	async update(): Promise<void> {
 		await this._currentUpdate;
-		this._currentUpdate = this._doUpdate();
+		this._currentUpdate = this._doUpdate(this._syncQueue.consume());
 		return this._currentUpdate;
 	}
 
-	private async _doUpdate(): Promise<void> {
-		const uris = this._queue.consume();
+	private async _doUpdate(uris: string[]): Promise<void> {
 		if (uris.length !== 0) {
-			// clear cached info for changed uris
-			const sw = new StopWatch();
-			const delCount = uris.map(this._cache.delete, this._cache).filter(Boolean).length;
-			console.log(`[index] removed ${delCount} files ${sw.elapsed()}ms`);
 
-			// schedule a new task to update the cache for`
-			// changed uris
-			sw.reset();
+			// schedule a new task to update the cache for changed uris
+			const sw = new StopWatch();
 			const tasks = uris.map(this._createIndexTask, this);
 			const stats = await parallel(tasks, 50, new lsp.CancellationTokenSource().token);
 
@@ -282,17 +286,23 @@ export class SymbolIndex {
 				totalIndex += stat.durationIndex;
 			}
 
-			console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms, retrieval: ${Math.round(totalRetrieve)}ms, index: ${Math.round(totalIndex)}ms`);
-			console.log(`[usage] info: ${this._cache.toString()}`);
+			console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms\n\tretrieval: ${Math.round(totalRetrieve)}ms\n\tindexing: ${Math.round(totalIndex)}ms`);
+			// console.log(`[usage] info: ${this._cache.toString()}`); // TODO@jrieken 
 		}
 	}
 
 	private _createIndexTask(uri: string): () => Promise<{ durationRetrieve: number, durationIndex: number }> {
 		return async () => {
+			// fetch document
 			const _t1Retrieve = performance.now();
 			const document = await this._documents.retrieve(uri);
 			const durationRetrieve = performance.now() - _t1Retrieve;
 
+			// remove current data
+			this.definitions.delete(uri);
+			this.usages.delete(uri);
+
+			// update index
 			const _t1Index = performance.now();
 			try {
 				this._doIndex(document);
@@ -305,58 +315,35 @@ export class SymbolIndex {
 		};
 	}
 
-	private _persistData = new Map<string, IndexedEntry>();
-	private _persistTimer: any;
-
 	private _doIndex(document: TextDocument): void {
 
-		const dbEntry: IndexedEntry = { definitions: [], usages: [] };
+		const definitions = new Map<string, Set<lsp.SymbolKind>>();
+		const usages = new Map<string, Set<lsp.SymbolKind>>();
 
 		// (1) use outline information to feed the global index of definitions
-		const symbols = Outline.create(document, this._trees);
-		const walkSymbols = (symbols: lsp.DocumentSymbol[], parent: lsp.DocumentSymbol | undefined) => {
-			for (let symbol of symbols) {
-				const info = lsp.SymbolInformation.create(
-					symbol.name,
-					symbol.kind,
-					symbol.selectionRange,
-					document.uri,
-					parent?.name
-				);
-				if (symbol.children) {
-					walkSymbols(symbol.children, symbol);
-				}
-				this._cache.insertDefinition(info.name, info);
-				dbEntry.definitions.push(info);
-			}
-		};
-		walkSymbols(symbols, undefined);
-
-		// (2) Use usage-queries to feed the global index of usages.
-		const tree = this._trees.getParseTree(document);
-		if (tree) {
-			const query = Languages.getQuery(document.languageId, 'references');
-			const captures = query.captures(tree.rootNode);
-
-			for (let capture of captures) {
-				const location = lsp.Location.create(document.uri, asLspRange(capture.node));
-				this._cache.insertUsage(capture.node.text, location);
-				dbEntry.usages.push({ name: capture.node.text, location });
+		for (const symbol of getDocumentSymbols(document, this._trees, true)) {
+			const all = definitions.get(symbol.name);
+			if (all) {
+				all.add(symbol.kind);
+			} else {
+				definitions.set(symbol.name, new Set([symbol.kind]));
 			}
 		}
 
-		// (3) persist in indexeddb
-		this._persistData.set(document.uri, dbEntry);
-		clearTimeout(this._persistTimer);
-		this._persistTimer = setTimeout(() => {
-			//TODO@jrieken document-hash!
-			const data = new Map(this._persistData);
-			this._persistData.clear();
-			this._persistedCache.insert(data).catch(err => {
-				console.error('FAILED to update INDEXED_DB');
-				console.error(err);
-			});
-		}, 100);
+		// (2) Use usage-queries to feed the global index of usages.
+		for (let usage of getDocumentUsages(document, this._trees)) {
+			const all = usages.get(usage.name);
+			if (all) {
+				all.add(usage.kind);
+			} else {
+				usages.set(usage.name, new Set([usage.kind]));
+			}
+		}
+
+		// update in-memory index and persisted index
+		this.definitions.update(document.uri, definitions);
+		this.usages.update(document.uri, usages);
+		this._persistedIndex.insert(document.uri, definitions, usages);
 	}
 
 	async initFiles(_uris: string[]) {
@@ -364,32 +351,122 @@ export class SymbolIndex {
 		const sw = new StopWatch();
 
 		console.log(`[index] building index for ${uris.size} files.`);
+		const persisted = await this._persistedIndex.getAll();
 		const obsolete = new Set<string>();
-		const persisted = await this._persistedCache.getAll();
 
-		for (const [uri, entry] of persisted) {
+		for (const [uri, data] of persisted) {
 			if (!uris.delete(uri)) {
-				// this file isn't requested anymore, skip and remove later
+				// this file isn't requested anymore, remove later
 				obsolete.add(uri);
-				continue;
-			}
-			for (let def of entry.definitions) {
-				this._cache.insertDefinition(def.name, def);
-			}
-			for (let usage of entry.usages) {
-				this._cache.insertUsage(usage.name, usage.location);
-			}
-		}
 
-		if (uris.size > 0) {
-			this.addFile([...uris]);
-		}
-		if (obsolete.size > 0) {
-			await this._persistedCache.delete(obsolete);
-		}
+			} else {
+				// restore definitions and usages and schedule async
+				// update for this file
+				this.definitions.update(uri, data.definitions);
+				this.usages.update(uri, data.usages);
 
+				this._asyncQueue.enqueue(uri);
+			}
+		}
 		console.log(`[index] added FROM CACHE ${persisted.size} files ${sw.elapsed()}ms\n\t${uris.size} files still need to be fetched\n\t${obsolete.size} files are obsolete in cache`);
 
+		// sync update all files that were not cached
+		uris.forEach(this.addFile, this);
 		await this.update();
+
+		// remove from persisted cache files that aren't interesting anymore 
+		await this._persistedIndex.delete(obsolete);
+
+		// async update all files that were taken from cache
+		const asyncUpdate = async () => {
+			const uris = this._asyncQueue.consume(100);
+			if (uris.length > 0) {
+				await this._doUpdate(uris);
+				setTimeout(() => asyncUpdate(), 1000);
+			}
+		};
+		asyncUpdate();
+	}
+
+	// ---
+
+	async getDefinitions(ident: string, source: TextDocument) {
+
+		await this.update();
+
+		const result: lsp.SymbolInformation[] = [];
+		let sameLanguageOffset = 0;
+
+		const all = this.definitions.get(ident) ?? [];
+		const work: Promise<any>[] = [];
+
+		for (const [uri] of all) {
+			work.push(this._documents.retrieve(uri).then(document => {
+				const isSameLanguage = source.languageId === document.languageId;
+				for (const item of getDocumentSymbols(document, this._trees, true)) {
+					if (item.name === ident) {
+						const info = lsp.SymbolInformation.create(item.name, item.kind, item.selectionRange, uri);
+						if (isSameLanguage) {
+							result.unshift(info);
+							sameLanguageOffset++;
+						} else {
+							result.push(info);
+						}
+					}
+				}
+
+				this._asyncQueue.dequeue(document.uri);
+				this._doIndex(document);
+
+			}).catch(err => {
+				console.log(err);
+			}));
+		}
+
+		await Promise.allSettled(work);
+
+		// only return results that are of the same language unless there are only 
+		// results from other languages
+		return result.slice(0, sameLanguageOffset || undefined);
+	}
+
+	async getUsages(ident: string, source: TextDocument) {
+
+		await this.update();
+
+		const result: lsp.Location[] = [];
+
+		const all = this.usages.get(ident) ?? [];
+		const work: Promise<any>[] = [];
+		let sameLanguageOffset = 0;
+
+		for (const [uri] of all) {
+			work.push(this._documents.retrieve(uri).then(document => {
+				const isSameLanguage = source.languageId === document.languageId;
+				for (const item of getDocumentUsages(document, this._trees)) {
+					if (item.name === ident) {
+						const location = lsp.Location.create(uri, item.range);
+						if (isSameLanguage) {
+							result.unshift(location);
+							sameLanguageOffset++;
+						} else {
+							result.push(location);
+						}
+					}
+				}
+
+				this._asyncQueue.dequeue(document.uri);
+				this._doIndex(document);
+
+			}).catch(err => {
+				console.log(err);
+			}));
+		}
+
+		await Promise.allSettled(work);
+
+		// only return results that are of the same language unless there are only 
+		// results from other languages
+		return result.slice(0, sameLanguageOffset || undefined);
 	}
 }
