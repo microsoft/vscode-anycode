@@ -48,7 +48,7 @@ There is a **watch** task to build TS, either `npm run watch` or "F1 > Run Task 
 Push a tag to **publish** a new version to the marketplace: 
 
 * run `npm version path` and then
-* run `git push && git push --tag`
+* run `git push --follow-tags`
 
 ## Contributing
 
