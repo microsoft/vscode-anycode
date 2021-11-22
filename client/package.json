@@ -4,7 +4,7 @@
 	"publisher": "ms-vscode",
 	"dependencies": {
 		"vscode-extension-telemetry": "^0.4.2",
-		"vscode-languageclient": "^7.0.0"
+		"vscode-languageclient": "^8.0.0-next.5"
 	},
 	"devDependencies": {
 		"@types/mocha": "^9.0.0",

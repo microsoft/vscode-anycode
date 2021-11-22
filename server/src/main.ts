@@ -41,7 +41,7 @@ const features: { register(connection: Connection): any }[] = [];
 
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
 
-	const initData = <InitOptions>params.initializationOptions;
+	const initData = <InitOptions><unknown>params.initializationOptions;
 
 	// (1) init tree sitter and languages before doing anything else
 	const options: object | undefined = {
