@@ -43,7 +43,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 
 	const initData = <InitOptions><unknown>params.initializationOptions;
 
-	// (1) init tree sitter and languages before doing anything else
+	// init tree sitter and languages before doing anything else
 	const options: object | undefined = {
 		locateFile() {
 			return initData.treeSitterWasmUri;
@@ -52,12 +52,12 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	await Parser.init(options);
 	await Languages.init(initData.supportedLanguages);
 
-	// indexeddb for analysis results
+	// init indexeddb for caching
 	const indexeddbCache = new PersistedIndex(initData.databaseName);
 	await indexeddbCache.open();
 	connection.onExit(() => indexeddbCache.close());
 
-	// (2) setup features
+	// setup features
 	const documents = new DocumentStore(connection);
 	const trees = new Trees(documents);
 	const symbolIndex = new SymbolIndex(trees, documents, indexeddbCache);
@@ -72,7 +72,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	features.push(new FoldingRangeProvider(documents, trees));
 	new Validation(connection, documents, trees);
 
-	// (nth) manage symbol index. add/remove files as they are disovered and edited
+	// manage symbol index. add/remove files as they are disovered and edited
 	documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 	documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 	documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
@@ -89,7 +89,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	};
 });
 
-connection.onInitialized(async () => {
+connection.onInitialized(() => {
 	for (let feature of features) {
 		feature.register(connection);
 	}
