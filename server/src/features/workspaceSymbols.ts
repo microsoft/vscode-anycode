@@ -18,21 +18,22 @@ export class WorkspaceSymbol {
 	) { }
 
 	register(connection: lsp.Connection) {
-		connection.client.register(lsp.WorkspaceSymbolRequest.type);
+		connection.client.register(lsp.WorkspaceSymbolRequest.type, { resolveProvider: true });
 		connection.onRequest(lsp.WorkspaceSymbolRequest.type, this.provideWorkspaceSymbols.bind(this));
+		connection.onRequest(lsp.WorkspaceSymbolResolveRequest.type, this.resolveWorkspaceSymbol.bind(this));
 	}
 
-	async provideWorkspaceSymbols(params: lsp.WorkspaceSymbolParams): Promise<lsp.SymbolInformation[]> {
-		const result: lsp.SymbolInformation[] = [];
+	async provideWorkspaceSymbols(params: lsp.WorkspaceSymbolParams): Promise<lsp.WorkspaceSymbol[]> {
+		const result: lsp.WorkspaceSymbol[] = [];
 
 		await this._symbols.update();
 
 		const all = this._symbols.definitions.query(params.query);
 
-		out: for (let [name, map] of all) {
-			for (let [uri, kinds] of map) {
-				for (let kind of kinds) {
-					const newLen = result.push(lsp.SymbolInformation.create(name, kind, lsp.Range.create(0, 0, 0, 0), uri));
+		out: for (const [name, map] of all) {
+			for (const [uri, kinds] of map) {
+				for (const kind of kinds) {
+					const newLen = result.push(lsp.WorkspaceSymbol.create(name, kind, uri, lsp.Range.create(0, 0, 0, 0)));
 					if (newLen > 20_000) {
 						break out;
 					}
@@ -43,8 +44,8 @@ export class WorkspaceSymbol {
 		return result;
 	}
 
-	async resolveWorkspaceSymbol(item: lsp.SymbolInformation) {
-		// TODO@jrieken this isn't called yet
+	async resolveWorkspaceSymbol(item: lsp.WorkspaceSymbol): Promise<lsp.WorkspaceSymbol> {
+		// TODO@jrieken handle the case where a file has multiple symbols with the same name _and_ kind
 		const document = await this._documents.retrieve(item.location.uri);
 		const symbols = getDocumentSymbols(document, this._trees, true);
 		for (let candidate of symbols) {
