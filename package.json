@@ -27,6 +27,7 @@
 		"onLanguage:php",
 		"onLanguage:python",
 		"onLanguage:rust",
+		"onLanguage:javascript",
 		"onLanguage:typescript",
 		"onCommand:workbench.action.showAllSymbols"
 	],
