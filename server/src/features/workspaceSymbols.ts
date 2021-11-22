@@ -4,11 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
+import { DocumentStore } from '../documentStore';
+import { Trees } from '../trees';
+import { getDocumentSymbols } from './documentSymbols';
 import { SymbolIndex } from './symbolIndex';
 
 export class WorkspaceSymbol {
 
-	constructor(private readonly _symbols: SymbolIndex) { }
+	constructor(
+		private readonly _documents: DocumentStore,
+		private readonly _trees: Trees,
+		private readonly _symbols: SymbolIndex
+	) { }
 
 	register(connection: lsp.Connection) {
 		connection.client.register(lsp.WorkspaceSymbolRequest.type);
@@ -36,7 +43,15 @@ export class WorkspaceSymbol {
 		return result;
 	}
 
-	async resolveWorkspaceSymbol() {
-		// TODO@jrieken fill in location
+	async resolveWorkspaceSymbol(item: lsp.SymbolInformation) {
+		// TODO@jrieken this isn't called yet
+		const document = await this._documents.retrieve(item.location.uri);
+		const symbols = getDocumentSymbols(document, this._trees, true);
+		for (let candidate of symbols) {
+			if (candidate.name === item.name && candidate.kind === item.kind) {
+				return lsp.SymbolInformation.create(item.name, item.kind, candidate.selectionRange, item.location.uri);
+			}
+		}
+		return item;
 	}
 }

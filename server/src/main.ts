@@ -62,12 +62,12 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	const trees = new Trees(documents);
 	const symbolIndex = new SymbolIndex(trees, documents, indexeddbCache);
 
-	features.push(new WorkspaceSymbol(symbolIndex));
-	features.push(new DocumentSymbols(documents, trees));
+	features.push(new WorkspaceSymbol(documents, trees, symbolIndex));
 	features.push(new DefinitionProvider(documents, trees, symbolIndex));
 	features.push(new ReferencesProvider(documents, trees, symbolIndex));
-	features.push(new DocumentHighlightsProvider(documents, trees));
 	features.push(new CompletionItemProvider(documents, trees, symbolIndex));
+	features.push(new DocumentHighlightsProvider(documents, trees));
+	features.push(new DocumentSymbols(documents, trees));
 	features.push(new SelectionRangesProvider(documents, trees));
 	features.push(new FoldingRangeProvider(documents, trees));
 	new Validation(connection, documents, trees);
