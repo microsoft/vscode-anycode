@@ -10,7 +10,7 @@ import { DocumentStore } from '../documentStore';
 import { Trees } from '../trees';
 import { Trie } from '../util/trie';
 import { getDocumentSymbols } from './documentSymbols';
-import { getDocumentUsages } from './references';
+import { getDocumentUsages, IUsage } from './references';
 
 class Queue {
 
@@ -315,35 +315,41 @@ export class SymbolIndex {
 		};
 	}
 
-	private _doIndex(document: TextDocument): void {
+	private _doIndex(document: TextDocument, symbols?: lsp.DocumentSymbol[], usages?: IUsage[]): void {
 
-		const definitions = new Map<string, Set<lsp.SymbolKind>>();
-		const usages = new Map<string, Set<lsp.SymbolKind>>();
+		const definitionsByWord = new Map<string, Set<lsp.SymbolKind>>();
+		const usagesByWord = new Map<string, Set<lsp.SymbolKind>>();
 
-		// (1) use outline information to feed the global index of definitions
-		for (const symbol of getDocumentSymbols(document, this._trees, true)) {
-			const all = definitions.get(symbol.name);
+		// definitions
+		if (!symbols) {
+			symbols = getDocumentSymbols(document, this._trees, true);
+		}
+		for (const symbol of symbols) {
+			const all = definitionsByWord.get(symbol.name);
 			if (all) {
 				all.add(symbol.kind);
 			} else {
-				definitions.set(symbol.name, new Set([symbol.kind]));
+				definitionsByWord.set(symbol.name, new Set([symbol.kind]));
 			}
 		}
 
-		// (2) Use usage-queries to feed the global index of usages.
-		for (let usage of getDocumentUsages(document, this._trees)) {
-			const all = usages.get(usage.name);
+		// usages
+		if (!usages) {
+			usages = getDocumentUsages(document, this._trees);
+		}
+		for (const usage of usages) {
+			const all = usagesByWord.get(usage.name);
 			if (all) {
 				all.add(usage.kind);
 			} else {
-				usages.set(usage.name, new Set([usage.kind]));
+				usagesByWord.set(usage.name, new Set([usage.kind]));
 			}
 		}
 
 		// update in-memory index and persisted index
-		this.definitions.update(document.uri, definitions);
-		this.usages.update(document.uri, usages);
-		this._persistedIndex.insert(document.uri, definitions, usages);
+		this.definitions.update(document.uri, definitionsByWord);
+		this.usages.update(document.uri, usagesByWord);
+		this._persistedIndex.insert(document.uri, definitionsByWord, usagesByWord);
 	}
 
 	async initFiles(_uris: string[]) {
@@ -403,7 +409,8 @@ export class SymbolIndex {
 		for (const [uri] of all) {
 			work.push(this._documents.retrieve(uri).then(document => {
 				const isSameLanguage = source.languageId === document.languageId;
-				for (const item of getDocumentSymbols(document, this._trees, true)) {
+				const symbols = getDocumentSymbols(document, this._trees, true);
+				for (const item of symbols) {
 					if (item.name === ident) {
 						const info = lsp.SymbolInformation.create(item.name, item.kind, item.selectionRange, uri);
 						if (isSameLanguage) {
@@ -415,8 +422,11 @@ export class SymbolIndex {
 					}
 				}
 
-				this._asyncQueue.dequeue(document.uri);
-				this._doIndex(document);
+				// update index
+				setTimeout(() => {
+					this._asyncQueue.dequeue(document.uri);
+					this._doIndex(document, symbols);
+				});
 
 			}).catch(err => {
 				console.log(err);
@@ -443,7 +453,8 @@ export class SymbolIndex {
 		for (const [uri] of all) {
 			work.push(this._documents.retrieve(uri).then(document => {
 				const isSameLanguage = source.languageId === document.languageId;
-				for (const item of getDocumentUsages(document, this._trees)) {
+				const usages = getDocumentUsages(document, this._trees);
+				for (const item of usages) {
 					if (item.name === ident) {
 						const location = lsp.Location.create(uri, item.range);
 						if (isSameLanguage) {
@@ -455,8 +466,11 @@ export class SymbolIndex {
 					}
 				}
 
-				this._asyncQueue.dequeue(document.uri);
-				this._doIndex(document);
+				// update index
+				setTimeout(() => {
+					this._asyncQueue.dequeue(document.uri);
+					this._doIndex(document, undefined, usages);
+				});
 
 			}).catch(err => {
 				console.log(err);
