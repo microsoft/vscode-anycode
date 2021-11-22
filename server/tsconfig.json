@@ -11,6 +11,7 @@
 		"moduleResolution": "node",
 		"sourceMap": false,
 		"strict": true,
+		"skipLibCheck": true,
 		"types": [
 			"assert", // testing
 			"chai",

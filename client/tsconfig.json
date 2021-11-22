@@ -10,7 +10,8 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		"strict": true
+		"strict": true,
+		"skipLibCheck": true
 	},
 	"include": [
 		"src"
