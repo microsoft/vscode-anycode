@@ -10,13 +10,16 @@
 		"module": "commonjs",
 		"moduleResolution": "node",
 		"sourceMap": false,
-		"strict": true
+		"strict": true,
+		"types": [
+			"assert", // testing
+			"chai",
+			"mocha"
+		]
 	},
 	"include": [
-		"src"
-,
-"run.js"
-],
+		"src",
+	],
 	"exclude": [
 		"node_modules",
 		".vscode-test-web"

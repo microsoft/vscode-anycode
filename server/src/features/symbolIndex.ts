@@ -105,7 +105,7 @@ export class PersistedIndex {
 	}
 
 	private _insertQueue = new Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>();
-	private _insertHandle: any;
+	private _insertHandle: number | undefined;
 
 	insert(uri: string, definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>>) {
 		this._insertQueue.set(uri, { definitions, usages });
