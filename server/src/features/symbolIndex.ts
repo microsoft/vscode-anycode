@@ -385,10 +385,11 @@ export class SymbolIndex {
 
 		// async update all files that were taken from cache
 		const asyncUpdate = async () => {
-			const uris = this._asyncQueue.consume(100);
+			const uris = this._asyncQueue.consume(70);
 			if (uris.length > 0) {
+				const t1 = performance.now();
 				await this._doUpdate(uris);
-				setTimeout(() => asyncUpdate(), 1000);
+				setTimeout(() => asyncUpdate(), (performance.now() - t1) * 4);
 			}
 		};
 		asyncUpdate();
