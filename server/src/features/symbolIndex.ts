@@ -80,8 +80,8 @@ export class PersistedIndex {
 				const db = request.result;
 				if (db.objectStoreNames.contains(this._store)) {
 					db.deleteObjectStore(this._store);
-					db.createObjectStore(this._store);
 				}
+				db.createObjectStore(this._store);
 			};
 		});
 	}
