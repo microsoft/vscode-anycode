@@ -28,11 +28,11 @@ export class WorkspaceSymbol {
 
 		await this._symbols.update();
 
-		const all = this._symbols.definitions.query(params.query);
+		const all = this._symbols.index.query(params.query);
 
 		out: for (const [name, map] of all) {
-			for (const [uri, kinds] of map) {
-				for (const kind of kinds) {
+			for (const [uri, info] of map) {
+				for (const kind of info.definitions) {
 					const newLen = result.push(lsp.WorkspaceSymbol.create(name, kind, uri, lsp.Range.create(0, 0, 0, 0)));
 					if (newLen > 20_000) {
 						break out;

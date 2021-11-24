@@ -51,7 +51,7 @@ class Queue {
 
 export class PersistedIndex {
 
-	private readonly _version = 1;
+	private readonly _version = 3;
 	private readonly _store = 'definitionsAndUsages';
 	private _db?: IDBDatabase;
 
@@ -78,7 +78,8 @@ export class PersistedIndex {
 			};
 			request.onupgradeneeded = () => {
 				const db = request.result;
-				if (!db.objectStoreNames.contains(this._store)) {
+				if (db.objectStoreNames.contains(this._store)) {
+					db.deleteObjectStore(this._store);
 					db.createObjectStore(this._store);
 				}
 			};
@@ -104,11 +105,20 @@ export class PersistedIndex {
 		});
 	}
 
-	private _insertQueue = new Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>();
+	private _insertQueue = new Map<string, Array<string | number>>();
 	private _insertHandle: number | undefined;
 
-	insert(uri: string, definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>>) {
-		this._insertQueue.set(uri, { definitions, usages });
+	insert(uri: string, info: Map<string, SymbolInfo>) {
+
+		const flatInfo: Array<string | number> = [];
+		for (let [word, i] of info) {
+			flatInfo.push(word);
+			flatInfo.push(i.definitions.size);
+			flatInfo.push(...i.definitions);
+			flatInfo.push(...i.usages);
+		}
+
+		this._insertQueue.set(uri, flatInfo);
 		clearTimeout(this._insertHandle);
 		this._insertHandle = setTimeout(() => {
 			this._bulkInsert().catch(err => {
@@ -136,11 +146,11 @@ export class PersistedIndex {
 		});
 	}
 
-	getAll(): Promise<Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>> {
+	getAll(): Promise<Map<string, Map<string, SymbolInfo>>> {
 		if (!this._db) {
 			throw new Error('invalid state');
 		}
-		const entries = new Map<string, { definitions: Map<string, Set<lsp.SymbolKind>>, usages: Map<string, Set<lsp.SymbolKind>> }>();
+		const entries = new Map<string, Map<string, SymbolInfo>>();
 		const t = this._db.transaction(this._store, 'readonly');
 
 		return new Promise((resolve, reject) => {
@@ -151,7 +161,22 @@ export class PersistedIndex {
 					resolve(entries);
 					return;
 				}
-				entries.set(String(cursor.result.key), cursor.result.value);
+				const info = new Map<string, SymbolInfo>();
+				const flatInfo = (<Array<string | number>>cursor.result.value);
+				for (let i = 0; i < flatInfo.length;) {
+					let word = (<string>flatInfo[i]);
+					let defLen = (<number>flatInfo[++i]);
+					let kindStart = ++i;
+
+					for (; i < flatInfo.length && typeof flatInfo[i] === 'number'; i++) { ; }
+
+					info.set(word, {
+						definitions: new Set(<lsp.SymbolKind[]>flatInfo.slice(kindStart, kindStart + defLen)),
+						usages: new Set(<lsp.SymbolKind[]>flatInfo.slice(kindStart + defLen, i))
+					});
+				}
+
+				entries.set(String(cursor.result.key), info);
 				cursor.result.continue();
 			};
 
@@ -178,24 +203,34 @@ export class PersistedIndex {
 	}
 }
 
+interface SymbolInfo {
+	definitions: Set<lsp.SymbolKind>
+	usages: Set<lsp.SymbolKind>
+}
+
 class Index {
 
-	private readonly _index = Trie.create<Map<lsp.DocumentUri, Set<lsp.SymbolKind>>>();
-	private readonly _cleanup = new Map<string, Function[]>();
+	private readonly _index = Trie.create<Map<lsp.DocumentUri, SymbolInfo>>();
+	private readonly _cleanup = new Map<lsp.DocumentUri, Function>();
 
 	get(text: string) {
 		return this._index.get(text);
 	}
 
-	query(query: string): IterableIterator<[string, Map<lsp.DocumentUri, Set<lsp.SymbolKind>>]> {
+	query(query: string): IterableIterator<[string, Map<lsp.DocumentUri, SymbolInfo>]> {
 		return this._index.query(Array.from(query));
 	}
 
-	[Symbol.iterator](): IterableIterator<[string, Map<lsp.DocumentUri, Set<lsp.SymbolKind>>]> {
+	[Symbol.iterator](): IterableIterator<[string, Map<lsp.DocumentUri, SymbolInfo>]> {
 		return this._index[Symbol.iterator]();
 	}
 
-	update(uri: string, value: Map<string, Set<lsp.SymbolKind>>) {
+	update(uri: lsp.DocumentUri, value: Map<string, SymbolInfo>) {
+
+		// (1) remove old symbol information
+		this._cleanup.get(uri)?.();
+
+		// (2) insert new symbol information
 		for (const [name, kinds] of value) {
 			const all = this._index.get(name);
 			if (all) {
@@ -205,8 +240,9 @@ class Index {
 			}
 		}
 
-		this._addCleanup(uri, () => {
-			for (let [name] of value) {
+		// (3) register clean-up by uri
+		this._cleanup.set(uri, () => {
+			for (const name of value.keys()) {
 				const all = this._index.get(name);
 				if (all) {
 					if (all.delete(uri) && all.size === 0) {
@@ -217,19 +253,10 @@ class Index {
 		});
 	}
 
-	private _addCleanup(uri: string, cleanupFn: () => void) {
-		const arr = this._cleanup.get(uri);
-		if (arr) {
-			arr.push(cleanupFn);
-		} else {
-			this._cleanup.set(uri, [cleanupFn]);
-		}
-	}
-
-	delete(uri: string): boolean {
-		const callbacks = this._cleanup.get(uri);
-		if (callbacks) {
-			callbacks.forEach(fn => fn());
+	delete(uri: lsp.DocumentUri): boolean {
+		const cleanupFn = this._cleanup.get(uri);
+		if (cleanupFn) {
+			cleanupFn();
 			this._cleanup.delete(uri);
 			return true;
 		}
@@ -239,8 +266,7 @@ class Index {
 
 export class SymbolIndex {
 
-	readonly definitions = new Index();
-	readonly usages = new Index();
+	readonly index = new Index();
 
 	private readonly _syncQueue = new Queue();
 	private readonly _asyncQueue = new Queue();
@@ -259,8 +285,7 @@ export class SymbolIndex {
 	removeFile(uri: string): void {
 		this._syncQueue.dequeue(uri);
 		this._asyncQueue.dequeue(uri);
-		this.definitions.delete(uri);
-		this.usages.delete(uri);
+		this.index.delete(uri);
 	}
 
 	private _currentUpdate: Promise<void> | undefined;
@@ -271,7 +296,7 @@ export class SymbolIndex {
 		return this._currentUpdate;
 	}
 
-	private async _doUpdate(uris: string[]): Promise<void> {
+	private async _doUpdate(uris: string[], silent?: boolean): Promise<void> {
 		if (uris.length !== 0) {
 
 			// schedule a new task to update the cache for changed uris
@@ -286,8 +311,9 @@ export class SymbolIndex {
 				totalIndex += stat.durationIndex;
 			}
 
-			console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms\n\tretrieval: ${Math.round(totalRetrieve)}ms\n\tindexing: ${Math.round(totalIndex)}ms`);
-			// console.log(`[usage] info: ${this._cache.toString()}`); // TODO@jrieken 
+			if (!silent) {
+				console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms\n\tretrieval: ${Math.round(totalRetrieve)}ms\n\tindexing: ${Math.round(totalIndex)}ms`);
+			}
 		}
 	}
 
@@ -299,8 +325,7 @@ export class SymbolIndex {
 			const durationRetrieve = performance.now() - _t1Retrieve;
 
 			// remove current data
-			this.definitions.delete(uri);
-			this.usages.delete(uri);
+			this.index.delete(uri);
 
 			// update index
 			const _t1Index = performance.now();
@@ -317,19 +342,18 @@ export class SymbolIndex {
 
 	private _doIndex(document: TextDocument, symbols?: lsp.DocumentSymbol[], usages?: IUsage[]): void {
 
-		const definitionsByWord = new Map<string, Set<lsp.SymbolKind>>();
-		const usagesByWord = new Map<string, Set<lsp.SymbolKind>>();
+		const symbolInfo = new Map<string, SymbolInfo>();
 
 		// definitions
 		if (!symbols) {
 			symbols = getDocumentSymbols(document, this._trees, true);
 		}
 		for (const symbol of symbols) {
-			const all = definitionsByWord.get(symbol.name);
+			const all = symbolInfo.get(symbol.name);
 			if (all) {
-				all.add(symbol.kind);
+				all.definitions.add(symbol.kind);
 			} else {
-				definitionsByWord.set(symbol.name, new Set([symbol.kind]));
+				symbolInfo.set(symbol.name, { definitions: new Set([symbol.kind]), usages: new Set() });
 			}
 		}
 
@@ -338,18 +362,17 @@ export class SymbolIndex {
 			usages = getDocumentUsages(document, this._trees);
 		}
 		for (const usage of usages) {
-			const all = usagesByWord.get(usage.name);
+			const all = symbolInfo.get(usage.name);
 			if (all) {
-				all.add(usage.kind);
+				all.usages.add(usage.kind);
 			} else {
-				usagesByWord.set(usage.name, new Set([usage.kind]));
+				symbolInfo.set(usage.name, { definitions: new Set(), usages: new Set([usage.kind]) });
 			}
 		}
 
 		// update in-memory index and persisted index
-		this.definitions.update(document.uri, definitionsByWord);
-		this.usages.update(document.uri, usagesByWord);
-		this._persistedIndex.insert(document.uri, definitionsByWord, usagesByWord);
+		this.index.update(document.uri, symbolInfo);
+		this._persistedIndex.insert(document.uri, symbolInfo);
 	}
 
 	async initFiles(_uris: string[]) {
@@ -368,9 +391,7 @@ export class SymbolIndex {
 			} else {
 				// restore definitions and usages and schedule async
 				// update for this file
-				this.definitions.update(uri, data.definitions);
-				this.usages.update(uri, data.usages);
-
+				this.index.update(uri, data);
 				this._asyncQueue.enqueue(uri);
 			}
 		}
@@ -386,11 +407,13 @@ export class SymbolIndex {
 		// async update all files that were taken from cache
 		const asyncUpdate = async () => {
 			const uris = this._asyncQueue.consume(70);
-			if (uris.length > 0) {
-				const t1 = performance.now();
-				await this._doUpdate(uris);
-				setTimeout(() => asyncUpdate(), (performance.now() - t1) * 4);
+			if (uris.length === 0) {
+				console.log('[index] ASYNC update is done');
+				return;
 			}
+			const t1 = performance.now();
+			await this._doUpdate(uris, true);
+			setTimeout(() => asyncUpdate(), (performance.now() - t1) * 4);
 		};
 		asyncUpdate();
 	}
@@ -404,10 +427,16 @@ export class SymbolIndex {
 		const result: lsp.SymbolInformation[] = [];
 		let sameLanguageOffset = 0;
 
-		const all = this.definitions.get(ident) ?? [];
+		const all = this.index.get(ident) ?? [];
 		const work: Promise<any>[] = [];
 
-		for (const [uri] of all) {
+		for (const [uri, value] of all) {
+
+			if (value.definitions.size === 0) {
+				// only usages
+				continue;
+			}
+
 			work.push(this._documents.retrieve(uri).then(document => {
 				const isSameLanguage = source.languageId === document.languageId;
 				const symbols = getDocumentSymbols(document, this._trees, true);
@@ -447,11 +476,17 @@ export class SymbolIndex {
 
 		const result: lsp.Location[] = [];
 
-		const all = this.usages.get(ident) ?? [];
+		const all = this.index.get(ident) ?? [];
 		const work: Promise<any>[] = [];
 		let sameLanguageOffset = 0;
 
-		for (const [uri] of all) {
+		for (const [uri, value] of all) {
+
+			if (value.usages.size === 0) {
+				// only definitions
+				continue;
+			}
+
 			work.push(this._documents.retrieve(uri).then(document => {
 				const isSameLanguage = source.languageId === document.languageId;
 				const usages = getDocumentUsages(document, this._trees);

@@ -44,15 +44,22 @@ export class CompletionItemProvider {
 		// (2) all definitions that are known in this project (override less specific local identifiers)
 
 		// don't wait for the whole index to be updated but use what we have right now,
-		// it is very likely that the current has changed and that we already processed
+		// it is very likely that the current file has changed and that we have it already processed
 		// await this._symbols.update();
 
-		for (let [key, map] of this._symbols.definitions) {
-			const [[, [firstKind]]] = map;
-			result.set(key, {
-				label: key,
-				kind: CompletionItemProvider._kindMapping.get(firstKind)
-			});
+		for (let [name, map] of this._symbols.index) {
+
+			for (let [, info] of map) {
+				if (info.definitions.size > 0) {
+					const [firstDefinitionKind] = info.definitions;
+					result.set(name, {
+						label: name,
+						kind: CompletionItemProvider._kindMapping.get(firstDefinitionKind)
+					});
+					break;
+				}
+			}
+
 		}
 		return Array.from(result.values());
 	}
