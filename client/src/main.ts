@@ -233,6 +233,24 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		return data;
 	});
 
+	// file persisted index
+	const persistUri = context.storageUri && vscode.Uri.joinPath(context.storageUri, 'anycode.db');
+	client.onRequest('persisted/read', async () => {
+		if (!persistUri) {
+			return new Uint8Array();
+		}
+		try {
+			return await vscode.workspace.fs.readFile(persistUri);
+		} catch {
+			return new Uint8Array();
+		}
+	});
+	client.onRequest('persisted/write', async (data) => {
+		if (persistUri) {
+			await vscode.workspace.fs.writeFile(persistUri, data);
+		}
+	});
+
 	return vscode.Disposable.from(...disposables);
 }
 

@@ -15,7 +15,7 @@ import { DocumentSymbols } from './features/documentSymbols';
 import { FoldingRangeProvider } from './features/foldingRanges';
 import { ReferencesProvider } from './features/references';
 import { SelectionRangesProvider } from './features/selectionRanges';
-import { PersistedIndex, SymbolIndex } from './features/symbolIndex';
+import { PersistedIndex, FilePersistedIndex, SymbolIndex } from './features/symbolIndex';
 import { Validation } from './features/validation';
 import { WorkspaceSymbol } from './features/workspaceSymbols';
 import Languages from './languages';
@@ -52,15 +52,18 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	await Parser.init(options);
 	await Languages.init(initData.supportedLanguages);
 
-	// init indexeddb for caching
-	const indexeddbCache = new PersistedIndex(initData.databaseName);
-	await indexeddbCache.open();
-	connection.onExit(() => indexeddbCache.close());
-
 	// setup features
 	const documents = new DocumentStore(connection);
 	const trees = new Trees(documents);
-	const symbolIndex = new SymbolIndex(trees, documents, indexeddbCache);
+
+	// // indexeddb-caching
+	// const persistedCach = new PersistedIndex(initData.databaseName);
+	// await persistedCach.open();
+	// connection.onExit(() => persistedCach.close());
+	// file-caching
+	const persistedCache = new FilePersistedIndex(connection);
+
+	const symbolIndex = new SymbolIndex(trees, documents, persistedCache);
 
 	features.push(new WorkspaceSymbol(documents, trees, symbolIndex));
 	features.push(new DefinitionProvider(documents, trees, symbolIndex));
