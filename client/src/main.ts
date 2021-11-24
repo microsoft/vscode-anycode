@@ -114,8 +114,8 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		telemetry.sendTelemetryEvent('feature', { name, language });
 	}
 
-	const databaseName = context.workspaceState.get('databaseName', `anycode_cache_${Math.random().toString(32).slice(2)}`);
-	context.workspaceState.update('databaseName', databaseName);
+	const databaseName = context.workspaceState.get('dbName', `anycode_${Math.random().toString(32).slice(2)}`);
+	context.workspaceState.update('dbName', databaseName);
 
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',

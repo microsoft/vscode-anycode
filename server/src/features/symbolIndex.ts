@@ -51,8 +51,8 @@ class Queue {
 
 export class PersistedIndex {
 
-	private readonly _version = 3;
-	private readonly _store = 'definitionsAndUsages';
+	private readonly _version = 1;
+	private readonly _store = 'fileSymbols';
 	private _db?: IDBDatabase;
 
 	constructor(private readonly _name: string) { }
@@ -131,29 +131,29 @@ export class PersistedIndex {
 		if (this._insertQueue.size === 0) {
 			return;
 		}
-		if (!this._db) {
-			throw new Error('invalid state');
-		}
-		const t = this._db.transaction(this._store, 'readwrite');
-		const toInsert = new Map(this._insertQueue);
-		this._insertQueue.clear();
-		for (let [uri, data] of toInsert) {
-			t.objectStore(this._store).put(data, uri);
-		}
 		return new Promise((resolve, reject) => {
+			if (!this._db) {
+				return reject(new Error('invalid state'));
+			}
+			const t = this._db.transaction(this._store, 'readwrite');
+			const toInsert = new Map(this._insertQueue);
+			this._insertQueue.clear();
+			for (let [uri, data] of toInsert) {
+				t.objectStore(this._store).put(data, uri);
+			}
 			t.oncomplete = () => resolve(undefined);
 			t.onerror = (err) => reject(err);
 		});
 	}
 
 	getAll(): Promise<Map<string, Map<string, SymbolInfo>>> {
-		if (!this._db) {
-			throw new Error('invalid state');
-		}
-		const entries = new Map<string, Map<string, SymbolInfo>>();
-		const t = this._db.transaction(this._store, 'readonly');
 
 		return new Promise((resolve, reject) => {
+			if (!this._db) {
+				return reject(new Error('invalid state'));
+			}
+			const entries = new Map<string, Map<string, SymbolInfo>>();
+			const t = this._db.transaction(this._store, 'readonly');
 			const store = t.objectStore(this._store);
 			const cursor = store.openCursor();
 			cursor.onsuccess = () => {
@@ -186,17 +186,17 @@ export class PersistedIndex {
 	}
 
 	delete(uris: Set<string>) {
-		if (!this._db) {
-			throw new Error('invalid state');
-		}
-		const t = this._db.transaction(this._store, 'readwrite');
-		const store = t.objectStore(this._store);
-
-		for (const uri of uris) {
-			const request = store.delete(uri);
-			request.onerror = e => console.error(e);
-		}
 		return new Promise((resolve, reject) => {
+			if (!this._db) {
+				return reject(new Error('invalid state'));
+			}
+			const t = this._db.transaction(this._store, 'readwrite');
+			const store = t.objectStore(this._store);
+
+			for (const uri of uris) {
+				const request = store.delete(uri);
+				request.onerror = e => console.error(e);
+			}
 			t.oncomplete = () => resolve(undefined);
 			t.onerror = (err) => reject(err);
 		});
