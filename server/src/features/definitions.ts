@@ -29,11 +29,10 @@ export class DefinitionProvider {
 
 		// find definition in file
 		const info = Locals.create(document, this._trees);
-		const scope = info.root.findScope(params.position);
-		const anchor = scope.findDefinitionOrUsage(params.position);
+		const anchor = info.root.findDefinitionOrUsage(params.position);
 		if (anchor) {
 			// find definition inside this file
-			const definitions = scope.findDefinitions(anchor.name);
+			const definitions = anchor.scope.findDefinitions(anchor.name);
 			if (definitions.length > 0) {
 				return definitions.map(def => lsp.Location.create(document.uri, def.range));
 			}

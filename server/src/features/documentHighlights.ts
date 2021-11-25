@@ -27,20 +27,19 @@ export class DocumentHighlightsProvider {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
 		const info = Locals.create(document, this._trees);
-		const scope = info.root.findScope(params.position);
-		const anchor = scope.findDefinitionOrUsage(params.position);
+		const anchor = info.root.findDefinitionOrUsage(params.position);
 		if (!anchor) {
 			return this._identifierBasedHighlights(document, params.position);
 		}
 		const result: lsp.DocumentHighlight[] = [];
-		for (let def of scope.findDefinitions(anchor.name)) {
+		for (let def of anchor.scope.findDefinitions(anchor.name)) {
 			result.push(lsp.DocumentHighlight.create(def.range, lsp.DocumentHighlightKind.Write));
 		}
 		if (result.length === 0) {
 			// needs a definition
 			return this._identifierBasedHighlights(document, params.position);
 		}
-		for (let usage of scope.findUsages(anchor.name)) {
+		for (let usage of anchor.scope.findUsages(anchor.name)) {
 			result.push(lsp.DocumentHighlight.create(usage.range, lsp.DocumentHighlightKind.Read));
 		}
 		return result;

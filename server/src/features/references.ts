@@ -30,10 +30,10 @@ export class ReferencesProvider {
 
 		// find references inside file
 		const info = Locals.create(document, this._trees);
-		const scope = info.root.findScope(params.position);
-		const anchor = scope.findDefinitionOrUsage(params.position);
-		if (!scope.likelyExports && anchor) {
-			const definitions = scope.findDefinitions(anchor.name);
+		const anchor = info.root.findDefinitionOrUsage(params.position);
+
+		if (anchor && !anchor.scope.likelyExports) {
+			const definitions = anchor.scope.findDefinitions(anchor.name);
 			if (definitions.length > 0) {
 				const result: lsp.Location[] = [];
 				for (let def of definitions) {
@@ -41,7 +41,7 @@ export class ReferencesProvider {
 						result.push(lsp.Location.create(document.uri, def.range));
 					}
 				}
-				const usages = scope.findUsages(anchor.name);
+				const usages = anchor.scope.findUsages(anchor.name);
 				for (let usage of usages) {
 					result.push(lsp.Location.create(document.uri, usage.range));
 				}

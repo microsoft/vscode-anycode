@@ -1,3 +1,12 @@
+(method_declaration) @scope
+(function_definition) @scope
+(compound_statement) @scope
+(declaration_list) @scope
+
+(function_definition
+	name: (name) @local.escape)
+(method_declaration
+	name: (name) @local.escape)
 (assignment_expression
 	left: (variable_name) @local)
 (augmented_assignment_expression
@@ -6,11 +15,5 @@
 	name: (variable_name) @local)
 (simple_parameter
 	name: (variable_name) @local)
-
-(method_declaration parameters: _) @scope
-(method_declaration body: _) @scope.merge
-(function_definition parameters: _) @scope
-(function_definition body: _) @scope.merge
-(compound_statement) @scope
 
 (variable_name) @usage

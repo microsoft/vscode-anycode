@@ -1,19 +1,7 @@
-(required_parameter) @local
-(optional_parameter) @local
-(catch_clause parameter: (identifier) @local)
-(variable_declarator (identifier) @local)
-
-(enum_declaration name: (identifier) @usage.void)
-(identifier) @usage
-
-(method_definition (formal_parameters) @scope)
-(method_definition (statement_block) @scope.merge) 
-(function_declaration (formal_parameters) @scope)
-(function_declaration (statement_block) @scope.merge)
-(function (formal_parameters) @scope)
-(function (statement_block) @scope.merge)
-(arrow_function (formal_parameters) @scope)
-(arrow_function (statement_block) @scope.merge)
+(method_definition) @scope
+(function_declaration) @scope
+(function) @scope
+(arrow_function) @scope
 [(class_body) (enum_body)] @scope
 (interface_declaration body: (object_type) @scope)
 (for_statement) @scope
@@ -23,3 +11,15 @@
 (try_statement (statement_block) @scope)
 (catch_clause) @scope
 (statement_block) @scope
+
+(function_declaration name: (identifier) @local.escape)
+(function name: (identifier) @local.escape)
+(required_parameter (identifier) @local)
+(optional_parameter (identifier) @local)
+(catch_clause parameter: (identifier) @local)
+(variable_declarator (identifier) @local)
+(type_parameter (type_identifier) @local)
+
+(enum_declaration name: (identifier) @usage.void)
+(identifier) @usage
+(type_identifier) @usage

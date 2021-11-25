@@ -38,6 +38,12 @@ class C {
   }
 }
 --- ctor, arguments
+class Foo {
+  Foo(int [[Foo]]) {
+    Bar([[Foo]])
+  }
+}
+--- ctor, arguments
 public class Person
 {
    private string last;
@@ -163,4 +169,9 @@ static class Foo {
                 return $"Many elements. Too many to write";
         }
     }
+}
+--- generics, class
+class E {}
+class Foo<[[E]]> {
+    [[E]] getItem() {}
 }

@@ -35,7 +35,7 @@ suite('DocumentHighlight - Fixtures', function () {
 		}
 	}
 
-	['go', 'java', 'rust', 'csharp', 'php'].forEach(async langId => {
+	['go', 'java', 'rust', 'csharp', 'php', 'typescript'].forEach(async langId => {
 		test(langId, async function () {
 
 			const fixtures = await Fixture.parse(`/server/src/test/documentHighlightsFixtures/${langId}.txt`, langId);

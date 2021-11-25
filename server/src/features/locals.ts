@@ -29,11 +29,7 @@ export class Locals {
 		for (let i = 0; i < scopeCaptures.length; i++) {
 			const capture = scopeCaptures[i];
 			const range = asLspRange(capture.node);
-			if (capture.name.endsWith('.merge')) {
-				all[all.length - 1].range.end = range.end;
-			} else {
-				all.push(new Scope(range, capture.name.endsWith('.exports')));
-			}
+			all.push(new Scope(range, capture.name.endsWith('.exports')));
 		}
 
 		// Find all definitions and usages and mix them with scopes
@@ -52,8 +48,8 @@ export class Locals {
 			if (capture.name.startsWith('local')) {
 				bucket.push(new Definition(
 					capture.node.text,
-					asLspRange(capture.node)
-
+					asLspRange(capture.node),
+					capture.name.endsWith('.escape')
 				));
 			} else if (capture.name.startsWith('usage')) {
 				bucket.push(new Usage(
@@ -70,8 +66,15 @@ export class Locals {
 		for (const thing of nodes.sort(this._compareByRange)) {
 			while (true) {
 				let parent = stack.pop() ?? root;
+
 				if (containsRange(parent.range, thing.range)) {
-					parent.appendChild(thing);
+
+					if (thing instanceof Definition && thing.escapeToParent) {
+						(stack[stack.length - 1] ?? root).appendChild(thing);
+					} else {
+						parent.appendChild(thing);
+					}
+
 					stack.push(parent);
 					stack.push(thing);
 					break;
@@ -174,12 +177,17 @@ export class Usage extends Node {
 	toString() {
 		return `use:${this.name}`;
 	}
+
+	get scope(): Scope {
+		return <Scope>this._parent;
+	}
 }
 
 export class Definition extends Node {
 	constructor(
 		readonly name: string,
 		readonly range: lsp.Range,
+		readonly escapeToParent: boolean
 	) {
 		super(range, NodeType.Definition);
 	}
@@ -190,6 +198,10 @@ export class Definition extends Node {
 
 	toString() {
 		return `def:${this.name}`;
+	}
+
+	get scope(): Scope {
+		return <Scope>this._parent;
 	}
 }
 
@@ -224,23 +236,30 @@ export class Scope extends Node {
 		}
 	}
 
-	findScope(position: lsp.Position): Scope {
+	private _findScope(position: lsp.Position): Scope {
 		for (let scope of this.scopes()) {
 			if (containsPosition(scope.range, position)) {
-				return scope.findScope(position);
+				return scope._findScope(position);
 			}
 		}
 		return this;
 	}
 
 	findDefinitionOrUsage(position: lsp.Position): Definition | Usage | undefined {
-		for (let child of this._children) {
-			if ((child instanceof Definition || child instanceof Usage) && containsPosition(child.range, position)) {
-				return child;
+		let scope = this._findScope(position);
+		while (true) {
+			for (let child of scope._children) {
+				if ((child instanceof Definition || child instanceof Usage) && containsPosition(child.range, position)) {
+					return child;
+				}
+			}
+			if (scope._parent instanceof Scope) {
+				scope = scope._parent;
+			} else {
+				break;
 			}
 		}
 	}
-
 
 	findDefinitions(text: string): Definition[] {
 		const result: Definition[] = [];

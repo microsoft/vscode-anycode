@@ -5,7 +5,6 @@
 
 //@ts-check
 
-const { rejects } = require('assert');
 const { readFileSync } = require('fs');
 const http = require('http');
 const { join } = require('path')
