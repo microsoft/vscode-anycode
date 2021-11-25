@@ -175,3 +175,31 @@ class E {}
 class Foo<[[E]]> {
     [[E]] getItem() {}
 }
+--- prop vs arg, 1
+class A {
+    string S;
+    void Foo(string [[S]]) {
+    	this.S = [[S]];
+    }
+}
+--- prop vs arg, 2
+class A {
+    string S;
+    void Foo(string [[S]]) {
+       [[S]] = 'aaa' + [[S]];
+    }
+}
+--- prop vs arg, 3
+class A {
+    string [[S]];
+    void Foo(string E) {
+       [[S]] = E;
+    }
+}
+--- /SKIP/ prop vs arg, 4
+class A {
+    string [[S]];
+    void Foo(string E) {
+       this.[[S]] = E;
+    }
+}
