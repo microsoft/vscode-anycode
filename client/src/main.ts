@@ -143,6 +143,10 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 			provideDocumentHighlights(document, position, token, next) {
 				_sendFeatureTelementry('documentHighlights', document.languageId);
 				return next(document, position, token);
+			},
+			provideCompletionItem(document, position, context, token, next) {
+				_sendFeatureTelementry('completions', document.languageId);
+				return next(document, position, context, token);
 			}
 		}
 	};
@@ -179,11 +183,13 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 	const size: number = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
 
-	// do not set a maxResults limit if RemoteHub has the full workspace contents
+	// check for remote-hub full workspace access
 	const hasFullWorkspaceContents = await _hasFullWorkspaceContents();
 
-	let init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, hasFullWorkspaceContents ? undefined : size + 1).then(async uris => {
-		console.info(`FOUND ${uris.length} files for ${langPattern}`);
+	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, /*unlimited to count the number of files*/).then(async all => {
+
+		const uris = all.slice(0, hasFullWorkspaceContents ? undefined : size);
+		console.info(`USING ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
 		await client.sendRequest('queue/init', uris.map(String));
@@ -201,7 +207,6 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 			hasWorkspaceContents: hasFullWorkspaceContents ? 1 : 0,
 			duration: performance.now() - t1,
 		});
-
 	}));
 	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
