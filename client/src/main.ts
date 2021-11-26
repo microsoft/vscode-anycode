@@ -202,8 +202,8 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 			}
 		*/
 		telemetry.sendTelemetryEvent('init', undefined, {
-			numOfFiles: uris.length,
-			indexSize: hasFullWorkspaceContents ? -1 : size,
+			numOfFiles: all.length, // number of files found
+			indexSize: hasFullWorkspaceContents ? -1 : size, // number of files loaded
 			hasWorkspaceContents: hasFullWorkspaceContents ? 1 : 0,
 			duration: performance.now() - t1,
 		});
