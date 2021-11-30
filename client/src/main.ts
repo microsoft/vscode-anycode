@@ -183,12 +183,13 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 	const size: number = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
 
-	// check for remote-hub full workspace access
-	const hasFullWorkspaceContents = await _hasFullWorkspaceContents();
-
 	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, /*unlimited to count the number of files*/).then(async all => {
 
-		const uris = all.slice(0, hasFullWorkspaceContents ? undefined : size);
+		// (RemoteHub) try to load full workspace but only when the user already
+		// is OK with this...
+		const didLoadWorkspaceContents = await _loadRemoteHubWorkspaceContents();
+
+		const uris = all.slice(0, didLoadWorkspaceContents ? undefined : size);
 		console.info(`USING ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
@@ -203,8 +204,8 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		*/
 		telemetry.sendTelemetryEvent('init', undefined, {
 			numOfFiles: all.length, // number of files found
-			indexSize: hasFullWorkspaceContents ? -1 : size, // number of files loaded
-			hasWorkspaceContents: hasFullWorkspaceContents ? 1 : 0,
+			indexSize: uris.length, // number of files loaded
+			hasWorkspaceContents: didLoadWorkspaceContents ? 1 : 0,
 			duration: performance.now() - t1,
 		});
 	}));
@@ -224,7 +225,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		client.sendNotification('file-cache/remove', uri.toString());
 	}));
 
-	// serve fileRead request		
+	// serve fileRead request
 	client.onRequest('file/read', async raw => {
 		const uri = vscode.Uri.parse(raw);
 		let data: Uint8Array;
@@ -259,19 +260,23 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	return vscode.Disposable.from(...disposables);
 }
 
-async function _hasFullWorkspaceContents() {
+async function _loadRemoteHubWorkspaceContents() {
 	if (!vscode.workspace.workspaceFolders) {
 		// no workspace
 		return false;
 	}
-	const remoteHub = vscode.extensions.getExtension('GitHub.remoteHub') ?? vscode.extensions.getExtension('GitHub.remoteHub-insiders');
+
+	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
+
+	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub') ?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
 	const remoteHubApi = await remoteHub?.activate();
-	if (!remoteHubApi?.hasWorkspaceContents) {
+	if (typeof remoteHubApi?.loadWorkspaceContents !== 'function') {
 		// no remotehub or bad version
 		return false;
 	}
+
 	for (const folder of vscode.workspace.workspaceFolders) {
-		if (!await remoteHubApi.hasWorkspaceContents(folder.uri)) {
+		if (!await remoteHubApi.loadWorkspaceContents(folder.uri)) {
 			return false;
 		}
 	}
