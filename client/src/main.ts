@@ -181,15 +181,21 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		...Object.keys(vscode.workspace.getConfiguration('files', null).get('exclude') ?? {})
 	].join(',')}}`;
 
-	const size: number = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
+	let size: number = Math.max(0, vscode.workspace.getConfiguration('anycode').get<number>('symbolIndexSize', 500));
 
 	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, /*unlimited to count the number of files*/).then(async all => {
 
-		// (RemoteHub) try to load full workspace but only when the user already
-		// is OK with this...
-		const didLoadWorkspaceContents = await _loadRemoteHubWorkspaceContents();
+		let didLoadWorkspaceContents: boolean | undefined = undefined;
+		if (all.length > size) {
+			// We have more files than our index limit. Try to load full workspace (remote hub) but only when the
+			// user is OK with this...
+			didLoadWorkspaceContents = await _loadRemoteHubWorkspaceContents();
+			if (didLoadWorkspaceContents) {
+				size = Number.MAX_SAFE_INTEGER;
+			}
+		}
 
-		const uris = all.slice(0, didLoadWorkspaceContents ? undefined : size);
+		const uris = all.slice(0, size);
 		console.info(`USING ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
