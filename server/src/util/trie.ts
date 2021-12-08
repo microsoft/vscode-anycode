@@ -116,38 +116,56 @@ export class Trie<E> implements ReadonlyTrie<E> {
 	}
 
 	*query(str: string[]): IterableIterator<[string, E]> {
-		let bucket = new Set<Trie<E>>();
-		this._query(str, 0, 0, bucket);
+
+		const bucket = new Set<Trie<E>>();
+		const cache = new Map<Trie<E>, Map<number, boolean>>();
+
+		const _query = (node: Trie<E>, str: string[], pos: number, skipped: number, lastCh: string) => {
+
+			if (bucket.has(node)) {
+				return;
+			}
+
+			if (skipped > 12) {
+				return;
+			}
+
+			const map = cache.get(node);
+			if (map?.get(pos)) {
+				return;
+			}
+
+			if (map) {
+				map.set(pos, true);
+			} else {
+				cache.set(node, new Map([[pos, true]]));
+			}
+
+			if (pos >= str.length) {
+				// till 'node' all characters have matched
+				bucket.add(node);
+				return;
+			}
+
+			if (str.length - pos > node._depth) {
+				// there is more characters left than there are nodes
+				return;
+			}
+
+			// match & recurse
+			for (let [ch, child] of node._children) {
+				if (ch.toLowerCase() === str[pos].toLowerCase()) {
+					// consume query character if
+					_query(child, str, pos + 1, skipped, ch);
+				}
+				_query(child, str, pos, skipped + 1, ch);
+			}
+		};
+
+		_query(this, str, 0, 0, this.ch);
+
 		for (let item of bucket) {
 			yield* item;
-		}
-	}
-
-	private _query(str: string[], pos: number, skipped: number, bucket: Set<Trie<E>>) {
-		if (bucket.has(this)) {
-			return;
-		}
-		if (pos >= str.length) {
-			bucket.add(this);
-			return;
-		}
-		if (skipped > 10) {
-			// skipped too many times! 
-			// this is the safeguard for super long text nodes would be traversed forever
-			return;
-		}
-		if (str.length - pos > this._depth) {
-			// there is more characters left than there are nodes
-			return;
-		}
-		for (let [ch, child] of this._children) {
-			if (ch.toLowerCase() === str[pos].toLowerCase()) {
-				child._query(str, pos + 1, skipped, bucket);
-			}
-			if (pos > 0) {
-				// only proceed fuzzy if the first character has matched
-				child._query(str, pos, skipped + 1, bucket);
-			}
 		}
 	}
 

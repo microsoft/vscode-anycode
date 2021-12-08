@@ -70,7 +70,10 @@ suite('Trie', function () {
 		trie.set('barFoo', true);
 
 		let arr = Array.from(trie.query(Array.from('fo')));
-		assert.strictEqual(arr.length, 2);
+		assert.strictEqual(arr.length, 3);
+		assert.strictEqual(arr[0][0], 'foo');
+		assert.strictEqual(arr[1][0], 'Foo');
+		assert.strictEqual(arr[2][0], 'barFoo');
 
 		arr = Array.from(trie.query(Array.from('b')));
 		assert.strictEqual(arr.length, 1);
