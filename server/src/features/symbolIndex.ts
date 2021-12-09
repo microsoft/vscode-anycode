@@ -48,7 +48,7 @@ class Queue {
 	}
 }
 
-export class PersistedIndex implements IPersistedIndex {
+export class DBPersistedIndex implements IPersistedIndex {
 
 	private readonly _version = 1;
 	private readonly _store = 'fileSymbols';
