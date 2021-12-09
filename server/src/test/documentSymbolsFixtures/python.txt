@@ -1,8 +1,12 @@
+--- simple function
 def [[print_pattern]]():
     size = 4
     for i in range(size):
         print("*" * size)
----
+--- async function
+async def [[c]](a: str):
+  a
+--- Class, ctor, method
 class [[Dog]]:
 
     def [[__init__]](self, name, age):
@@ -11,6 +15,3 @@ class [[Dog]]:
 
     def [[bark]](self):
         print(f"woof-woof. I'm {self.name}")
----
-async def [[c]](a: str):
-  a

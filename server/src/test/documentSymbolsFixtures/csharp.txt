@@ -1,16 +1,16 @@
----
+--- class
 class [[YourDerivedGraphicsClass]] : GraphicsClass
 {
     public new void [[DrawRectangle]]() { }
 }
 
----
+--- class 2
 public class [[Derived]] : Base
 {
     public override void [[DoWork]](int param) { }
     public void [[DoWork]](double param) { }
 }
----
+--- static class
 public static class [[TemperatureConverter]]
 {
     public static double [[CelsiusToFahrenheit]](string temperatureCelsius)
@@ -52,15 +52,10 @@ public class [[Automobile]]
 
     public static event EventType [[RunOutOfGas]];
 }
---- 
+---  class, field
 public class [[CalendarDateWithInitialization]]
 {
     public string [[Day]] = "Monday";
-}
---- 
-class [[Calendar1]]
-{
-    public const int [[Months]] = 12;
 }
 --- delegate
 delegate void [[Del]]();

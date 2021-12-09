@@ -5,5 +5,17 @@
 
 import './trie.test';
 import './queries.test';
-import './documentSymbols.test';
-import './documentHighlights.test';
+
+import { bootstrapWasm } from './utils';
+import * as documentHighlights from './documentHighlights.test';
+import * as documentSymbols from './documentSymbols.test';
+
+Promise.all([
+	documentHighlights.init(),
+	documentSymbols.init()
+]).finally(async () => {
+
+	await bootstrapWasm();
+
+	return run(); // MOCHA-delayed run
+});
