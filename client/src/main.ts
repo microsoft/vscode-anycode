@@ -185,13 +185,13 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 	const init = Promise.resolve(vscode.workspace.findFiles(langPattern, exclude, /*unlimited to count the number of files*/).then(async all => {
 
-		let didLoadWorkspaceContents: boolean | undefined = undefined;
-		if (all.length > size) {
-			// We have more files than our index limit. Try to load full workspace (remote hub) but only when the
-			// user is OK with this...
-			didLoadWorkspaceContents = await _loadRemoteHubWorkspaceContents();
-			if (didLoadWorkspaceContents) {
+		let hasWorkspaceContents = 0;
+		if (all.length > 50) {
+			// we have quite some files. lets check if we can read them without limits.
+			// for remotehub this means try to fetch the repo-tar first
+			if (await _canInitWithoutLimits()) {
 				size = Number.MAX_SAFE_INTEGER;
+				hasWorkspaceContents = 1;
 			}
 		}
 
@@ -211,7 +211,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		telemetry.sendTelemetryEvent('init', undefined, {
 			numOfFiles: all.length, // number of files found
 			indexSize: uris.length, // number of files loaded
-			hasWorkspaceContents: didLoadWorkspaceContents ? 1 : 0,
+			hasWorkspaceContents, // firehose access?
 			duration: performance.now() - t1,
 		});
 	}));
@@ -266,13 +266,20 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	return vscode.Disposable.from(...disposables);
 }
 
-async function _loadRemoteHubWorkspaceContents() {
+async function _canInitWithoutLimits() {
 	if (!vscode.workspace.workspaceFolders) {
-		// no workspace
+		// no folder -> NO fetch
 		return false;
 	}
 
 	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
+
+	const remoteFolders = vscode.workspace.workspaceFolders.filter(folder => folder.uri.scheme === 'vscode-vfs');
+
+	if (remoteFolders.length === 0) {
+		// no remote folders -> fetch ALL
+		return true;
+	}
 
 	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub') ?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
 	const remoteHubApi = await remoteHub?.activate();
@@ -281,10 +288,13 @@ async function _loadRemoteHubWorkspaceContents() {
 		return false;
 	}
 
-	for (const folder of vscode.workspace.workspaceFolders) {
+	for (const folder of remoteFolders) {
 		if (!await remoteHubApi.loadWorkspaceContents(folder.uri)) {
+			// remote folder -> FAILED to load one
 			return false;
 		}
 	}
+
+	// remote folders, all good
 	return true;
 }
