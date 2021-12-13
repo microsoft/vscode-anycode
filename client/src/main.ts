@@ -234,6 +234,17 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	// serve fileRead request
 	client.onRequest('file/read', async raw => {
 		const uri = vscode.Uri.parse(raw);
+
+		if (uri.scheme === 'vscode-notebook-cell') {
+			try {
+				const doc = await vscode.workspace.openTextDocument(uri);
+				return new TextEncoder().encode(doc.getText());
+			} catch (err) {
+				console.warn(err);
+				return new Uint8Array();
+			}
+		}
+
 		let data: Uint8Array;
 		const stat = await vscode.workspace.fs.stat(uri);
 		if (stat.size > 1024 ** 2) {
