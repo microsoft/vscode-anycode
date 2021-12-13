@@ -35,7 +35,7 @@
 	name: (type_identifier) @interface.name) @interface
 
 (impl_item 
-	. (type_identifier) @class.name) @class
+	. [(generic_type) (type_identifier)] @class.name) @class
 
 (foreign_mod_item
 	(extern_modifier (string_literal) @namespace.name)) @namespace

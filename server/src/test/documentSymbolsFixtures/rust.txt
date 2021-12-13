@@ -25,6 +25,12 @@ impl [[Drop]] for Tree {
         unsafe { ffi::ts_tree_delete(self.0.as_ptr()) }
     }
 }
+--- trait w/ generics
+impl [[From<GraphNodeRef>]] for Value {
+    fn [[from]](value: GraphNodeRef) -> Value {
+        Value::GraphNode(value)
+    }
+}
 --- extern
 extern [["system"]] {
     pub fn [[fff]]() -> i32
