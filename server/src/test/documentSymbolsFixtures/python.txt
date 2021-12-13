@@ -15,3 +15,10 @@ class [[Dog]]:
 
     def [[bark]](self):
         print(f"woof-woof. I'm {self.name}")
+--- variable
+def [[hello]]():
+    b = 123
+    b * 11
+
+[[aaa]] = 123
+[[a]] = b = c = 999
