@@ -10,9 +10,18 @@ import { Trees } from '../trees';
 import { Fixture, TestDocumentStore } from './utils';
 
 export async function init() {
-	let all = ['go', 'java', 'python', 'rust', 'csharp', 'typescript', 'c'].sort().map(async langId => {
 
-		const fixtures = await Fixture.parse(`/server/src/test/documentSymbolsFixtures/${langId}.txt`, langId);
+	const all = [
+		['go', 'go'],
+		['c', 'c'],
+		['csharp', 'cs'],
+		['java', 'java'],
+		['python', 'py'],
+		['rust', 'rs'],
+		['typescript', 'ts'],
+	].map(async ([langId, suffix]) => {
+
+		const fixtures = await Fixture.parse(`/server/src/test/fixtures/outline.${suffix}`, langId);
 
 		suite(`DocumentSymbols - Fixtures: ${langId}`, function () {
 
@@ -32,6 +41,7 @@ export async function init() {
 
 	return Promise.all(all);
 }
+
 
 function assertDocumentSymbols(fixture: Fixture, actual: DocumentSymbol[]) {
 

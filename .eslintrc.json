@@ -21,6 +21,7 @@
     },
     "ignorePatterns": [
         "**/*.d.ts",
-        "**/*.js"
+        "**/*.js",
+        "**/fixtures"
     ]
 }

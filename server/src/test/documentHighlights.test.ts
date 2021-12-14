@@ -13,17 +13,22 @@ import { Fixture, TestDocumentStore } from './utils';
 
 export async function init() {
 
-	let all: Promise<any>[] = [];
+	const all = [
+		['csharp', 'cs'],
+		['go', 'go'],
+		['java', 'java'],
+		['php', 'php'],
+		['rust', 'rs'],
+		['typescript', 'ts']
+	].map(async ([langId, suffix]) => {
 
-	all = ['go', 'java', 'rust', 'csharp', 'php', 'typescript'].sort().map(async langId => {
-
-		const fixtures = await Fixture.parse(`/server/src/test/documentHighlightsFixtures/${langId}.txt`, langId);
-		const store = new TestDocumentStore(...fixtures.map(f => f.document));
+		const fixtures = await Fixture.parse(`/server/src/test/fixtures/highlights.${suffix}`, langId);
 
 		suite(`DocumentHighlights - Fixtures: ${langId}`, function () {
+			// debugger;
+			const store = new TestDocumentStore(...fixtures.map(f => f.document));
 
 			for (let item of fixtures) {
-
 				test(item.name, async function () {
 					const trees = new Trees(store);
 					const symbols = new DocumentHighlightsProvider(store, trees);

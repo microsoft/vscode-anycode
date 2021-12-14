@@ -5,12 +5,14 @@
 
 import type { QueryModule } from '../../languages';
 import outline from './outline.scm';
+import comments from './comments.scm';
 import identifiers from './identifiers.scm';
 import locals from './locals.scm';
 import references from './references.scm';
 
 export const mod: QueryModule = {
 	outline,
+	comments,
 	identifiers,
 	locals,
 	references

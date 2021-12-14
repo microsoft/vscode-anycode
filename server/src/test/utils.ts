@@ -8,6 +8,7 @@ import Languages from '../languages';
 import * as lsp from "vscode-languageserver";
 import { DocumentStore } from "../documentStore";
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Trees } from '../trees';
 
 export async function bootstrapWasm() {
 	await Parser.init({
@@ -74,40 +75,61 @@ export class FixtureMarks {
 
 export class Fixture {
 
-	static async parse(uri: string, languageId: string): Promise<Fixture[]> {
+	static async parse(uri: string, languageId: string) {
 
 		const res = await fetch(uri);
 		const text = await res.text();
 
-		const result: Fixture[] = [];
-		const r = /---.*/gu;
-		const fixtures = text.split(r).filter(Boolean);
-		const matches = text.match(r);
+		const r = /.+###.*/gu;
+		const names = text.match(r);
+		const documents = text.split(r)
+			.filter(Boolean)
+			.map((value, i) => TextDocument.create(`${uri}#${i}`, languageId, 1, value));
 
-		for (let i = 0; i < fixtures.length; i++) {
-			let text = fixtures[i];
-			const marks: FixtureMarks[] = [];
-			const parts = text.split(FixtureMarks.pattern);
-			const idents = text.match(FixtureMarks.pattern)!;
+		const store = new TestDocumentStore(...documents);
+		const trees = new Trees(store);
+		const query = Languages.getQuery(languageId, 'comments', true);
 
-			text = '';
-			for (let i = 0; i < parts.length; i++) {
-				text += parts[i];
-				let ident = idents[i];
-				if (ident) {
-					let name = ident.slice(2, -2);
-					marks.push(new FixtureMarks(text.length, name));
-					text += name;
-				}
+		const fixtures: Fixture[] = [];
+
+		for (const doc of documents) {
+			const tree = trees.getParseTree(doc);
+			if (!tree) {
+				throw new Error();
 			}
 
-			const name = matches?.shift()?.substring(3) ?? String(i);
+			const name = names?.shift()?.replace(/^.+###/, '').trim() ?? doc.uri;
 			if (name.includes('/SKIP/')) {
 				continue;
 			}
-			result.push(new Fixture(name, TextDocument.create(`${uri}#${i}`, languageId, 1, text), marks));
+
+			const marks: FixtureMarks[] = [];
+			const captures = query.captures(tree.rootNode);
+
+			for (const capture of captures) {
+				const start = capture.node.text.indexOf('^');
+				if (start < 0) {
+					continue;
+				}
+
+				const end = capture.node.text.lastIndexOf('^');
+
+				for (let row = capture.node.startPosition.row - 1; row >= 0; row--) {
+					let node = tree.rootNode.descendantForPosition({ row, column: start }, { row, column: end });
+					if (query.captures(node).length > 0) {
+						// skip stacked comments
+						continue;
+					}
+					marks.push(new FixtureMarks(node.startIndex, node.text));
+					break;
+				}
+			}
+
+			fixtures.push(new Fixture(name, doc, marks));
 		}
-		return result;
+
+		trees.dispose();
+		return fixtures;
 	}
 
 	constructor(
