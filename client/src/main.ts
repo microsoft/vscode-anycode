@@ -19,8 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	function startServer() {
 		serverHandles.push(
-			_startServer(context, supportedLanguages, telemetry),
-			_showStatusAndInfo(context, supportedLanguages)
+			_startServer(context, supportedLanguages, telemetry)
 		);
 	}
 
@@ -46,7 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(new vscode.Disposable(stopServers));
 }
 
-async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages): Promise<vscode.Disposable> {
+async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, showCommandHint: boolean): Promise<vscode.Disposable> {
 
 	const disposables: vscode.Disposable[] = [];
 
@@ -61,7 +60,11 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
 	statusItem.text = `Partial Mode`;
-	statusItem.detail = 'Language support for this file is inaccurate.';
+	if (showCommandHint) {
+		statusItem.detail = 'Language support for this file is inaccurate. $(lightbulb-autofix) Did not index all files because search [indexing is disabled](command:remoteHub.enableIndexing).';
+	} else {
+		statusItem.detail = 'Language support for this file is inaccurate.';
+	}
 	statusItem.command = {
 		title: 'Learn More',
 		command: 'vscode.open',
@@ -214,6 +217,10 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 			hasWorkspaceContents, // firehose access?
 			duration: performance.now() - t1,
 		});
+
+		// show status/maybe notifications
+		disposables.push(await _showStatusAndInfo(context, supportedLanguages, !hasWorkspaceContents && _isRemoteHubWorkspace()));
+
 	}));
 	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
@@ -275,6 +282,13 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	});
 
 	return vscode.Disposable.from(...disposables);
+}
+
+function _isRemoteHubWorkspace() {
+	if (!vscode.extensions.getExtension('GitHub.remoteHub') && !vscode.extensions.getExtension('GitHub.remoteHub-insiders')) {
+		return false;
+	}
+	return vscode.workspace.workspaceFolders?.every(folder => folder.uri.scheme === 'vscode-vfs') ?? false;
 }
 
 async function _canInitWithoutLimits() {
