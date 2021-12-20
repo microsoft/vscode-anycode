@@ -18,6 +18,7 @@ export async function init() {
 		['go', 'go'],
 		['java', 'java'],
 		['php', 'php'],
+		['python', 'py'],
 		['rust', 'rs'],
 		['typescript', 'ts']
 	].map(async ([langId, suffix]) => {
