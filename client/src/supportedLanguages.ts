@@ -98,7 +98,7 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				this._tuples.set(info, { ...featureConfig, folding: true });
+				this._tuples.set(info, featureConfig);
 			}
 		}
 

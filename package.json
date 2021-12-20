@@ -72,6 +72,10 @@
 							"type": "boolean",
 							"description": "Completions based on identifiers and symbol names"
 						},
+						"folding": {
+							"type": "boolean",
+							"description": "Fold sections of codes to a single line"
+						},
 						"diagnostics": {
 							"type": "boolean",
 							"description": "(experimental) Parse errors show as problems"
@@ -84,6 +88,7 @@
 						"highlights": true,
 						"outline": true,
 						"workspaceSymbols": true,
+						"folding": false,
 						"diagnostics": false
 					}
 				}
