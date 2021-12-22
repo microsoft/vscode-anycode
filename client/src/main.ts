@@ -243,6 +243,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		const uri = vscode.Uri.parse(raw);
 
 		if (uri.scheme === 'vscode-notebook-cell') {
+			// we are dealing with a notebook
 			try {
 				const doc = await vscode.workspace.openTextDocument(uri);
 				return new TextEncoder().encode(doc.getText());
@@ -252,15 +253,27 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 			}
 		}
 
-		let data: Uint8Array;
-		const stat = await vscode.workspace.fs.stat(uri);
-		if (stat.size > 1024 ** 2) {
-			console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
-			data = new Uint8Array();
-		} else {
-			data = await vscode.workspace.fs.readFile(uri);
+		if (vscode.workspace.fs.isWritableFileSystem(uri.scheme) === undefined) {
+			// undefined means we don't know anything about these uris
+			return new Uint8Array();
 		}
-		return data;
+
+		let data: Uint8Array;
+		try {
+			const stat = await vscode.workspace.fs.stat(uri);
+			if (stat.size > 1024 ** 2) {
+				console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
+				data = new Uint8Array();
+			} else {
+				data = await vscode.workspace.fs.readFile(uri);
+			}
+			return data;
+
+		} catch (err) {
+			// graceful
+			console.warn(err);
+			return new Uint8Array();
+		}
 	});
 
 	// file persisted index
