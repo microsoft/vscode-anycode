@@ -31,7 +31,7 @@
 		"onLanguage:typescript",
 		"onCommand:workbench.action.showAllSymbols"
 	],
-	"browser": "./dist/extension.js",
+	"browser": "./dist/anycode.extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "Anycode",

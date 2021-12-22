@@ -23,7 +23,7 @@ if (process.argv.includes('--watch')) {
 
 const client = esbuild.build({
 	entryPoints: ['client/src/main.ts'],
-	outfile: 'dist/extension.js',
+	outfile: 'dist/anycode.extension.js',
 	bundle: true,
 	external: ['vscode'],
 	target: 'es2020',
