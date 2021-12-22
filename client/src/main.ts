@@ -163,10 +163,10 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 	await client.onReady();
 
-	// Build a glob-patterns for languages which have features enables, like workspace symbol search, 
+	// Build a glob-patterns for languages which have features enabled, like workspace symbol search, 
 	// and use this pattern for initial file discovery and file watching
 	const findAndSearchSuffixes: string[][] = [];
-	for (let [info, config] of supportedLanguages.getSupportedLanguages()) {
+	for (const [info, config] of supportedLanguages.getSupportedLanguages()) {
 		if (config.workspaceSymbols || config.references || config.definitions) {
 			findAndSearchSuffixes.push(info.suffixes);
 		}
@@ -190,7 +190,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 		let hasWorkspaceContents = 0;
 		if (all.length > 50) {
-			// we have quite some files. lets check if we can read them without limits.
+			// we have quite some files. let's check if we can read them without limits.
 			// for remotehub this means try to fetch the repo-tar first
 			if (await _canInitWithoutLimits()) {
 				size = Number.MAX_SAFE_INTEGER;
