@@ -30,4 +30,3 @@ extends:
 
       - script: npm run test-server
         displayName: Test extension
-      - name: Install operating system dependencies
