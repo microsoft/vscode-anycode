@@ -35,9 +35,9 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 
 	context.subscriptions.push(supportedLanguages);
-	context.subscriptions.push(supportedLanguages.onDidChange(() => {
+	context.subscriptions.push(supportedLanguages.onDidChange(async () => {
 		// restart server when supported languages change
-		stopServers();
+		await stopServers();
 		startServer();
 	}));
 
@@ -45,9 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(new vscode.Disposable(stopServers));
 }
 
-async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, showCommandHint: boolean): Promise<vscode.Disposable> {
-
-	const disposables: vscode.Disposable[] = [];
+function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
 
 	const _mementoKey = 'didShowMessage';
 	const didShowExplainer = context.globalState.get(_mementoKey, false);
@@ -100,7 +98,6 @@ async function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLan
 		disposables.push(registrations);
 	}
 
-	return vscode.Disposable.from(...disposables);
 }
 
 async function _startServer(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
@@ -219,8 +216,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		});
 
 		// show status/maybe notifications
-		disposables.push(await _showStatusAndInfo(context, supportedLanguages, !hasWorkspaceContents && _isRemoteHubWorkspace()));
-
+		_showStatusAndInfo(context, supportedLanguages, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
 	// stop on server-end
 	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
@@ -294,7 +290,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		}
 	});
 
-	return vscode.Disposable.from(...disposables);
+	return new vscode.Disposable(() => disposables.forEach(d => d.dispose()));
 }
 
 function _isRemoteHubWorkspace() {
