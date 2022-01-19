@@ -27,11 +27,6 @@ export interface FeatureConfig {
 
 export class SupportedLanguages {
 
-	private readonly _overrideConfigurations = new Map<string, { extension: string, config: FeatureConfig }>([
-		['python', { extension: 'ms-python.python', config: { completions: false, definitions: true, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: true } }],
-		['typescript', { extension: 'vscode.typescript-language-features', config: { completions: false, definitions: true, diagnostics: false, folding: false, highlights: false, outline: false, references: false, workspaceSymbols: true } }]
-	]);
-
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
 	readonly onDidChange = this._onDidChange.event;
 
@@ -81,18 +76,7 @@ export class SupportedLanguages {
 
 			for (let info of this._all) {
 				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
-
-				let overrideConfig: FeatureConfig | undefined;
-				const overrideInfo = this._overrideConfigurations.get(info.languageId);
-				if (overrideInfo && vscode.extensions.getExtension(overrideInfo.extension)) {
-					overrideConfig = overrideInfo.config;
-				}
-
-				const featureConfig: FeatureConfig = {
-					...config.get<FeatureConfig>(`language.features`),
-					...overrideConfig,
-				};
-
+				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
 				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
 				if (empty) {
 					continue;
