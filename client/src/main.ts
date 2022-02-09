@@ -219,7 +219,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		_showStatusAndInfo(context, supportedLanguages, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
 	// stop on server-end
-	const initCancel = new Promise(resolve => disposables.push(new vscode.Disposable(resolve)));
+	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	disposables.push(watcher.onDidCreate(uri => {
