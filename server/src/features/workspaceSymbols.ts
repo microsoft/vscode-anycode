@@ -26,7 +26,10 @@ export class WorkspaceSymbol {
 	async provideWorkspaceSymbols(params: lsp.WorkspaceSymbolParams): Promise<lsp.WorkspaceSymbol[]> {
 		const result: lsp.WorkspaceSymbol[] = [];
 
-		await this._symbols.update();
+		await Promise.race([
+			this._symbols.update(),
+			new Promise(resolve => setTimeout(resolve, 250))
+		]);
 
 		const all = this._symbols.index.query(params.query);
 
