@@ -5,3 +5,5 @@
 	(identifier) @ref.function
  	(member_expression property: (property_identifier) @ref.function)])
 (property_identifier) @ref.field.method
+(import_specifier 
+	name: (identifier) @ref.import)
