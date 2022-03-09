@@ -176,6 +176,7 @@ export class StopWatch {
 	}
 }
 
+// TODO@jrieken this list isn't sustainable...
 export function isInteresting(uri: string): boolean {
 	return !/^(git|github|vsls|review):/i.test(uri);
 }
