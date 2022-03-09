@@ -5,7 +5,7 @@
 
 import * as lsp from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { QueryCapture } from '../../tree-sitter/tree-sitter';
+import { QueryCapture } from 'web-tree-sitter';
 import { asLspRange, containsRange, symbolMapping } from '../common';
 import { DocumentStore } from '../documentStore';
 import Languages from '../languages';

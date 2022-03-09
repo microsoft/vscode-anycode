@@ -5,7 +5,7 @@
 
 import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import { BrowserMessageReader, BrowserMessageWriter, createConnection } from 'vscode-languageserver/browser';
-import Parser from '../tree-sitter/tree-sitter';
+import Parser from 'web-tree-sitter';
 import { LanguageConfiguration } from './common';
 import { DocumentStore } from './documentStore';
 import { CompletionItemProvider } from './features/completions';

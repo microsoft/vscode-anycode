@@ -123,7 +123,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
 		synchronize: {},
 		initializationOptions: {
-			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter/tree-sitter.wasm').toString(),
+			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages: supportedLanguages.getSupportedLanguages(),
 			databaseName
 		},

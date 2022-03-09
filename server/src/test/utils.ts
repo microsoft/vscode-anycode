@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from '../../tree-sitter/tree-sitter';
+import Parser from 'web-tree-sitter';
 import Languages from '../languages';
 import * as lsp from "vscode-languageserver";
 import { DocumentStore } from "../documentStore";
@@ -13,7 +13,7 @@ import { Trees } from '../trees';
 export async function bootstrapWasm() {
 	await Parser.init({
 		locateFile() {
-			return '/server/tree-sitter/tree-sitter.wasm';
+			return '/server/node_modules/web-tree-sitter/tree-sitter.wasm';
 		}
 	});
 

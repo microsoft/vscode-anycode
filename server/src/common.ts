@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as lsp from 'vscode-languageserver';
-import type Parser from '../tree-sitter/tree-sitter';
+import type Parser from 'web-tree-sitter';
 
 export type SymbolMapping = {
 	getSymbolKind(symbolKind: string, strict: boolean): lsp.SymbolKind | undefined;

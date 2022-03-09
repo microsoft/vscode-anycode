@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from '../tree-sitter/tree-sitter';
+import Parser from 'web-tree-sitter';
 import c_sharp from './queries/c_sharp';
 import c from './queries/c';
 import cpp from './queries/cpp';
