@@ -177,7 +177,7 @@ export class StopWatch {
 }
 
 export function isInteresting(uri: string): boolean {
-	return !/^(git|github|vsls):/i.test(uri);
+	return !/^(git|github|vsls|review):/i.test(uri);
 }
 
 export async function parallel<R>(tasks: ((token: lsp.CancellationToken) => Promise<R>)[], degree: number, token: lsp.CancellationToken): Promise<R[]> {
