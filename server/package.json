@@ -21,7 +21,7 @@
 		"web-tree-sitter": "0.20.5",
 		"tree-sitter-c": "^0.19.0",
 		"tree-sitter-c-sharp": "^0.19.0",
-		"tree-sitter-cli": "^0.20.4",
+		"tree-sitter-cli": "^0.20.6",
 		"tree-sitter-cpp": "^0.19.0",
 		"tree-sitter-go": "^0.19.1",
 		"tree-sitter-java": "^0.19.1",
