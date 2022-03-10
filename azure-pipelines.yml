@@ -18,6 +18,8 @@ resources:
 extends:
   template: azure-pipelines/extension/stable.yml@templates
   parameters:
+    buildPlatforms:
+      - Ubuntu20.04
     buildSteps:
       - script: npm install -ci
         displayName: Install dependencies
