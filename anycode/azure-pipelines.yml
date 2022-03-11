@@ -21,6 +21,8 @@ extends:
   parameters:
     buildPlatforms:
       - Ubuntu
+    cgSourceScanPath: $(Build.SourcesDirectory)/anycode
+    workingDirectory: $(Build.SourcesDirectory)/anycode
     buildSteps:
       - script: npm install -ci
         displayName: Install All dependencies
