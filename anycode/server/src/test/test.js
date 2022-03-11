@@ -62,7 +62,9 @@ const port = 3000 + Math.ceil(Math.random() * 5080);
 		page.exposeFunction('report_mocha_done', (failCount) => {
 			resolve(failCount)
 		})
-		setTimeout(reject, 5000);
+		if (!_debug) {
+			setTimeout(() => reject('TIMEOUT'), 5000);
+		}
 	})
 
 	await page.goto(`http://localhost:${port}/anycode/server/src/test/test.html?${encodeURIComponent(JSON.stringify(bootstrap))}`);
@@ -81,7 +83,11 @@ const port = 3000 + Math.ceil(Math.random() * 5080);
 	page.close();
 	server.close();
 	process.exit(failCount)
-})()
+
+})().catch(err => {
+	console.error('FAIL', err);
+	process.exit(1)
+})
 
 
 function readAnycodeExtensions() {
