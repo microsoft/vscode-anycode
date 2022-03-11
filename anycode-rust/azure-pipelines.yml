@@ -1,0 +1,30 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - main
+  tags:
+    include:
+      - anycode-rust.*
+pr: none
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: microsoft/vscode-engineering
+      ref: main
+      endpoint: Monaco
+
+extends:
+  template: azure-pipelines/extension/stable.yml@templates
+  parameters:
+    buildPlatforms:
+      - Ubuntu
+    buildSteps:
+      - script: cd anycode-rust && npm install
+        displayName: Install dependencies
+
+    cgSourceScanPath: $(Build.SourcesDirectory)/anycode-rust
+    workingDirectory: $(Build.SourcesDirectory)/anycode-rust
