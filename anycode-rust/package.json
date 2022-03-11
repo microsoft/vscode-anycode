@@ -1,0 +1,43 @@
+{
+	"name": "anycode-rust",
+	"publisher": "ms-vscode",
+	"displayName": "anycode-rust",
+	"description": "",
+	"version": "0.0.1",
+	"preview": true,
+	"repository": {
+		"url": "https://github.com/microsoft/vscode-anycode"
+	},
+	"engines": {
+		"vscode": "^1.65.0"
+	},
+	"activationEvents": [],
+	"browser": "index.js",
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"anycode-languages": {
+			"grammarPath": "./tree-sitter-rust.wasm",
+			"languageId": "rust",
+			"extensions": [
+				"rs"
+			],
+			"queryPaths": {
+				"comments": "./queries/comments.scm",
+				"folding": "./queries/folding.scm",
+				"identifiers": "./queries/identifiers.scm",
+				"locals": "./queries/locals.scm",
+				"outline": "./queries/outline.scm",
+				"references": "./queries/references.scm"
+			}
+		}
+	},
+	"scripts": {
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-rust"
+	},
+	"devDependencies": {
+		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-rust": "0.20.1"
+	}
+}
