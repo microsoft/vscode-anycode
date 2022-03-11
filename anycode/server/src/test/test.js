@@ -31,12 +31,21 @@ const requestListener = function (req, res) {
 const _debug = process.argv.includes('--debug');
 
 
+const port = 3000 + Math.ceil(Math.random() * 5080);
+
 (async function () {
 
 	const bootstrap = readAnycodeExtensions();
 
 	const server = http.createServer(requestListener);
-	server.listen(8080);
+	server.on('error', (err) => {
+		console.error(err)
+		process.exit(1)
+	})
+
+	await new Promise(resolve => server.listen(port, undefined, undefined, resolve));
+
+	console.log(`test server LISTENS on port ${port}`)
 
 	const browser = await chromium.launch({
 		headless: !_debug,
@@ -56,7 +65,7 @@ const _debug = process.argv.includes('--debug');
 		setTimeout(reject, 5000);
 	})
 
-	await page.goto(`http://localhost:8080/anycode/server/src/test/test.html?${encodeURIComponent(JSON.stringify(bootstrap))}`);
+	await page.goto(`http://localhost:${port}/anycode/server/src/test/test.html?${encodeURIComponent(JSON.stringify(bootstrap))}`);
 
 	const failCount = await mochaDone;
 
