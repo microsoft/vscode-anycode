@@ -118,6 +118,10 @@
 			}
 		}
 	},
+	"extensionPack": [
+		"ms-vscode.anycode-java",
+		"ms-vscode.anycode-rust"
+	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -b tsconfig.json && node esbuild.js",
