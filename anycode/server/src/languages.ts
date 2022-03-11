@@ -8,7 +8,6 @@ import c_sharp from './queries/c_sharp';
 import c from './queries/c';
 import cpp from './queries/cpp';
 import go from './queries/go';
-import java from './queries/java';
 import php from './queries/php';
 import python from './queries/python';
 import typescript from './queries/typescript';
@@ -31,7 +30,6 @@ const _queryModules = new Map<string, QueryModule>([
 	['c', c],
 	['cpp', cpp],
 	['go', go],
-	['java', java],
 	['php', php],
 	['python', python],
 	['typescript', typescript],

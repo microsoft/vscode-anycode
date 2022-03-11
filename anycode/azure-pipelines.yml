@@ -21,14 +21,14 @@ extends:
     buildPlatforms:
       - Ubuntu
     buildSteps:
-      - script: node scripts/all-npm.js i
+      - script: npm install -ci
         displayName: Install All dependencies
 
-      - script: cd anycode && npm run compile
+      - script: npm run compile
         displayName: Compile extension
 
-      - script: cd anycode && npx playwright install-deps
+      - script: npx playwright install-deps
         displayName: Install operating system dependencies
 
-      - script: cd anycode && npm run test-server
+      - script: npm run test-server
         displayName: Test extension

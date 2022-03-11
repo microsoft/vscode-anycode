@@ -23,7 +23,6 @@ export async function bootstrapWasm() {
 		[{ languageId: 'c', wasmUri: '/anycode/server/tree-sitter-c.wasm', suffixes: [] }, {}],
 		[{ languageId: 'cpp', wasmUri: '/anycode/server/tree-sitter-cpp.wasm', suffixes: [] }, {}],
 		[{ languageId: 'go', wasmUri: '/anycode/server/tree-sitter-go.wasm', suffixes: [] }, {}],
-		[{ languageId: 'java', wasmUri: '/anycode/server/tree-sitter-java.wasm', suffixes: [] }, {}],
 		[{ languageId: 'php', wasmUri: '/anycode/server/tree-sitter-php.wasm', suffixes: [] }, {}],
 		[{ languageId: 'python', wasmUri: '/anycode/server/tree-sitter-python.wasm', suffixes: [] }, {}],
 		[{ languageId: 'typescript', wasmUri: '/anycode/server/tree-sitter-typescript.wasm', suffixes: [] }, {}],
