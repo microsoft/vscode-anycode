@@ -4,7 +4,8 @@ trigger:
   branches:
     include: ["*"]
   tags:
-    include: ["*"]
+    include:
+      - anycode.*
 pr: none
 
 resources:
