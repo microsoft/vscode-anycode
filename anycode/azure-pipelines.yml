@@ -24,17 +24,14 @@ extends:
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode
     workingDirectory: $(Build.SourcesDirectory)/anycode
     buildSteps:
-      - script: cd anycode
-        displayName: Change into "anycode" directory
-
-      - script: npm install -ci
+      - script: cd anycode && npm install -ci
         displayName: Install All dependencies
 
-      - script: npm run compile
+      - script: cd anycode && npm run compile
         displayName: Compile extension
 
-      - script: npx playwright install-deps
+      - script: cd anycode && npx playwright install-deps
         displayName: Install operating system dependencies
 
-      - script: npm run test-server
+      - script: cd anycode && npm run test-server
         displayName: Test extension
