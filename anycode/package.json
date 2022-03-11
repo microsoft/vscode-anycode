@@ -123,7 +123,6 @@
 		"compile": "tsc -b tsconfig.json && node esbuild.js",
 		"watch": "node esbuild.js --watch",
 		"lint": "eslint client server --ext ts",
-		"postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
 		"deploy": "npx vsce publish --noVerify",
 		"pretest-extension": "npx esbuild client/src/test/suite/index.ts --bundle --external:vscode --target=es2020 --format=cjs --outfile=dist/extension.test.js --define:process=\"{\\\"env\\\":{}}\"",
 		"test-extension": "npx vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/extension.test.js",

@@ -13,6 +13,7 @@ function runNpm(folder) {
 
 const root = path.join(__dirname, '../');
 
+runNpm(path.join(root, 'anycode'))
 runNpm(path.join(root, 'anycode/client'))
 runNpm(path.join(root, 'anycode/server'))
 
