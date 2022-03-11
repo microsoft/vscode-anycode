@@ -33,5 +33,5 @@ extends:
       - script: cd anycode && npx playwright install-deps
         displayName: Install operating system dependencies
 
-      - script: cd anycode && npm run test-server
-        displayName: Test extension
+      # - script: cd anycode && npm run test-server
+      #   displayName: Test extension
