@@ -24,6 +24,9 @@ extends:
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode
     workingDirectory: $(Build.SourcesDirectory)/anycode
     buildSteps:
+      - script: cd anycode
+        displayName: Change into "anycode" directory
+
       - script: npm install -ci
         displayName: Install All dependencies
 
