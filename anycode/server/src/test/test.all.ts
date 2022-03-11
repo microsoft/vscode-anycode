@@ -12,6 +12,7 @@ import * as documentSymbols from './documentSymbols.test';
 
 (async function () {
 
+
 	await bootstrapWasm();
 	await documentHighlights.init();
 	await documentSymbols.init();

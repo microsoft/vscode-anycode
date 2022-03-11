@@ -9,10 +9,10 @@ import { LanguageClient } from 'vscode-languageclient/browser';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
 
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
-	const supportedLanguages = new SupportedLanguages(context);
+	const supportedLanguages = await SupportedLanguages.init(context);
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
 	startServer();

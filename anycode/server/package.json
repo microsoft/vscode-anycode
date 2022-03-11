@@ -3,7 +3,7 @@
 	"license": "MIT",
 	"publisher": "ms-vscode",
 	"scripts": {
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-rust && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-java && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python && npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
 		"pretest": "npx esbuild --bundle src/test/test.all.ts --outfile=src/test/test.all.js --loader:.scm=text --define:process=\"{\\\"env\\\":{}}\" --external:fs --external:path",
 		"test": "node src/test/test.js"
 	},
@@ -27,7 +27,6 @@
 		"tree-sitter-java": "^0.19.1",
 		"tree-sitter-php": "^0.19.0",
 		"tree-sitter-python": "^0.19.0",
-		"tree-sitter-rust": "^0.19.1",
 		"tree-sitter-typescript": "^0.19.0"
 	}
 }

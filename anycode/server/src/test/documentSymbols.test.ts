@@ -21,7 +21,7 @@ export async function init() {
 		['typescript', 'ts'],
 	].map(async ([langId, suffix]) => {
 
-		const fixtures = await Fixture.parse(`/server/src/test/fixtures/outline.${suffix}`, langId);
+		const fixtures = await Fixture.parse(`/anycode/server/src/test/fixtures/outline.${suffix}`, langId);
 
 		suite(`DocumentSymbols - Fixtures: ${langId}`, function () {
 

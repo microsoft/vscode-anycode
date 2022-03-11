@@ -9,25 +9,37 @@ import * as lsp from "vscode-languageserver";
 import { DocumentStore } from "../documentStore";
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Trees } from '../trees';
+import { FeatureConfig, LanguageInfo } from '../common';
 
 export async function bootstrapWasm() {
 	await Parser.init({
 		locateFile() {
-			return '/server/node_modules/web-tree-sitter/tree-sitter.wasm';
+			return '/anycode/server/node_modules/web-tree-sitter/tree-sitter.wasm';
 		}
 	});
 
-	await Languages.init(new Map([
-		[{ languageId: 'csharp', wasmUri: '/server/tree-sitter-c_sharp.wasm', suffixes: [] }, {}],
-		[{ languageId: 'c', wasmUri: '/server/tree-sitter-c.wasm', suffixes: [] }, {}],
-		[{ languageId: 'cpp', wasmUri: '/server/tree-sitter-cpp.wasm', suffixes: [] }, {}],
-		[{ languageId: 'go', wasmUri: '/server/tree-sitter-go.wasm', suffixes: [] }, {}],
-		[{ languageId: 'java', wasmUri: '/server/tree-sitter-java.wasm', suffixes: [] }, {}],
-		[{ languageId: 'php', wasmUri: '/server/tree-sitter-php.wasm', suffixes: [] }, {}],
-		[{ languageId: 'python', wasmUri: '/server/tree-sitter-python.wasm', suffixes: [] }, {}],
-		[{ languageId: 'rust', wasmUri: '/server/tree-sitter-rust.wasm', suffixes: [] }, {}],
-		[{ languageId: 'typescript', wasmUri: '/server/tree-sitter-typescript.wasm', suffixes: [] }, {}],
-	]));
+	const config = new Map<LanguageInfo, FeatureConfig>([
+		[{ languageId: 'csharp', wasmUri: '/anycode/server/tree-sitter-c_sharp.wasm', suffixes: [] }, {}],
+		[{ languageId: 'c', wasmUri: '/anycode/server/tree-sitter-c.wasm', suffixes: [] }, {}],
+		[{ languageId: 'cpp', wasmUri: '/anycode/server/tree-sitter-cpp.wasm', suffixes: [] }, {}],
+		[{ languageId: 'go', wasmUri: '/anycode/server/tree-sitter-go.wasm', suffixes: [] }, {}],
+		[{ languageId: 'java', wasmUri: '/anycode/server/tree-sitter-java.wasm', suffixes: [] }, {}],
+		[{ languageId: 'php', wasmUri: '/anycode/server/tree-sitter-php.wasm', suffixes: [] }, {}],
+		[{ languageId: 'python', wasmUri: '/anycode/server/tree-sitter-python.wasm', suffixes: [] }, {}],
+		[{ languageId: 'typescript', wasmUri: '/anycode/server/tree-sitter-typescript.wasm', suffixes: [] }, {}],
+	]);
+
+	try {
+		// @ts-expect-error
+		let infos = JSON.parse<LanguageInfo[]>(decodeURIComponent(window.location.search.substring(1)));
+		for (let info of infos) {
+			config.set(info, {});
+		}
+	} catch (error) {
+		console.error(error);
+	}
+
+	await Languages.init(config);
 }
 
 export function mock<T>(): { new(): T } {

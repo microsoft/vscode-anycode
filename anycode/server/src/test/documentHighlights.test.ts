@@ -23,7 +23,7 @@ export async function init() {
 		['typescript', 'ts']
 	].map(async ([langId, suffix]) => {
 
-		const fixtures = await Fixture.parse(`/server/src/test/fixtures/highlights.${suffix}`, langId);
+		const fixtures = await Fixture.parse(`/anycode/server/src/test/fixtures/highlights.${suffix}`, langId);
 
 		suite(`DocumentHighlights - Fixtures: ${langId}`, function () {
 			// debugger;

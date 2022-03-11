@@ -11,7 +11,6 @@ import go from './queries/go';
 import java from './queries/java';
 import php from './queries/php';
 import python from './queries/python';
-import rust from './queries/rust';
 import typescript from './queries/typescript';
 import { FeatureConfig, LanguageConfiguration } from './common';
 
@@ -35,7 +34,6 @@ const _queryModules = new Map<string, QueryModule>([
 	['java', java],
 	['php', php],
 	['python', python],
-	['rust', rust],
 	['typescript', typescript],
 ]);
 
@@ -53,6 +51,10 @@ export default abstract class Languages {
 			const lang = await Parser.Language.load(entry.wasmUri);
 			this._languageInstances.set(entry.languageId, lang);
 			this._configurations.set(entry.languageId, config);
+
+			if (entry.queries) {
+				_queryModules.set(entry.languageId, entry.queries);
+			}
 		}
 	}
 
