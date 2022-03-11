@@ -34,7 +34,8 @@
 		}
 	},
 	"scripts": {
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-java"
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-java",
+		"deploy": "npx vsce publish"
 	},
 	"devDependencies": {
 		"tree-sitter-cli": "0.20.6",

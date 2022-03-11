@@ -34,7 +34,8 @@
 		}
 	},
 	"scripts": {
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-rust"
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-rust",
+		"deploy": "npx vsce publish"
 	},
 	"devDependencies": {
 		"tree-sitter-cli": "0.20.6",
