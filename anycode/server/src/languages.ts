@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import Parser from 'web-tree-sitter';
-import c_sharp from './queries/c_sharp';
 import c from './queries/c';
 import cpp from './queries/cpp';
 import { FeatureConfig, LanguageConfiguration } from './common';
@@ -22,7 +21,6 @@ export type QueryType = keyof QueryModule;
 
 
 const _queryModules = new Map<string, QueryModule>([
-	['csharp', c_sharp],
 	['c', c],
 	['cpp', cpp],
 ]);

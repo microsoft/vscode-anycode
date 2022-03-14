@@ -154,7 +154,6 @@ export class SupportedLanguages {
 			...infos,
 			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c.wasm').toString(), ['c', 'i']),
 			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-cpp.wasm').toString(), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
-			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c_sharp.wasm').toString(), ['cs']),
 		];
 
 
