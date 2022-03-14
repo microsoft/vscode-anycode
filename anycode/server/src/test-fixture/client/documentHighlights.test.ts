@@ -5,9 +5,9 @@
 
 import assert from 'assert';
 import { DocumentHighlight } from 'vscode-languageserver-types';
-import { compareRangeByStart } from '../common';
-import { DocumentHighlightsProvider } from '../features/documentHighlights';
-import { Trees } from '../trees';
+import { compareRangeByStart } from '../../common';
+import { DocumentHighlightsProvider } from '../../features/documentHighlights';
+import { Trees } from '../../trees';
 import { Fixture, TestDocumentStore } from './utils';
 
 export async function init(fixture: string, langId: string) {

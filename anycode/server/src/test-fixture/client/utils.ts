@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Languages from '../languages';
+import Languages from '../../languages';
 import * as lsp from "vscode-languageserver";
-import { DocumentStore } from "../documentStore";
+import { DocumentStore } from "../../documentStore";
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Trees } from '../trees';
+import { Trees } from '../../trees';
 
 export function mock<T>(): { new(): T } {
 	return function () { } as any;

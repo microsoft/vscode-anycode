@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { LanguageInfo } from '../common';
-import Languages, { QueryType } from '../languages';
+import { LanguageInfo } from '../../common';
+import Languages, { QueryType } from '../../languages';
 
 export function init(info: LanguageInfo) {
 	if (!info.queries) {

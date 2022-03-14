@@ -3,14 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import './trie.test';
-
 import * as documentHighlights from './documentHighlights.test';
 import * as documentSymbols from './documentSymbols.test';
 import * as queries from './queries.test';
-import { FeatureConfig, LanguageInfo } from '../common';
 import Parser from 'web-tree-sitter';
-import Languages from '../languages';
+import { FeatureConfig, LanguageInfo } from '../../common';
+import Languages from '../../languages';
 
 (async function () {
 

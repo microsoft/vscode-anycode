@@ -5,8 +5,8 @@
 
 import assert from 'assert';
 import { DocumentSymbol } from 'vscode-languageserver-types';
-import { DocumentSymbols } from '../features/documentSymbols';
-import { Trees } from '../trees';
+import { DocumentSymbols } from '../../features/documentSymbols';
+import { Trees } from '../../trees';
 import { Fixture, TestDocumentStore } from './utils';
 
 export async function init(fixture: string, langId: string) {

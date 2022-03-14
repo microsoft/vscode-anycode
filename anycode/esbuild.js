@@ -51,13 +51,12 @@ const server = esbuild.build({
 // --- server-tests
 
 const testServer = esbuild.build({
-	entryPoints: ['server/src/test/test.all.ts'],
-	outfile: 'server/src/test/test.all.js',
+	entryPoints: ['server/src/test-fixture/client/test.all.ts'],
+	outfile: 'server/src/test-fixture/client/test.all.js',
 	bundle: true,
 	define: { process: '{"env":{}}' }, // assert-lib
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
-	loader: { '.scm': 'text' },
 	watch
 }).catch((e) => {
 	console.error(e)

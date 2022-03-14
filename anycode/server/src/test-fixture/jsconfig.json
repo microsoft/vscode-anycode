@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"types": [
+			"node"
+		]
+	},
+	"include": [
+		"test.js"
+	]
+}
