@@ -26,8 +26,8 @@ extends:
       - script: cd anycode-python && npm install
         displayName: Install dependencies
     
-      - script: cd anycode-python && npx playwright install-deps
-        displayName: Install operating system dependencies
+      - script: cd anycode && npm install
+        displayName: Install dependencies (anycode)
 
       - script: cd anycode-python && npm run test
         displayName: Run Test Fixtures

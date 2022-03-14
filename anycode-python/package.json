@@ -42,8 +42,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-python",
 		"deploy": "npx vsce publish",
-		"pretest": "cd ../anycode/ && npm i && cd ./server && npm i && npm run pretest",
-		"test": "node ../anycode/server/src/test/test.js --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
+		"test": "node ../anycode/server/src/test-fixture/test.js  --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",

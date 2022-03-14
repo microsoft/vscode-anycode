@@ -26,8 +26,8 @@ extends:
       - script: cd anycode-php && npm install
         displayName: Install dependencies
     
-      - script: cd anycode-php && npx playwright install-deps
-        displayName: Install operating system dependencies
+       - script: cd anycode && npm install
+        displayName: Install dependencies (anycode)
 
       - script: cd anycode-php && npm run test
         displayName: Run Test Fixtures
