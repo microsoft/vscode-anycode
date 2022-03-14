@@ -6,4 +6,4 @@ node_modules
 *.vsix
 tree-sitter-*.wasm
 **/test-fixture/**/*.js
-!**/test-fixture/index.js
+!**/test-fixture/test.js
