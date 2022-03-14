@@ -6,7 +6,7 @@ trigger:
       - main
   tags:
     include:
-      - anycode-typescript.*
+      - anycode-go.*
 pr: none
 
 resources:
@@ -23,14 +23,14 @@ extends:
     buildPlatforms:
       - Ubuntu
     buildSteps:
-      - script: cd anycode-typescript && npm install
+      - script: cd anycode-go && npm install
         displayName: Install dependencies
     
-      - script: cd anycode-typescript && npx playwright install-deps
+      - script: cd anycode-go && npx playwright install-deps
         displayName: Install operating system dependencies
 
-      - script: cd anycode-typescript && npm run test
+      - script: cd anycode-go && npm run test
         displayName: Run Test Fixtures
 
-    cgSourceScanPath: $(Build.SourcesDirectory)/anycode-typescript
-    workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
+    cgSourceScanPath: $(Build.SourcesDirectory)/anycode-go
+    workingDirectory: $(Build.SourcesDirectory)/anycode-go
