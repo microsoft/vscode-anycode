@@ -3,8 +3,7 @@
 	"license": "MIT",
 	"publisher": "ms-vscode",
 	"scripts": {
-		"pretest": "npx esbuild --bundle src/test/test.all.ts --outfile=src/test/test.all.js --loader:.scm=text --define:process=\"{\\\"env\\\":{}}\" --external:fs --external:path",
-		"test": "node src/test/test.js"
+		"postinstall": "npx playwright install-deps"
 	},
 	"dependencies": {
 		"vscode-languageserver": "^8.0.0-next.4",

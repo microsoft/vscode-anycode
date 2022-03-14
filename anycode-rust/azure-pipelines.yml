@@ -29,9 +29,6 @@ extends:
       - script: cd anycode && npm install
         displayName: Install dependencies (anycode)
 
-      - script: cd anycode && npx playwright install-deps
-        displayName: Install playwright dependencies
-
       - script: cd anycode-rust && npm run test
         displayName: Run Test Fixtures
 
