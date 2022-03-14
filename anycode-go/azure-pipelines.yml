@@ -1,0 +1,36 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - main
+  tags:
+    include:
+      - anycode-typescript.*
+pr: none
+
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: microsoft/vscode-engineering
+      ref: main
+      endpoint: Monaco
+
+extends:
+  template: azure-pipelines/extension/stable.yml@templates
+  parameters:
+    buildPlatforms:
+      - Ubuntu
+    buildSteps:
+      - script: cd anycode-typescript && npm install
+        displayName: Install dependencies
+    
+      - script: cd anycode-typescript && npx playwright install-deps
+        displayName: Install operating system dependencies
+
+      - script: cd anycode-typescript && npm run test
+        displayName: Run Test Fixtures
+
+    cgSourceScanPath: $(Build.SourcesDirectory)/anycode-typescript
+    workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
