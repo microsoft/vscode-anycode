@@ -36,7 +36,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-rust",
 		"deploy": "npx vsce publish",
-		"pretest": "cd ../anycode/server && npm i && npm run pretest",
+		"pretest": "cd ../anycode/ && npm i && cd ./server && npm i && npm run pretest",
 		"test": "node ../anycode/server/src/test/test.js --outline ./fixtures/outline.rs --highlights ./fixtures/highlights.rs"
 	},
 	"devDependencies": {
