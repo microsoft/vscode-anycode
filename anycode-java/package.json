@@ -36,6 +36,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-java",
 		"deploy": "npx vsce publish",
+		"pretest": "cd ../anycode/ && npm i && cd ./server && npm i && npm run pretest",
 		"test": "node ../anycode/server/src/test/test.js --outline ./fixtures/outline.java --highlights ./fixtures/highlights.java"
 	},
 	"devDependencies": {
