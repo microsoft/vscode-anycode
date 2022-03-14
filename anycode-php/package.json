@@ -1,0 +1,50 @@
+{
+	"name": "anycode-rust",
+	"publisher": "ms-vscode",
+	"displayName": "anycode-rust",
+	"description": "",
+	"version": "0.0.1",
+	"preview": true,
+	"repository": {
+		"url": "https://github.com/microsoft/vscode-anycode"
+	},
+	"engines": {
+		"vscode": "^1.65.0"
+	},
+	"activationEvents": [],
+	"browser": "index.js",
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"anycode-languages": {
+			"grammarPath": "./tree-sitter-php.wasm",
+			"languageId": "php",
+			"extensions": [
+				"php",
+				"php4",
+				"php5",
+				"phtml",
+				"ctp"
+			],
+			"queryPaths": {
+				"comments": "./queries/comments.scm",
+				"identifiers": "./queries/identifiers.scm",
+				"locals": "./queries/locals.scm",
+				"outline": "./queries/outline.scm",
+				"references": "./queries/references.scm"
+			}
+		}
+	},
+	"scripts": {
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
+		"deploy": "npx vsce publish",
+		"pretest": "cd ../anycode/ && npm i && cd ./server && npm i && npm run pretest",
+		"test": "node ../anycode/server/src/test/test.js --outline ./fixtures/outline.php --highlights ./fixtures/highlights.php"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.14.1",
+		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-typescript": "0.19.0"
+	}
+}
