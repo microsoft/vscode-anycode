@@ -1,7 +1,7 @@
 {
-	"name": "anycode-rust",
+	"name": "anycode-python",
 	"publisher": "ms-vscode",
-	"displayName": "anycode-rust",
+	"displayName": "anycode-python",
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,

@@ -1,7 +1,7 @@
 {
-	"name": "anycode-rust",
+	"name": "anycode-java",
 	"publisher": "ms-vscode",
-	"displayName": "anycode-rust",
+	"displayName": "anycode-java",
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,

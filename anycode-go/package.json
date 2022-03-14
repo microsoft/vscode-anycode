@@ -1,7 +1,7 @@
 {
-	"name": "anycode-rust",
+	"name": "anycode-go",
 	"publisher": "ms-vscode",
-	"displayName": "anycode-rust",
+	"displayName": "anycode-go",
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,

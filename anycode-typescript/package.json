@@ -1,7 +1,7 @@
 {
-	"name": "anycode-rust",
+	"name": "anycode-typescript",
 	"publisher": "ms-vscode",
-	"displayName": "anycode-rust",
+	"displayName": "anycode-typescript",
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,

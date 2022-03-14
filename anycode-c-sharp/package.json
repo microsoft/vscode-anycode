@@ -1,7 +1,7 @@
 {
-	"name": "anycode-rust",
+	"name": "anycode-c-sharp",
 	"publisher": "ms-vscode",
-	"displayName": "anycode-rust",
+	"displayName": "anycode-c-sharp",
 	"description": "",
 	"version": "0.0.1",
 	"preview": true,
