@@ -20,6 +20,7 @@
 	},
 	"include": [
 		"src",
+		"../../anycode-rust copy/fixtures/highlights.ts",
 	],
 	"exclude": [
 		"node_modules",

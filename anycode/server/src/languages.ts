@@ -10,7 +10,6 @@ import cpp from './queries/cpp';
 import go from './queries/go';
 import php from './queries/php';
 import python from './queries/python';
-import typescript from './queries/typescript';
 import { FeatureConfig, LanguageConfiguration } from './common';
 
 export type QueryModule = {
@@ -31,8 +30,7 @@ const _queryModules = new Map<string, QueryModule>([
 	['cpp', cpp],
 	['go', go],
 	['php', php],
-	['python', python],
-	['typescript', typescript],
+	['python', python]
 ]);
 
 export default abstract class Languages {

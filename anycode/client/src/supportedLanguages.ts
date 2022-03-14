@@ -157,8 +157,7 @@ export class SupportedLanguages {
 			new LanguageInfo('csharp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c_sharp.wasm').toString(), ['cs']),
 			new LanguageInfo('go', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-go.wasm').toString(), ['go']),
 			new LanguageInfo('php', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-php.wasm').toString(), ['php', 'php4', 'php5', 'phtml', 'ctp']),
-			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-python.wasm').toString(), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy']),
-			new LanguageInfo('typescript', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-typescript.wasm').toString(), ['ts', 'tsx', 'js', 'jsx']),
+			new LanguageInfo('python', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-python.wasm').toString(), ['py', 'rpy', 'pyw', 'cpy', 'gyp', 'gypi', 'pyi', 'ipy'])
 		];
 
 
