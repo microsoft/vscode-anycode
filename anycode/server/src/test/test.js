@@ -32,22 +32,22 @@ const requestListener = function (req, res) {
 	}
 };
 
-
 (async function () {
-
-	const fixtureOutline = args['outline'];
-	const fixtureHighlights = args['highlights'];
-
-	const outlinePath = join(process.cwd(), fixtureOutline)
-	const highlightsPath = join(process.cwd(), fixtureHighlights)
 
 	const bootstrap = [];
 	readAnycodeExtension(join(process.cwd(), 'package.json'), bootstrap)
 
 	const target = new URL(`http://localhost:${port}/anycode/server/src/test/test.html`);
 	target.searchParams.set('languages', JSON.stringify(bootstrap));
-	target.searchParams.set('outline', `/${relative(base, outlinePath)}`);
-	target.searchParams.set('highlights', `/${relative(base, highlightsPath)}`);
+
+	if (typeof args['outline'] === 'string') {
+		const outlinePath = join(process.cwd(), args['outline'])
+		target.searchParams.set('outline', `/${relative(base, outlinePath)}`);
+	}
+	if (typeof args['highlights'] === 'string') {
+		const highlightsPath = join(process.cwd(), args['highlights'])
+		target.searchParams.set('highlights', `/${relative(base, highlightsPath)}`);
+	}
 
 	const server = http.createServer(requestListener);
 	server.on('error', (err) => {

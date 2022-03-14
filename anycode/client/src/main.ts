@@ -12,7 +12,7 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 export async function activate(context: vscode.ExtensionContext) {
 
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
-	const supportedLanguages = await SupportedLanguages.init(context);
+	const supportedLanguages = await SupportedLanguages.init();
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
 	startServer();

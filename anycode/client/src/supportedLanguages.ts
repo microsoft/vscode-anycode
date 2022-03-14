@@ -70,7 +70,7 @@ function validateAnycodeLanguage(lang: JSONAnycodeLanguage): boolean {
 
 export class SupportedLanguages {
 
-	static async init(context: vscode.ExtensionContext): Promise<SupportedLanguages> {
+	static async init(): Promise<SupportedLanguages> {
 
 		type Contribution = { ['anycode-languages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
@@ -113,7 +113,7 @@ export class SupportedLanguages {
 			}
 		}
 
-		return new SupportedLanguages(infos, context);
+		return new SupportedLanguages(infos);
 	}
 
 	private static async _readQueryPath(extension: vscode.Extension<any>, paths: JSONQueryPaths): Promise<Queries> {
@@ -149,13 +149,10 @@ export class SupportedLanguages {
 
 	private readonly _disposable: vscode.Disposable;
 
-	constructor(infos: readonly LanguageInfo[], context: vscode.ExtensionContext) {
+	constructor(infos: readonly LanguageInfo[]) {
 		this._all = [
 			...infos,
-			new LanguageInfo('c', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-c.wasm').toString(), ['c', 'i']),
-			new LanguageInfo('cpp', vscode.Uri.joinPath(context.extensionUri, './server/tree-sitter-cpp.wasm').toString(), ['cpp', 'cc', 'cxx', 'c++', 'hpp', 'hh', 'hxx', 'h++', 'h', 'ii', 'ino', 'inl', 'ipp', 'ixx', 'hpp.in', 'h.in']),
 		];
-
 
 		// reset when extension or configuration changes
 		this._disposable = vscode.Disposable.from(

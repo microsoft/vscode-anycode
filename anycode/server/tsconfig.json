@@ -21,6 +21,7 @@
 	"include": [
 		"src",
 		"../../anycode-rust copy/fixtures/highlights.ts",
+		"../../anycode-cpp/queries/c",
 	],
 	"exclude": [
 		"node_modules",

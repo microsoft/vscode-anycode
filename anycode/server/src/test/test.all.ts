@@ -35,11 +35,17 @@ import Languages from '../languages';
 
 		await Languages.init(config);
 
-		const outline = target.searchParams.get('outline') ?? '';
-		await documentSymbols.init(outline, langInfo[0].languageId);
+		const outline = target.searchParams.get('outline');
+		if (outline) {
+			const langId = Languages.getLanguageIdByUri(outline);
+			await documentSymbols.init(outline, langId);
+		}
 
-		const highlights = target.searchParams.get('highlights') ?? '';
-		await documentHighlights.init(highlights, langInfo[0].languageId);
+		const highlights = target.searchParams.get('highlights');
+		if (highlights) {
+			const langId = Languages.getLanguageIdByUri(highlights);
+			await documentHighlights.init(highlights, langId);
+		}
 
 		run(); // MOCHA-delayed run
 

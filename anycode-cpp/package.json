@@ -1,0 +1,75 @@
+{
+	"name": "anycode-rust",
+	"publisher": "ms-vscode",
+	"displayName": "anycode-rust",
+	"description": "",
+	"version": "0.0.1",
+	"preview": true,
+	"repository": {
+		"url": "https://github.com/microsoft/vscode-anycode"
+	},
+	"engines": {
+		"vscode": "^1.65.0"
+	},
+	"activationEvents": [],
+	"browser": "index.js",
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"anycode-languages": [
+			{
+				"grammarPath": "./tree-sitter-c.wasm",
+				"languageId": "c",
+				"extensions": [
+					"c",
+					"i"
+				],
+				"queryPaths": {
+					"comments": "./queries/c/comments.scm",
+					"identifiers": "./queries/c/identifiers.scm",
+					"outline": "./queries/c/outline.scm"
+				}
+			},
+			{
+				"grammarPath": "./tree-sitter-cpp.wasm",
+				"languageId": "cpp",
+				"extensions": [
+					"cpp",
+					"cc",
+					"cxx",
+					"c++",
+					"hpp",
+					"hh",
+					"hxx",
+					"h++",
+					"h",
+					"ii",
+					"ino",
+					"inl",
+					"ipp",
+					"ixx",
+					"hpp.in",
+					"h.in"
+				],
+				"queryPaths": {
+					"comments": "./queries/cpp/comments.scm",
+					"identifiers": "./queries/cpp/identifiers.scm",
+					"outline": "./queries/cpp/outline.scm"
+				}
+			}
+		]
+	},
+	"scripts": {
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-cpp",
+		"deploy": "npx vsce publish",
+		"pretest": "cd ../anycode/ && npm i && cd ./server && npm i && npm run pretest",
+		"test": "node ../anycode/server/src/test/test.js --outline ./fixtures/outline.c"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.14.1",
+		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-cpp": "^0.19.0",
+		"tree-sitter-c": "^0.19.0"
+	}
+}
