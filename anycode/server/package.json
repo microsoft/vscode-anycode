@@ -3,7 +3,7 @@
 	"license": "MIT",
 	"publisher": "ms-vscode",
 	"scripts": {
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-go && npx tree-sitter build-wasm node_modules/tree-sitter-python",
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-c && npx tree-sitter build-wasm node_modules/tree-sitter-c-sharp && npx tree-sitter build-wasm node_modules/tree-sitter-cpp && npx tree-sitter build-wasm node_modules/tree-sitter-php && npx tree-sitter build-wasm node_modules/tree-sitter-go",
 		"pretest": "npx esbuild --bundle src/test/test.all.ts --outfile=src/test/test.all.js --loader:.scm=text --define:process=\"{\\\"env\\\":{}}\" --external:fs --external:path",
 		"test": "node src/test/test.js"
 	},
@@ -24,7 +24,6 @@
 		"tree-sitter-cpp": "^0.19.0",
 		"tree-sitter-go": "^0.19.1",
 		"tree-sitter-php": "^0.19.0",
-		"tree-sitter-python": "^0.19.0",
 		"web-tree-sitter": "0.20.5",
 		"yargs": "^17.3.1"
 	}
