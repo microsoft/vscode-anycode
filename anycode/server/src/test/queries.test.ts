@@ -4,29 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import Languages, { QueryModule, QueryType } from '../languages';
-import { bootstrapWasm } from './utils';
+import { LanguageInfo } from '../common';
+import Languages, { QueryType } from '../languages';
 
-suite('Queries', function () {
-
-	suiteSetup(async function () {
-		await bootstrapWasm();
-	});
-
-	const types: QueryType[] = ['comments', 'folding', 'identifiers', 'locals', 'outline', 'references'];
-
-	for (let type of types) {
-		test(type, function () {
-			const languages = Languages.allAsSelector();
-			for (let languageId of languages) {
-				try {
-					const q = Languages.getQuery(languageId, type, true);
-					assert.ok(q);
-				} catch (err) {
-					assert.fail(`INVALID ${languageId}/ ${type}`);
-				}
-			}
-		});
+export function init(info: LanguageInfo) {
+	if (!info.queries) {
+		return;
 	}
 
-});
+	suite(`Queries ${info.languageId}`, function () {
+		const types: QueryType[] = ['comments', 'folding', 'identifiers', 'locals', 'outline', 'references'];
+		for (let type of types) {
+			test(type, function () {
+
+				if (!info.queries![type]) {
+					this.skip();
+				}
+
+				try {
+					const q = Languages.getQuery(info.languageId, type, true);
+					assert.ok(q);
+				} catch (err) {
+					assert.fail(`INVALID ${info.languageId} -> ${err}`);
+				}
+			});
+		}
+	});
+}

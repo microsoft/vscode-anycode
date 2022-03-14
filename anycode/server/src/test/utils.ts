@@ -3,48 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from 'web-tree-sitter';
 import Languages from '../languages';
 import * as lsp from "vscode-languageserver";
 import { DocumentStore } from "../documentStore";
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Trees } from '../trees';
-import { FeatureConfig, LanguageInfo } from '../common';
-
-export async function bootstrapWasm() {
-	await Parser.init({
-		locateFile() {
-			return '/anycode/server/node_modules/web-tree-sitter/tree-sitter.wasm';
-		}
-	});
-
-	const config = new Map<LanguageInfo, FeatureConfig>([
-		[{ languageId: 'csharp', wasmUri: '/anycode/server/tree-sitter-c_sharp.wasm', suffixes: [] }, {}],
-		[{ languageId: 'c', wasmUri: '/anycode/server/tree-sitter-c.wasm', suffixes: [] }, {}],
-		[{ languageId: 'cpp', wasmUri: '/anycode/server/tree-sitter-cpp.wasm', suffixes: [] }, {}],
-		[{ languageId: 'go', wasmUri: '/anycode/server/tree-sitter-go.wasm', suffixes: [] }, {}],
-		[{ languageId: 'php', wasmUri: '/anycode/server/tree-sitter-php.wasm', suffixes: [] }, {}],
-		[{ languageId: 'python', wasmUri: '/anycode/server/tree-sitter-python.wasm', suffixes: [] }, {}],
-		[{ languageId: 'typescript', wasmUri: '/anycode/server/tree-sitter-typescript.wasm', suffixes: [] }, {}],
-	]);
-
-	try {
-		// @ts-expect-error
-		let infos = JSON.parse<LanguageInfo[]>(decodeURIComponent(window.location.search.substring(1)));
-		for (let info of infos) {
-			config.set(info, {});
-		}
-	} catch (error) {
-		console.error(error);
-	}
-
-	await Languages.init(config);
-}
 
 export function mock<T>(): { new(): T } {
 	return function () { } as any;
 }
-
 
 export class TestDocumentStore extends DocumentStore {
 

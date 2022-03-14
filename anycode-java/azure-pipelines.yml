@@ -25,6 +25,9 @@ extends:
     buildSteps:
       - script: cd anycode-java && npm install
         displayName: Install dependencies
+    buildSteps:
+      - script: cd anycode-java && npm run test
+        displayName: Run Test Fixtures
 
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode-java
     workingDirectory: $(Build.SourcesDirectory)/anycode-java

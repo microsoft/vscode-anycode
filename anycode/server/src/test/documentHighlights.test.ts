@@ -10,41 +10,27 @@ import { DocumentHighlightsProvider } from '../features/documentHighlights';
 import { Trees } from '../trees';
 import { Fixture, TestDocumentStore } from './utils';
 
+export async function init(fixture: string, langId: string) {
 
-export async function init() {
+	const fixtures = await Fixture.parse(fixture, langId);
 
-	const all = [
-		['csharp', 'cs'],
-		['go', 'go'],
-		['java', 'java'],
-		['php', 'php'],
-		['python', 'py'],
-		['rust', 'rs'],
-		['typescript', 'ts']
-	].map(async ([langId, suffix]) => {
+	suite(`DocumentHighlights - Fixtures: ${langId}`, function () {
+		// debugger;
+		const store = new TestDocumentStore(...fixtures.map(f => f.document));
 
-		const fixtures = await Fixture.parse(`/anycode/server/src/test/fixtures/highlights.${suffix}`, langId);
-
-		suite(`DocumentHighlights - Fixtures: ${langId}`, function () {
-			// debugger;
-			const store = new TestDocumentStore(...fixtures.map(f => f.document));
-
-			for (let item of fixtures) {
-				test(item.name, async function () {
-					const trees = new Trees(store);
-					const symbols = new DocumentHighlightsProvider(store, trees);
-					const result = await symbols.provideDocumentHighlights({
-						textDocument: { uri: item.document.uri },
-						position: item.document.positionAt(item.marks[0].start)
-					});
-					assertDocumentHighlights(item, result);
-					trees.dispose();
+		for (let item of fixtures) {
+			test(item.name, async function () {
+				const trees = new Trees(store);
+				const symbols = new DocumentHighlightsProvider(store, trees);
+				const result = await symbols.provideDocumentHighlights({
+					textDocument: { uri: item.document.uri },
+					position: item.document.positionAt(item.marks[0].start)
 				});
-			}
-		});
+				assertDocumentHighlights(item, result);
+				trees.dispose();
+			});
+		}
 	});
-
-	return Promise.all(all);
 }
 
 function assertDocumentHighlights(fixture: Fixture, actual: DocumentHighlight[]) {

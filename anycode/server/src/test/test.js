@@ -9,8 +9,13 @@ const { readFileSync, readdirSync } = require('fs');
 const http = require('http');
 const { join, relative } = require('path')
 const { chromium } = require('playwright');
+const yargs = require('yargs');
 
-const base = join(__dirname, '../../../..')
+
+const args = yargs(process.argv.slice(2)).argv
+
+const base = join(__dirname, '../../../..');
+const port = 3000 + Math.ceil(Math.random() * 5080);
 
 const requestListener = function (req, res) {
 	const relative = req.url.replace(/\?.*$/, '')
@@ -25,17 +30,24 @@ const requestListener = function (req, res) {
 		res.writeHead(404);
 		res.end();
 	}
-}
+};
 
-
-const _debug = process.argv.includes('--debug');
-
-
-const port = 3000 + Math.ceil(Math.random() * 5080);
 
 (async function () {
 
-	const bootstrap = readAnycodeExtensions();
+	const fixtureOutline = args['outline'];
+	const fixtureHighlights = args['highlights'];
+
+	const outlinePath = join(process.cwd(), fixtureOutline)
+	const highlightsPath = join(process.cwd(), fixtureHighlights)
+
+	const bootstrap = [];
+	readAnycodeExtension(join(process.cwd(), 'package.json'), bootstrap)
+
+	const target = new URL(`http://localhost:${port}/anycode/server/src/test/test.html`);
+	target.searchParams.set('languages', JSON.stringify(bootstrap));
+	target.searchParams.set('outline', `/${relative(base, outlinePath)}`);
+	target.searchParams.set('highlights', `/${relative(base, highlightsPath)}`);
 
 	const server = http.createServer(requestListener);
 	server.on('error', (err) => {
@@ -48,8 +60,8 @@ const port = 3000 + Math.ceil(Math.random() * 5080);
 	console.log(`test server LISTENS on port ${port}`)
 
 	const browser = await chromium.launch({
-		headless: !_debug,
-		devtools: _debug,
+		headless: !args.debug,
+		devtools: !!args.debug,
 		args: [
 			'--disable-web-security',
 		]
@@ -62,16 +74,16 @@ const port = 3000 + Math.ceil(Math.random() * 5080);
 		page.exposeFunction('report_mocha_done', (failCount) => {
 			resolve(failCount)
 		})
-		if (!_debug) {
+		if (!args.debug) {
 			setTimeout(() => reject('TIMEOUT'), 5000);
 		}
 	})
 
-	await page.goto(`http://localhost:${port}/anycode/server/src/test/test.html?${encodeURIComponent(JSON.stringify(bootstrap))}`);
+	await page.goto(target.href);
 
 	const failCount = await mochaDone;
 
-	if (_debug) {
+	if (args.debug) {
 		return;
 	}
 
@@ -90,46 +102,36 @@ const port = 3000 + Math.ceil(Math.random() * 5080);
 })
 
 
-function readAnycodeExtensions() {
-
-	const names = readdirSync(base).filter(name => name.startsWith('anycode-'))
-
-	const result = [];
-
-	for (let name of names) {
-		const candidate = join(base, name, 'package.json');
-		let data;
-		try {
-			data = JSON.parse(readFileSync(candidate).toString());
-		} catch (err) {
-			console.warn(err)
-			continue;
-		}
-
-		let languages = data?.contributes?.['anycode-languages']
-		if (!languages) {
-			continue;
-		}
-
-		if (!Array.isArray(languages)) {
-			languages = [languages]
-		}
-
-		for (let lang of languages) {
-			let queries = {};
-			for (let prop in lang.queryPaths) {
-				const query = join(base, name, lang.queryPaths[prop])
-				queries[prop] = readFileSync(query).toString();
-			}
-
-			result.push({
-				languageId: lang.languageId,
-				wasmUri: `/${relative(base, join(base, name, lang.grammarPath))}`,
-				suffixes: lang.extensions,
-				queries
-			})
-		}
+function readAnycodeExtension(candidate, bucket) {
+	let data;
+	try {
+		data = JSON.parse(readFileSync(candidate).toString());
+	} catch (err) {
+		console.warn(err)
+		return;
 	}
 
-	return result;
+	let languages = data?.contributes?.['anycode-languages']
+	if (!languages) {
+		return;
+	}
+
+	if (!Array.isArray(languages)) {
+		languages = [languages]
+	}
+
+	for (let lang of languages) {
+		let queries = {};
+		for (let prop in lang.queryPaths) {
+			const query = join(candidate, '../', lang.queryPaths[prop])
+			queries[prop] = readFileSync(query).toString();
+		}
+
+		bucket.push({
+			languageId: lang.languageId,
+			wasmUri: `/${relative(base, join(candidate, '../', lang.grammarPath))}`,
+			suffixes: lang.extensions,
+			queries
+		})
+	}
 }

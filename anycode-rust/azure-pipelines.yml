@@ -25,6 +25,9 @@ extends:
     buildSteps:
       - script: cd anycode-rust && npm install
         displayName: Install dependencies
+    buildSteps:
+      - script: cd anycode-rust && npm run test
+        displayName: Run Test Fixtures
 
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode-rust
     workingDirectory: $(Build.SourcesDirectory)/anycode-rust

@@ -9,37 +9,24 @@ import { DocumentSymbols } from '../features/documentSymbols';
 import { Trees } from '../trees';
 import { Fixture, TestDocumentStore } from './utils';
 
-export async function init() {
+export async function init(fixture: string, langId: string) {
 
-	const all = [
-		['go', 'go'],
-		['c', 'c'],
-		['csharp', 'cs'],
-		['java', 'java'],
-		['python', 'py'],
-		['rust', 'rs'],
-		['typescript', 'ts'],
-	].map(async ([langId, suffix]) => {
+	const fixtures = await Fixture.parse(fixture, langId);
 
-		const fixtures = await Fixture.parse(`/anycode/server/src/test/fixtures/outline.${suffix}`, langId);
+	suite(`DocumentSymbols - Fixtures: ${langId}`, function () {
 
-		suite(`DocumentSymbols - Fixtures: ${langId}`, function () {
+		const store = new TestDocumentStore(...fixtures.map(f => f.document));
 
-			const store = new TestDocumentStore(...fixtures.map(f => f.document));
-
-			for (let item of fixtures) {
-				test(item.name, async function () {
-					const trees = new Trees(store);
-					const symbols = new DocumentSymbols(store, trees);
-					const result = await symbols.provideDocumentSymbols({ textDocument: { uri: item.document.uri } });
-					assertDocumentSymbols(item, result);
-					trees.dispose();
-				});
-			}
-		});
+		for (let item of fixtures) {
+			test(item.name, async function () {
+				const trees = new Trees(store);
+				const symbols = new DocumentSymbols(store, trees);
+				const result = await symbols.provideDocumentSymbols({ textDocument: { uri: item.document.uri } });
+				assertDocumentSymbols(item, result);
+				trees.dispose();
+			});
+		}
 	});
-
-	return Promise.all(all);
 }
 
 
