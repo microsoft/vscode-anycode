@@ -104,9 +104,17 @@ export class SupportedLanguages {
 					continue;
 				}
 
+				const grammarUri = vscode.Uri.joinPath(extension.extensionUri, lang.grammarPath);
+				try {
+					vscode.workspace.fs.stat(grammarUri);
+				} catch (err) {
+					console.warn(`INVALID anycode-language grammerPath from ${extension.id}`, err);
+					continue;
+				}
+
 				infos.push(new LanguageInfo(
 					lang.languageId,
-					vscode.Uri.joinPath(extension.extensionUri, lang.grammarPath).toString(),
+					grammarUri.toString(),
 					lang.extensions,
 					queries
 				));
@@ -150,9 +158,7 @@ export class SupportedLanguages {
 	private readonly _disposable: vscode.Disposable;
 
 	constructor(infos: readonly LanguageInfo[]) {
-		this._all = [
-			...infos,
-		];
+		this._all = infos;
 
 		// reset when extension or configuration changes
 		this._disposable = vscode.Disposable.from(
