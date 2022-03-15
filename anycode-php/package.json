@@ -4,7 +4,7 @@
 	"displayName": "anycode-php",
 	"description": "PHP for Anycode",
 	"license": "MIT",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
