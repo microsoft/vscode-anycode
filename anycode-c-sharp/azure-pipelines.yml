@@ -4,6 +4,9 @@ trigger:
   branches:
     include:
       - main
+  paths:
+    include:
+      - anycode-c-sharp
   tags:
     include:
       - anycode-c-sharp.*

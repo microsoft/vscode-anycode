@@ -3,6 +3,9 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   branches:
     include: ["*"]
+  paths:
+    include:
+      - anycode
   tags:
     include:
       - anycode.*

@@ -4,6 +4,9 @@ trigger:
   branches:
     include:
       - main
+  paths:
+    include:
+      - anycode-python
   tags:
     include:
       - anycode-python.*
