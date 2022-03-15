@@ -42,15 +42,26 @@ const server = esbuild.build({
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
-	loader: { '.scm': 'text' },
 	watch
 }).catch((e) => {
 	console.error(e)
 });
 
-// --- server-tests
+const serverTests = esbuild.build({
+	entryPoints: ['server/src/test/trie.test.ts'],
+	outfile: 'server/src/test/trie.test.js',
+	bundle: true,
+	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
+	target: 'es2020',
+	format: 'iife',
+	watch
+}).catch((e) => {
+	console.error(e)
+});
 
-const testServer = esbuild.build({
+// --- tests-fixtures
+
+const testFixture = esbuild.build({
 	entryPoints: ['server/src/test-fixture/client/test.all.ts'],
 	outfile: 'server/src/test-fixture/client/test.all.js',
 	bundle: true,
@@ -62,7 +73,7 @@ const testServer = esbuild.build({
 	console.error(e)
 });
 
-Promise.all([client, server, testServer]).then(() => {
+Promise.all([client, server, serverTests, testFixture]).then(() => {
 	if (watch) {
 		console.log('done building, watching for file changes')
 	} else {

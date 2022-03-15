@@ -13,4 +13,3 @@ src/**
 **/node_modules/**
 !server/node_modules/web-tree-sitter/tree-sitter.wasm
 **/test/**
-**/*.scm

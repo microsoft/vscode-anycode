@@ -29,3 +29,6 @@ extends:
 
       - script: cd anycode && npm run compile
         displayName: Compile extension
+
+      - script: cd anycode && npm run test-server
+        displayName: Compile extension
