@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 
-
 export interface Queries {
 	comments?: string;
 	folding?: string;
@@ -74,7 +73,7 @@ export class SupportedLanguages {
 
 		type Contribution = { ['anycode-languages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
-		const infos: LanguageInfo[] = [];
+		const allInfos = new Map<string, LanguageInfo>();
 
 		for (const extension of vscode.extensions.all) {
 
@@ -112,16 +111,22 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				infos.push(new LanguageInfo(
+				const info = new LanguageInfo(
 					lang.languageId,
 					grammarUri.toString(),
 					lang.extensions,
 					queries
-				));
+				);
+
+				if (allInfos.has(info.languageId)) {
+					console.info(`extension ${extension.id} OVERWRITES language info for ${info.languageId}`);
+				}
+
+				allInfos.set(info.languageId, info);
 			}
 		}
 
-		return new SupportedLanguages(infos);
+		return new SupportedLanguages(allInfos);
 	}
 
 	private static async _readQueryPath(extension: vscode.Extension<any>, paths: JSONQueryPaths): Promise<Queries> {
@@ -152,13 +157,13 @@ export class SupportedLanguages {
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
 	readonly onDidChange = this._onDidChange.event;
 
-	private readonly _all: readonly LanguageInfo[];
+	private readonly _languageInfos: Map<string, LanguageInfo>;
 	private _tuples?: Map<LanguageInfo, FeatureConfig>;
 
 	private readonly _disposable: vscode.Disposable;
 
-	constructor(infos: readonly LanguageInfo[]) {
-		this._all = infos;
+	constructor(infos: Map<string, LanguageInfo>) {
+		this._languageInfos = infos;
 
 		// reset when extension or configuration changes
 		this._disposable = vscode.Disposable.from(
@@ -186,7 +191,7 @@ export class SupportedLanguages {
 		if (!this._tuples) {
 			this._tuples = new Map();
 
-			for (let info of this._all) {
+			for (let info of this._languageInfos.values()) {
 				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
 				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
 				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
