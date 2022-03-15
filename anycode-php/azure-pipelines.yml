@@ -26,8 +26,8 @@ extends:
     buildSteps:
       - script: cd anycode-php && npm install
         displayName: Install dependencies
-    
-       - script: cd anycode && npm install
+
+      - script: cd anycode && npm install
         displayName: Install dependencies (anycode)
 
       - script: cd anycode-php && npm run test
