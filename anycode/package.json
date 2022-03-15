@@ -93,8 +93,14 @@
 		}
 	},
 	"extensionPack": [
+		"ms-vscode.anycode-c-sharp",
+		"ms-vscode.anycode-cpp",
+		"ms-vscode.anycode-go",
 		"ms-vscode.anycode-java",
-		"ms-vscode.anycode-rust"
+		"ms-vscode.anycode-php",
+		"ms-vscode.anycode-python",
+		"ms-vscode.anycode-rust",
+		"ms-vscode.anycode-typescript"
 	],
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
