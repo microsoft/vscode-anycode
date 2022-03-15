@@ -41,6 +41,46 @@ const args = (function () {
 const base = join(__dirname, '../../../..');
 const port = 3000 + Math.ceil(Math.random() * 5080);
 
+/**
+ * @param {string} candidate
+ * @returns {any[]}
+ */
+function readAnycodeExtension(candidate) {
+	let data;
+	try {
+		data = JSON.parse(readFileSync(candidate).toString());
+	} catch (err) {
+		console.warn(err)
+		return [];
+	}
+
+	let languages = data?.contributes?.['anycode-languages']
+	if (!languages) {
+		return [];
+	}
+
+	if (!Array.isArray(languages)) {
+		languages = [languages]
+	}
+	const bucket = []
+
+	for (let lang of languages) {
+		let queries = {};
+		for (let prop in lang.queryPaths) {
+			const query = join(candidate, '../', lang.queryPaths[prop])
+			queries[prop] = readFileSync(query).toString();
+		}
+
+		bucket.push({
+			languageId: lang.languageId,
+			wasmUri: `/${relative(base, join(candidate, '../', lang.grammarPath))}`,
+			suffixes: lang.extensions,
+			queries
+		})
+	}
+	return bucket;
+}
+
 const requestListener = function (req, res) {
 	const relative = req.url.replace(/\?.*$/, '')
 	const path = join(base, relative);
@@ -56,7 +96,7 @@ const requestListener = function (req, res) {
 	}
 };
 
-(async function () {
+async function runTests() {
 
 	const target = new URL(`http://localhost:${port}/anycode/server/src/test-fixture/client/test.html`);
 
@@ -94,11 +134,11 @@ const requestListener = function (req, res) {
 	const page = await context.newPage();
 
 	const mochaDone = new Promise((resolve, reject) => {
-		page.exposeFunction('report_mocha_done', (failCount) => {
+		page.exposeFunction('report_mocha_done', (/** @type {number|string} */ failCount) => {
 			resolve(failCount)
 		})
 		if (!args.debug) {
-			setTimeout(() => reject('TIMEOUT'), 5000);
+			setTimeout(() => reject('TIMEOUT'), 15000);
 		}
 	})
 
@@ -119,45 +159,9 @@ const requestListener = function (req, res) {
 	server.close();
 	process.exit(failCount)
 
-})().catch(err => {
+};
+
+runTests().catch(err => {
 	console.error('FAIL', err);
 	process.exit(1)
-})
-
-
-function readAnycodeExtension(candidate) {
-	let data;
-	try {
-		data = JSON.parse(readFileSync(candidate).toString());
-	} catch (err) {
-		console.warn(err)
-		return [];
-	}
-
-	let languages = data?.contributes?.['anycode-languages']
-	if (!languages) {
-		return [];
-	}
-
-	if (!Array.isArray(languages)) {
-		languages = [languages]
-	}
-	const bucket = []
-
-	for (let lang of languages) {
-		let queries = {};
-		for (let prop in lang.queryPaths) {
-			const query = join(candidate, '../', lang.queryPaths[prop])
-			queries[prop] = readFileSync(query).toString();
-		}
-
-		bucket.push({
-			languageId: lang.languageId,
-			wasmUri: `/${relative(base, join(candidate, '../', lang.grammarPath))}`,
-			suffixes: lang.extensions,
-			queries
-		})
-	}
-
-	return bucket;
-}
+});
