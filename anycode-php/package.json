@@ -38,13 +38,13 @@
 		}
 	},
 	"scripts": {
-		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-php",
 		"deploy": "npx vsce publish",
 		"test": "node ../anycode/server/src/test-fixture/test.js --highlights ./fixtures/highlights.php"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",
 		"tree-sitter-cli": "0.20.6",
-		"tree-sitter-typescript": "0.19.0"
+		"tree-sitter-php": "0.19.0"
 	}
 }
