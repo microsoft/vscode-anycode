@@ -90,32 +90,6 @@
 					}
 				}
 			}
-		},
-		"configurationDefaults": {
-			"[typescript]": {
-				"anycode.language.features": {
-					"definitions": true,
-					"workspaceSymbols": true,
-					"highlights": false,
-					"completions": false,
-					"references": false,
-					"outline": false,
-					"folding": false,
-					"diagnostics": false
-				}
-			},
-			"[python]": {
-				"anycode.language.features": {
-					"definitions": true,
-					"workspaceSymbols": true,
-					"highlights": false,
-					"completions": false,
-					"references": false,
-					"outline": false,
-					"folding": false,
-					"diagnostics": false
-				}
-			}
 		}
 	},
 	"extensionPack": [

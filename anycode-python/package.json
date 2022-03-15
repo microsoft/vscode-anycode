@@ -38,6 +38,20 @@
 				"outline": "./queries/outline.scm",
 				"references": "./queries/references.scm"
 			}
+		},
+		"configurationDefaults": {
+			"[python]": {
+				"anycode.language.features": {
+					"definitions": true,
+					"workspaceSymbols": true,
+					"highlights": false,
+					"completions": false,
+					"references": false,
+					"outline": false,
+					"folding": false,
+					"diagnostics": false
+				}
+			}
 		}
 	},
 	"scripts": {
