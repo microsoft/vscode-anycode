@@ -2,7 +2,8 @@
 	"name": "anycode-python",
 	"publisher": "ms-vscode",
 	"displayName": "anycode-python",
-	"description": "",
+	"description": "Python for Anycode",
+	"license": "MIT",
 	"version": "0.0.1",
 	"preview": true,
 	"repository": {

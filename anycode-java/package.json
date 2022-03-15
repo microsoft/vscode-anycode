@@ -2,7 +2,8 @@
 	"name": "anycode-java",
 	"publisher": "ms-vscode",
 	"displayName": "anycode-java",
-	"description": "",
+	"description": "Java for Anycode",
+	"license": "MIT",
 	"version": "0.0.1",
 	"preview": true,
 	"repository": {

@@ -2,7 +2,8 @@
 	"name": "anycode-php",
 	"publisher": "ms-vscode",
 	"displayName": "anycode-php",
-	"description": "",
+	"description": "PHP for Anycode",
+	"license": "MIT",
 	"version": "0.0.1",
 	"preview": true,
 	"repository": {

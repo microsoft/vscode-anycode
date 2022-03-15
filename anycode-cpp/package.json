@@ -2,7 +2,8 @@
 	"name": "anycode-cpp",
 	"publisher": "ms-vscode",
 	"displayName": "anycode-cpp",
-	"description": "",
+	"description": "C/C++ for Anycode",
+	"license": "MIT",
 	"version": "0.0.1",
 	"preview": true,
 	"repository": {
