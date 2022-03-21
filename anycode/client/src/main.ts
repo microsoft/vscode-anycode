@@ -318,7 +318,10 @@ async function _canInitWithoutLimits() {
 		return true;
 	}
 
-	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub') ?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
+	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('ms-vscode.remote-repositories')
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub')
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
+
 	const remoteHubApi = await remoteHub?.activate();
 	if (typeof remoteHubApi?.loadWorkspaceContents !== 'function') {
 		// no remotehub or bad version
