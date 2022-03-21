@@ -69,11 +69,69 @@ function validateAnycodeLanguage(lang: JSONAnycodeLanguage): boolean {
 
 export class SupportedLanguages {
 
-	static async init(): Promise<SupportedLanguages> {
+	private readonly _onDidChange = new vscode.EventEmitter<this>();
+	readonly onDidChange = this._onDidChange.event;
+
+	private _tuples?: Map<LanguageInfo, FeatureConfig>;
+
+	private readonly _disposable: vscode.Disposable;
+
+	constructor() {
+
+		// reset when extension or configuration changes
+		this._disposable = vscode.Disposable.from(
+			vscode.extensions.onDidChange(this._reset, this),
+			vscode.workspace.onDidChangeConfiguration(e => {
+				if (e.affectsConfiguration('anycode.language')) {
+					this._reset();
+				}
+			})
+		);
+	}
+
+	dispose(): void {
+		this._onDidChange.dispose();
+		this._disposable.dispose();
+	}
+
+	private _reset(): void {
+		this._tuples = undefined;
+		this._onDidChange.fire(this);
+	}
+
+	async getSupportedLanguages(): Promise<ReadonlyMap<LanguageInfo, FeatureConfig>> {
+
+		if (!this._tuples) {
+
+			const languageInfos = await this._readLanguageInfos();
+
+			this._tuples = new Map();
+
+			for (const info of languageInfos.values()) {
+				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
+				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
+				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
+				if (empty) {
+					continue;
+				}
+
+				this._tuples.set(info, featureConfig);
+			}
+		}
+
+		return this._tuples;
+	}
+
+	async getSupportedLanguagesAsSelector(): Promise<string[]> {
+		const infos = await this.getSupportedLanguages();
+		return Array.from(infos.keys()).map(info => info.languageId);
+	}
+
+	async _readLanguageInfos(): Promise<ReadonlyMap<string, LanguageInfo>> {
 
 		type Contribution = { ['anycode-languages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
-		const allInfos = new Map<string, LanguageInfo>();
+		const result = new Map<string, LanguageInfo>();
 
 		for (const extension of vscode.extensions.all) {
 
@@ -97,7 +155,7 @@ export class SupportedLanguages {
 				let queries: Queries;
 
 				try {
-					queries = await this._readQueryPath(extension, lang.queryPaths);
+					queries = await SupportedLanguages._readQueryPath(extension, lang.queryPaths);
 				} catch (err) {
 					console.warn(`INVALID anycode-language queryPaths from ${extension.id}`, err);
 					continue;
@@ -118,15 +176,13 @@ export class SupportedLanguages {
 					queries
 				);
 
-				if (allInfos.has(info.languageId)) {
+				if (result.has(info.languageId)) {
 					console.info(`extension ${extension.id} OVERWRITES language info for ${info.languageId}`);
 				}
-
-				allInfos.set(info.languageId, info);
+				result.set(info.languageId, info);
 			}
 		}
-
-		return new SupportedLanguages(allInfos);
+		return result;
 	}
 
 	private static async _readQueryPath(extension: vscode.Extension<any>, paths: JSONQueryPaths): Promise<Queries> {
@@ -154,59 +210,4 @@ export class SupportedLanguages {
 		return result;
 	}
 
-	private readonly _onDidChange = new vscode.EventEmitter<this>();
-	readonly onDidChange = this._onDidChange.event;
-
-	private readonly _languageInfos: Map<string, LanguageInfo>;
-	private _tuples?: Map<LanguageInfo, FeatureConfig>;
-
-	private readonly _disposable: vscode.Disposable;
-
-	constructor(infos: Map<string, LanguageInfo>) {
-		this._languageInfos = infos;
-
-		// reset when extension or configuration changes
-		this._disposable = vscode.Disposable.from(
-			vscode.extensions.onDidChange(this._reset, this),
-			vscode.workspace.onDidChangeConfiguration(e => {
-				if (e.affectsConfiguration('anycode.language')) {
-					this._reset();
-				}
-			})
-		);
-	}
-
-	dispose(): void {
-		this._onDidChange.dispose();
-		this._disposable.dispose();
-	}
-
-	private _reset(): void {
-		this._tuples = undefined;
-		this._onDidChange.fire(this);
-	}
-
-	getSupportedLanguages(): ReadonlyMap<LanguageInfo, FeatureConfig> {
-
-		if (!this._tuples) {
-			this._tuples = new Map();
-
-			for (let info of this._languageInfos.values()) {
-				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
-				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
-				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
-				if (empty) {
-					continue;
-				}
-
-				this._tuples.set(info, featureConfig);
-			}
-		}
-
-		return this._tuples;
-	}
-
-	getSupportedLanguagesAsSelector(): string[] {
-		return Array.from(this.getSupportedLanguages().keys()).map(info => info.languageId);
-	}
 }

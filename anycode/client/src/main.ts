@@ -12,15 +12,13 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 export async function activate(context: vscode.ExtensionContext) {
 
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
-	const supportedLanguages = await SupportedLanguages.init();
+	const supportedLanguages = new SupportedLanguages();
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
 	startServer();
 
 	function startServer() {
-		serverHandles.push(
-			_startServer(context, supportedLanguages, telemetry)
-		);
+		serverHandles.push(_startServer(context, supportedLanguages, telemetry));
 	}
 
 	async function stopServers() {
@@ -45,7 +43,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(new vscode.Disposable(stopServers));
 }
 
-function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
+function _showStatusAndInfo(context: vscode.ExtensionContext, selector: vscode.DocumentSelector, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
 
 	const _mementoKey = 'didShowMessage';
 	const didShowExplainer = context.globalState.get(_mementoKey, false);
@@ -54,7 +52,7 @@ function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages
 
 	// --- language status item
 
-	const statusItem = vscode.languages.createLanguageStatusItem('info', supportedLanguages.getSupportedLanguagesAsSelector());
+	const statusItem = vscode.languages.createLanguageStatusItem('info', selector);
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
 	statusItem.text = `Partial Mode`;
@@ -87,7 +85,6 @@ function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages
 			showMessage();
 			return undefined;
 		};
-		const selector = supportedLanguages.getSupportedLanguagesAsSelector();
 		const registrations = vscode.Disposable.from(
 			// vscode.languages.registerCompletionItemProvider(selector, { provideCompletionItems: provideFyi }),
 			// vscode.languages.registerDocumentSymbolProvider(selector, { provideDocumentSymbols: provideFyi }),
@@ -100,9 +97,14 @@ function _showStatusAndInfo(context: vscode.ExtensionContext, supportedLanguages
 
 }
 
-async function _startServer(context: vscode.ExtensionContext, supportedLanguages: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
+async function _startServer(context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
 
-	const disposables: vscode.Disposable[] = [];
+	const supportedLanguages = await supportedLanguagesInfo.getSupportedLanguages();
+	const documentSelector = await supportedLanguagesInfo.getSupportedLanguagesAsSelector();
+	if (documentSelector.length === 0) {
+		// no supported languages -> nothing to do
+		return new vscode.Disposable(() => { });
+	}
 
 	function _sendFeatureTelementry(name: string, language: string) {
 		/* __GDPR__
@@ -114,17 +116,18 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		telemetry.sendTelemetryEvent('feature', { name, language });
 	}
 
+	const disposables: vscode.Disposable[] = [];
 	const databaseName = context.workspaceState.get('dbName', `anycode_${Math.random().toString(32).slice(2)}`);
 	context.workspaceState.update('dbName', databaseName);
 
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
-		documentSelector: supportedLanguages.getSupportedLanguagesAsSelector(),
+		documentSelector,
 		synchronize: {},
 		initializationOptions: {
 			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm').toString(),
-			supportedLanguages: supportedLanguages.getSupportedLanguages(),
+			supportedLanguages,
 			databaseName
 		},
 		middleware: {
@@ -163,7 +166,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	// Build a glob-patterns for languages which have features enabled, like workspace symbol search, 
 	// and use this pattern for initial file discovery and file watching
 	const findAndSearchSuffixes: string[][] = [];
-	for (const [info, config] of supportedLanguages.getSupportedLanguages()) {
+	for (const [info, config] of supportedLanguages) {
 		if (config.workspaceSymbols || config.references || config.definitions) {
 			findAndSearchSuffixes.push(info.suffixes);
 		}
@@ -216,7 +219,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		});
 
 		// show status/maybe notifications
-		_showStatusAndInfo(context, supportedLanguages, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
+		_showStatusAndInfo(context, documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
 	// stop on server-end
 	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));

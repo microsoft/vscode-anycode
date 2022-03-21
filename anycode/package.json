@@ -16,16 +16,7 @@
 		"Programming Languages"
 	],
 	"activationEvents": [
-		"onLanguage:c",
-		"onLanguage:cpp",
-		"onLanguage:csharp",
-		"onLanguage:go",
-		"onLanguage:java",
-		"onLanguage:php",
-		"onLanguage:python",
-		"onLanguage:rust",
-		"onLanguage:javascript",
-		"onLanguage:typescript",
+		"onStartupFinished",
 		"onCommand:workbench.action.showAllSymbols"
 	],
 	"browser": "./dist/anycode.extension.js",
