@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Connection, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
+import { Connection, FileChangeType, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import { BrowserMessageReader, BrowserMessageWriter, createConnection } from 'vscode-languageserver/browser';
 import Parser from 'web-tree-sitter';
 import { LanguageConfiguration } from './common';
@@ -80,10 +80,26 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
 	documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 	documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 	documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
-	connection.onNotification('queue/remove', uri => symbolIndex.removeFile(uri));
-	connection.onNotification('queue/add', uri => symbolIndex.addFile(uri));
 	connection.onRequest('queue/init', uris => {
 		return symbolIndex.initFiles(uris);
+	});
+
+	connection.onDidChangeWatchedFiles(e => {
+		for (const { type, uri } of e.changes) {
+			switch (type) {
+				case FileChangeType.Created:
+					symbolIndex.addFile(uri);
+					break;
+				case FileChangeType.Deleted:
+					symbolIndex.removeFile(uri);
+					documents.removeFile(uri);
+					break;
+				case FileChangeType.Changed:
+					symbolIndex.addFile(uri);
+					documents.removeFile(uri);
+					break;
+			}
+		}
 	});
 
 	console.log('Tree-sitter, languages, and features are READY');

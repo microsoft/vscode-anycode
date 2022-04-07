@@ -62,8 +62,6 @@ export class DocumentStore extends TextDocuments<TextDocument> {
 		});
 
 		super.listen(_connection);
-
-		_connection.onNotification('file-cache/remove', uri => this._fileDocuments.delete(uri));
 	}
 
 	async retrieve(uri: string): Promise<TextDocument> {
@@ -84,4 +82,9 @@ export class DocumentStore extends TextDocuments<TextDocument> {
 		return TextDocument.create(uri, Languages.getLanguageIdByUri(uri), 1, this._decoder.decode(reply));
 	}
 
+	// remove "file document", e.g one that has been retrieved from "disk"
+	// and not one that is sync'd by LSP
+	removeFile(uri: string) {
+		return this._fileDocuments.delete(uri);
+	}
 }

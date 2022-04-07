@@ -86,11 +86,24 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	const databaseName = context.workspaceState.get('dbName', `anycode_${Math.random().toString(32).slice(2)}`);
 	context.workspaceState.update('dbName', databaseName);
 
+	// Build a glob-patterns for languages which have features enabled, like workspace symbol search, 
+	// and use this pattern for initial file discovery and file watching
+	const findAndSearchSuffixes: string[][] = [];
+	for (const [info, config] of supportedLanguages) {
+		if (config.workspaceSymbols || config.references || config.definitions) {
+			findAndSearchSuffixes.push(info.suffixes);
+		}
+	}
+	const langPattern = `**/*.{${findAndSearchSuffixes.join(',')}}`;
+	const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
+	disposables.push(watcher);
+
+	// LSP setup
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector,
-		synchronize: {},
+		synchronize: { fileEvents: watcher },
 		initializationOptions: {
 			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm').toString(),
 			supportedLanguages,
@@ -129,17 +142,6 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 
 	await client.onReady();
 
-	// Build a glob-patterns for languages which have features enabled, like workspace symbol search, 
-	// and use this pattern for initial file discovery and file watching
-	const findAndSearchSuffixes: string[][] = [];
-	for (const [info, config] of supportedLanguages) {
-		if (config.workspaceSymbols || config.references || config.definitions) {
-			findAndSearchSuffixes.push(info.suffixes);
-		}
-	}
-	const langPattern = `**/*.{${findAndSearchSuffixes.join(',')}}`;
-	const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
-	disposables.push(watcher);
 
 	// file discover and watching. in addition to text documents we annouce and provide
 	// all matching files
@@ -190,18 +192,6 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	// stop on server-end
 	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
-
-	disposables.push(watcher.onDidCreate(uri => {
-		client.sendNotification('queue/add', uri.toString());
-	}));
-	disposables.push(watcher.onDidDelete(uri => {
-		client.sendNotification('queue/remove', uri.toString());
-		client.sendNotification('file-cache/remove', uri.toString());
-	}));
-	disposables.push(watcher.onDidChange(uri => {
-		client.sendNotification('queue/add', uri.toString());
-		client.sendNotification('file-cache/remove', uri.toString());
-	}));
 
 	// serve fileRead request
 	client.onRequest('file/read', async raw => {
