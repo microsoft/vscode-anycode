@@ -43,23 +43,16 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(new vscode.Disposable(stopServers));
 }
 
-function _showStatusAndInfo(context: vscode.ExtensionContext, selector: vscode.DocumentSelector, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
-
-	const _mementoKey = 'didShowMessage';
-	const didShowExplainer = context.globalState.get(_mementoKey, false);
-
-	disposables.push(vscode.commands.registerCommand('anycode.resetDidShowMessage', () => context.globalState.update(_mementoKey, false)));
-
-	// --- language status item
+function _showStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
 
 	const statusItem = vscode.languages.createLanguageStatusItem('info', selector);
 	disposables.push(statusItem);
 	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
 	statusItem.text = `Partial Mode`;
 	if (showCommandHint) {
-		statusItem.detail = 'Language support for this file is inaccurate. $(lightbulb-autofix) Did not index all files because search [indexing is disabled](command:remoteHub.enableIndexing).';
+		statusItem.detail = 'Language support is inaccurate in this context. $(lightbulb-autofix) Did not index all files because search [indexing is disabled](command:remoteHub.enableIndexing).';
 	} else {
-		statusItem.detail = 'Language support for this file is inaccurate.';
+		statusItem.detail = 'Language support is inaccurate in this context, results may be imprecise and incomplete.';
 	}
 	statusItem.command = {
 		title: 'Learn More',
@@ -68,33 +61,6 @@ function _showStatusAndInfo(context: vscode.ExtensionContext, selector: vscode.D
 			vscode.Uri.parse('https://aka.ms/vscode-anycode'),
 		]
 	};
-
-
-	// --- notifications message on interaction
-
-	if (!didShowExplainer) {
-
-		async function showMessage() {
-			await vscode.window.showInformationMessage('Language support is inaccurate in this context, results may be imprecise and incomplete.');
-		};
-
-		const provideFyi = async () => {
-			registrations.dispose();
-			context.globalState.update(_mementoKey, true);
-			context.globalState.setKeysForSync([_mementoKey]);
-			showMessage();
-			return undefined;
-		};
-		const registrations = vscode.Disposable.from(
-			// vscode.languages.registerCompletionItemProvider(selector, { provideCompletionItems: provideFyi }),
-			// vscode.languages.registerDocumentSymbolProvider(selector, { provideDocumentSymbols: provideFyi }),
-			vscode.languages.registerDefinitionProvider(selector, { provideDefinition: provideFyi }),
-			vscode.languages.registerReferenceProvider(selector, { provideReferences: provideFyi }),
-			// vscode.languages.registerWorkspaceSymbolProvider({ provideWorkspaceSymbols: provideFyi }),
-		);
-		disposables.push(registrations);
-	}
-
 }
 
 async function _startServer(context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
@@ -219,7 +185,7 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		});
 
 		// show status/maybe notifications
-		_showStatusAndInfo(context, documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
+		_showStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
 	// stop on server-end
 	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
