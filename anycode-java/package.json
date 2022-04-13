@@ -18,7 +18,7 @@
 		"Programming Languages"
 	],
 	"contributes": {
-		"anycode-languages": {
+		"anycodeLanguages": {
 			"grammarPath": "./tree-sitter-java.wasm",
 			"languageId": "java",
 			"extensions": [

@@ -129,13 +129,13 @@ export class SupportedLanguages {
 
 	async _readLanguageInfos(): Promise<ReadonlyMap<string, LanguageInfo>> {
 
-		type Contribution = { ['anycode-languages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
+		type Contribution = { ['anycodeLanguages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
 		const result = new Map<string, LanguageInfo>();
 
 		for (const extension of vscode.extensions.all) {
 
-			let languages = (<Contribution | undefined>extension.packageJSON.contributes)?.['anycode-languages'];
+			let languages = (<Contribution | undefined>extension.packageJSON.contributes)?.['anycodeLanguages'];
 			if (!languages) {
 				// not for me...
 				continue;

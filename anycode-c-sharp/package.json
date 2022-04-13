@@ -18,7 +18,7 @@
 		"Programming Languages"
 	],
 	"contributes": {
-		"anycode-languages": {
+		"anycodeLanguages": {
 			"grammarPath": "./tree-sitter-c_sharp.wasm",
 			"languageId": "csharp",
 			"extensions": [

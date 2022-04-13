@@ -54,7 +54,7 @@ function readAnycodeExtension(candidate) {
 		return [];
 	}
 
-	let languages = data?.contributes?.['anycode-languages']
+	let languages = data?.contributes?.['anycodeLanguages']
 	if (!languages) {
 		return [];
 	}
