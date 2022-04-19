@@ -20,14 +20,14 @@ import Languages from '../../languages';
 			}
 		});
 
-		const config = new Map<LanguageInfo, FeatureConfig>();
+		const config: [LanguageInfo, FeatureConfig][] = [];
 
 		// @ts-expect-error
 		const target = new URL(window.location);
 		const langInfo: LanguageInfo[] = JSON.parse(target.searchParams.get('languages') ?? "");
 
 		for (let info of langInfo) {
-			config.set(info, {});
+			config.push([info, {}]);
 			queries.init(info);
 		}
 

@@ -66,6 +66,7 @@ const browserServer = esbuild.build({
 
 const nodeServer = esbuild.build({
 	...serverBuildOptions,
+	platform: 'node',
 	entryPoints: ['server/src/node/main.ts'],
 	outfile: 'dist/anycode.server.node.js',
 }).catch((e) => {

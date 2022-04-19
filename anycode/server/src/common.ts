@@ -83,7 +83,7 @@ export interface FeatureConfig {
 	diagnostics?: boolean;
 };
 
-export type LanguageConfiguration = ReadonlyMap<LanguageInfo, FeatureConfig>;
+export type LanguageConfiguration = [LanguageInfo, FeatureConfig][];
 
 // --- geometry
 

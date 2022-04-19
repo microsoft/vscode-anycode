@@ -78,8 +78,9 @@ export class DocumentStore extends TextDocuments<TextDocument> {
 	}
 
 	private async _requestDocument(uri: string): Promise<TextDocument> {
-		const reply = await this._connection.sendRequest<Uint8Array>('file/read', uri);
-		return TextDocument.create(uri, Languages.getLanguageIdByUri(uri), 1, this._decoder.decode(reply));
+		const reply = await this._connection.sendRequest<number[]>('file/read', uri);
+		const bytes = new Uint8Array(reply);
+		return TextDocument.create(uri, Languages.getLanguageIdByUri(uri), 1, this._decoder.decode(bytes));
 	}
 
 	// remove "file document", e.g one that has been retrieved from "disk"

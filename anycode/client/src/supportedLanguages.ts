@@ -132,6 +132,7 @@ export class SupportedLanguages {
 		type Contribution = { ['anycodeLanguages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
 		const result = new Map<string, LanguageInfo>();
+		const isWebWorker = typeof importScripts === 'function';
 
 		for (const extension of vscode.extensions.all) {
 
@@ -171,7 +172,7 @@ export class SupportedLanguages {
 
 				const info = new LanguageInfo(
 					lang.languageId,
-					grammarUri.toString(),
+					isWebWorker ? grammarUri.toString() : grammarUri.fsPath,
 					lang.extensions,
 					queries
 				);

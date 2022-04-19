@@ -104,6 +104,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
 	disposables.push(watcher);
 
+	const treeSitterWasmUri = vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm');
 	// LSP setup
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
@@ -111,8 +112,8 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		documentSelector,
 		synchronize: { fileEvents: watcher },
 		initializationOptions: {
-			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm').toString(),
-			supportedLanguages,
+			treeSitterWasmUri: typeof importScripts === 'function' ? treeSitterWasmUri.toString() : treeSitterWasmUri.fsPath,
+			supportedLanguages: Array.from(supportedLanguages.entries()),
 			databaseName
 		},
 		middleware: {
@@ -139,8 +140,6 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		}
 	};
 
-	// const serverMain = vscode.Uri.joinPath(context.extensionUri, 'dist/anycode.server.js');
-	// const worker = new Worker(serverMain.toString());
 	const client = factory.createLanguageClient('anycode', 'anycode', clientOptions);
 
 	disposables.push(client.start());
@@ -200,60 +199,43 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	// serve fileRead request
-	client.onRequest('file/read', async raw => {
+	client.onRequest('file/read', async (raw: string): Promise<number[]> => {
 		const uri = vscode.Uri.parse(raw);
 
 		if (uri.scheme === 'vscode-notebook-cell') {
 			// we are dealing with a notebook
 			try {
 				const doc = await vscode.workspace.openTextDocument(uri);
-				return new TextEncoder().encode(doc.getText());
+				return Array.from(new TextEncoder().encode(doc.getText()));
 			} catch (err) {
 				console.warn(err);
-				return new Uint8Array();
+				return [];
 			}
 		}
 
 		if (vscode.workspace.fs.isWritableFileSystem(uri.scheme) === undefined) {
 			// undefined means we don't know anything about these uris
-			return new Uint8Array();
+			return [];
 		}
 
-		let data: Uint8Array;
+		let data: number[];
 		try {
 			const stat = await vscode.workspace.fs.stat(uri);
 			if (stat.size > 1024 ** 2) {
 				console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
-				data = new Uint8Array();
+				data = [];
 			} else {
-				data = await vscode.workspace.fs.readFile(uri);
+				data = Array.from(await vscode.workspace.fs.readFile(uri));
 			}
 			return data;
 
 		} catch (err) {
 			// graceful
 			console.warn(err);
-			return new Uint8Array();
+			return [];
 		}
 	});
 
-	// file persisted index
-	const persistUri = context.storageUri && vscode.Uri.joinPath(context.storageUri, 'anycode.db');
-	client.onRequest('persisted/read', async () => {
-		if (!persistUri) {
-			return new Uint8Array();
-		}
-		try {
-			return await vscode.workspace.fs.readFile(persistUri);
-		} catch {
-			return new Uint8Array();
-		}
-	});
-	client.onRequest('persisted/write', async (data) => {
-		if (persistUri) {
-			await vscode.workspace.fs.writeFile(persistUri, data);
-		}
-	});
 
 	return new vscode.Disposable(() => disposables.forEach(d => d.dispose()));
 }

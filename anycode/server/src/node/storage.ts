@@ -3,15 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TextEncoder } from "util";
 import { Connection, SymbolKind } from "vscode-languageserver";
 import { SymbolInfoStorage, SymbolInfo } from "../features/symbolIndex";
 
 export class FileSymbolStorage implements SymbolInfoStorage {
 
 	private readonly _data = new Map<string, Array<string | number>>();
-	private readonly _encoder = new TextEncoder();
-	private readonly _decoder = new TextDecoder();
 
 	constructor(private readonly _connection: Connection) { }
 
@@ -43,8 +40,7 @@ export class FileSymbolStorage implements SymbolInfoStorage {
 
 	flush() {
 		const raw = JSON.stringify(Array.from(this._data.entries()));
-		const bytes = this._encoder.encode(raw);
-		this._connection.sendRequest('persisted/write', bytes).catch(err => console.error(err));
+		this._connection.sendRequest('persisted/write', raw).catch(err => console.error(err));
 	}
 
 	async getAll(): Promise<Map<string, Map<string, SymbolInfo>>> {
@@ -53,8 +49,7 @@ export class FileSymbolStorage implements SymbolInfoStorage {
 
 		const result = new Map<string, Map<string, SymbolInfo>>();
 		try {
-			const bytes = await this._connection.sendRequest<Uint8Array>('persisted/read');
-			const raw = this._decoder.decode(bytes);
+			const raw = await this._connection.sendRequest<string>('persisted/read');
 			const data = <[string, Array<string | number>][]>JSON.parse(raw);
 
 			for (let [uri, flatInfo] of data) {

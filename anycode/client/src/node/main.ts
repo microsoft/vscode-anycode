@@ -26,8 +26,34 @@ export async function activate(context: vscode.ExtensionContext) {
 				debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
 			};
 
-			const result = new LanguageClient(id, serverOptions, clientOptions);
-			return result;
+			const client = new LanguageClient(id, serverOptions, clientOptions);
+
+			// support file-based symbol storage
+			client.onReady().then(() => {
+				const persistUri = context.storageUri && vscode.Uri.joinPath(context.storageUri, 'anycode.db');
+				const encoder = new TextEncoder();
+				const decoder = new TextDecoder();
+
+				client.onRequest('persisted/read', async (): Promise<string> => {
+					if (!persistUri) {
+						return '';
+					}
+					try {
+						const data = await vscode.workspace.fs.readFile(persistUri);
+						return decoder.decode(data);
+					} catch {
+						return '';
+					}
+				});
+				client.onRequest('persisted/write', async (json: string) => {
+					if (persistUri) {
+						const data = encoder.encode(json);
+						await vscode.workspace.fs.writeFile(persistUri, new Uint8Array(data));
+					}
+				});
+			});
+
+			return client;
 		}
 		destoryLanguageClient(client: CommonLanguageClient): void {
 			if (client instanceof LanguageClient) {
