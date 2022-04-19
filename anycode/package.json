@@ -101,7 +101,6 @@
 		"lint": "eslint client server --ext ts",
 		"deploy": "npx vsce publish --noVerify",
 		"pretest-extension": "npx esbuild client/src/test/suite/index.ts --bundle --external:vscode --target=es2020 --format=cjs --outfile=dist/extension.test.js --define:process=\"{\\\"env\\\":{}}\"",
-		"test-extension": "npx vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/extension.test.js",
 		"test-server": "cd server && npm run test"
 	},
 	"devDependencies": {
