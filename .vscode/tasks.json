@@ -9,7 +9,7 @@
 			"problemMatcher": [],
 			"path": "anycode",
 			"label": "npm: watch",
-			"detail": "npx esbuild src/extension.ts --bundle --outfile=dist/extension.js --platform=node --external:vscode --watch",
+			"detail": "node esbuild.js --watch",
 			"runOptions": {
 				"runOn": "folderOpen"
 			},

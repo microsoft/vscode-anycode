@@ -19,7 +19,8 @@
 		"onStartupFinished",
 		"onCommand:workbench.action.showAllSymbols"
 	],
-	"browser": "./dist/anycode.extension.js",
+	"browser": "./dist/anycode.extension.browser.js",
+	"main": "./dist/anycode.extension.node.js",
 	"contributes": {
 		"configuration": {
 			"title": "Anycode",

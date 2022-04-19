@@ -5,11 +5,16 @@
 
 import * as vscode from 'vscode';
 import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
-import { LanguageClient } from 'vscode-languageclient/browser';
+import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
 
-export async function activate(context: vscode.ExtensionContext) {
+export interface LanguageClientFactory {
+	createLanguageClient(id: string, name: string, clientOptions: LanguageClientOptions): CommonLanguageClient;
+	destoryLanguageClient(client: CommonLanguageClient): void;
+}
+
+export async function startClient(factory: LanguageClientFactory, context: vscode.ExtensionContext) {
 
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
 	const supportedLanguages = new SupportedLanguages();
@@ -18,7 +23,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	startServer();
 
 	function startServer() {
-		serverHandles.push(_startServer(context, supportedLanguages, telemetry));
+		serverHandles.push(_startServer(factory, context, supportedLanguages, telemetry));
 	}
 
 	async function stopServers() {
@@ -63,11 +68,12 @@ function _showStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: 
 	};
 }
 
-async function _startServer(context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
+async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
 
 	const supportedLanguages = await supportedLanguagesInfo.getSupportedLanguages();
 	const documentSelector = await supportedLanguagesInfo.getSupportedLanguagesAsSelector();
 	if (documentSelector.length === 0) {
+		console.log('[anycode] NO supported languages, no server needed');
 		// no supported languages -> nothing to do
 		return new vscode.Disposable(() => { });
 	}
@@ -133,12 +139,12 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		}
 	};
 
-	const serverMain = vscode.Uri.joinPath(context.extensionUri, 'dist/anycode.server.js');
-	const worker = new Worker(serverMain.toString());
-	const client = new LanguageClient('anycode', 'anycode', clientOptions, worker);
+	// const serverMain = vscode.Uri.joinPath(context.extensionUri, 'dist/anycode.server.js');
+	// const worker = new Worker(serverMain.toString());
+	const client = factory.createLanguageClient('anycode', 'anycode', clientOptions);
 
 	disposables.push(client.start());
-	disposables.push(new vscode.Disposable(() => worker.terminate()));
+	disposables.push(new vscode.Disposable(() => factory.destoryLanguageClient(client)));
 
 	await client.onReady();
 
