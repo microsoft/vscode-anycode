@@ -4,36 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-
-export interface Queries {
-	comments?: string;
-	folding?: string;
-	identifiers?: string;
-	locals?: string;
-	outline?: string;
-	references?: string;
-}
-
-export class LanguageInfo {
-	constructor(
-		readonly languageId: string,
-		readonly wasmUri: string,
-		readonly suffixes: string[],
-		readonly queries?: Queries
-	) { }
-}
-
-export interface FeatureConfig {
-	completions?: boolean;
-	definitions?: boolean;
-	references?: boolean;
-	highlights?: boolean;
-	outline?: boolean;
-	folding?: boolean;
-	workspaceSymbols?: boolean;
-	diagnostics?: boolean;
-	[key: string]: boolean | undefined;
-};
+import { Queries, LanguageInfo, FeatureConfig } from '../../../shared/common/initOptions';
 
 type JSONQueryPaths = {
 	comments?: string;
@@ -110,7 +81,7 @@ export class SupportedLanguages {
 			for (const info of languageInfos.values()) {
 				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
 				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
-				const empty = Object.keys(featureConfig).every(key => !featureConfig[key]);
+				const empty = Object.keys(featureConfig).every(key => !(<Record<string, any>>featureConfig)[key]);
 				if (empty) {
 					continue;
 				}
@@ -132,7 +103,7 @@ export class SupportedLanguages {
 		type Contribution = { ['anycodeLanguages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
 		const result = new Map<string, LanguageInfo>();
-		const isWebWorker = typeof importScripts === 'function';
+		const isWebWorker = 'importScripts' in globalThis;
 
 		for (const extension of vscode.extensions.all) {
 
@@ -187,9 +158,9 @@ export class SupportedLanguages {
 	}
 
 	private static async _readQueryPath(extension: vscode.Extension<any>, paths: JSONQueryPaths): Promise<Queries> {
-
+		type Writeable<T> = { -readonly [P in keyof T]: Writeable<T[P]> };
 		const decoder = new TextDecoder();
-		const result: Queries = {};
+		const result: Writeable<Queries> = {};
 		if (paths.comments) {
 			result.comments = decoder.decode(await vscode.workspace.fs.readFile(vscode.Uri.joinPath(extension.extensionUri, paths.comments)));
 		}

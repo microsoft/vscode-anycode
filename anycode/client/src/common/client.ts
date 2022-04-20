@@ -8,6 +8,7 @@ import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languagecli
 import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import type { InitOptions } from '../../../shared/common/initOptions';
 
 export interface LanguageClientFactory {
 	createLanguageClient(id: string, name: string, clientOptions: LanguageClientOptions): CommonLanguageClient;
@@ -105,17 +106,19 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	disposables.push(watcher);
 
 	const treeSitterWasmUri = vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm');
+	const initializationOptions: InitOptions = {
+		treeSitterWasmUri: 'importScripts' in globalThis ? treeSitterWasmUri.toString() : treeSitterWasmUri.fsPath,
+		supportedLanguages: Array.from(supportedLanguages.entries()),
+		databaseName
+	};
+
 	// LSP setup
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector,
 		synchronize: { fileEvents: watcher },
-		initializationOptions: {
-			treeSitterWasmUri: typeof importScripts === 'function' ? treeSitterWasmUri.toString() : treeSitterWasmUri.fsPath,
-			supportedLanguages: Array.from(supportedLanguages.entries()),
-			databaseName
-		},
+		initializationOptions,
 		middleware: {
 			provideWorkspaceSymbols(query, token, next) {
 				_sendFeatureTelementry('workspaceSymbols', '');

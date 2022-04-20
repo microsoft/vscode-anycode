@@ -2,10 +2,16 @@
 	"files": [],
 	"references": [
 		{
-			"path": "./client"
+			"path": "./client/tsconfig.node.json"
 		},
 		{
-			"path": "./server"
+			"path": "./server/tsconfig.node.json"
+		},
+		{
+			"path": "./client/tsconfig.browser.json"
+		},
+		{
+			"path": "./server/tsconfig.browser.json"
 		}
 	]
 }

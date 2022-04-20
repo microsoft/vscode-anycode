@@ -41,7 +41,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-php",
 		"deploy": "npx vsce publish",
-		"test": "node ../anycode/server/src/test-fixture/test.js --highlights ./fixtures/highlights.php"
+		"test": "node ../anycode/server/src/common/test-fixture/test.js --highlights ./fixtures/highlights.php"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",

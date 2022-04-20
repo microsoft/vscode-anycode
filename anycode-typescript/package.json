@@ -51,7 +51,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-typescript/typescript",
 		"deploy": "npx vsce publish",
-		"test": "node ../anycode/server/src/test-fixture/test.js  --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
+		"test": "node ../anycode/server/src/common/test-fixture/test.js  --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",

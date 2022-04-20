@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { BrowserMessageReader, BrowserMessageWriter, createConnection } from 'vscode-languageserver/browser';
-import { SymbolInfoStorage } from '../features/symbolIndex';
-import { IStorageFactory, startServer } from '../server';
+import { SymbolInfoStorage } from '../common/features/symbolIndex';
+import { IStorageFactory, startServer } from '../common/server';
 import { IndexedDBSymbolStorage } from './storage';
 
 const messageReader = new BrowserMessageReader(self);

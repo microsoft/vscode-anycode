@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createConnection } from 'vscode-languageserver/node';
-import { SymbolInfoStorage } from '../features/symbolIndex';
-import { IStorageFactory, startServer } from '../server';
+import { SymbolInfoStorage } from '../common/features/symbolIndex';
+import { IStorageFactory, startServer } from '../common/server';
 import { FileSymbolStorage } from './storage';
 
 process.on('unhandledRejection', (e: any) => {

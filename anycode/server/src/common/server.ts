@@ -5,7 +5,7 @@
 
 import { Connection, FileChangeType, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import Parser from 'web-tree-sitter';
-import { LanguageConfiguration } from './common';
+import type { InitOptions } from '../../../shared/common/initOptions';
 import { DocumentStore } from './documentStore';
 import { CompletionItemProvider } from './features/completions';
 import { DefinitionProvider } from './features/definitions';
@@ -20,17 +20,10 @@ import { WorkspaceSymbol } from './features/workspaceSymbols';
 import Languages from './languages';
 import { Trees } from './trees';
 
-type InitOptions = {
-	treeSitterWasmUri: string;
-	supportedLanguages: LanguageConfiguration,
-	databaseName: string;
-};
-
 export interface IStorageFactory {
 	create(name: string): Promise<SymbolInfoStorage>
 	destroy(index: SymbolInfoStorage): Promise<void>
 }
-
 
 export function startServer(connection: Connection, factory: IStorageFactory) {
 

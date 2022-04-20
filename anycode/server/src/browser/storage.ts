@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SymbolKind } from "vscode-languageserver";
-import { SymbolInfoStorage, SymbolInfo } from "../features/symbolIndex";
+import { SymbolInfoStorage, SymbolInfo } from "../common/features/symbolIndex";
 
 export class IndexedDBSymbolStorage implements SymbolInfoStorage {
 

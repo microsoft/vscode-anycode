@@ -7,8 +7,8 @@ import * as documentHighlights from './documentHighlights.test';
 import * as documentSymbols from './documentSymbols.test';
 import * as queries from './queries.test';
 import Parser from 'web-tree-sitter';
-import { FeatureConfig, LanguageInfo } from '../../common';
 import Languages from '../../languages';
+import { FeatureConfig, LanguageInfo } from '../../../../../shared/common/initOptions';
 
 (async function () {
 

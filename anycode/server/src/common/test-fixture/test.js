@@ -38,7 +38,7 @@ const args = (function () {
 	return result;
 })()
 
-const base = join(__dirname, '../../../..');
+const base = join(__dirname, '../../../../..');
 const port = 3000 + Math.ceil(Math.random() * 5080);
 
 /**
@@ -98,7 +98,7 @@ const requestListener = function (req, res) {
 
 async function runTests() {
 
-	const target = new URL(`http://localhost:${port}/anycode/server/src/test-fixture/client/test.html`);
+	const target = new URL(`http://localhost:${port}/anycode/server/src/common/test-fixture/client/test.html`);
 
 	const languages = readAnycodeExtension(join(process.cwd(), 'package.json'))
 	target.searchParams.set('languages', JSON.stringify(languages));

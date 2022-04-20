@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { CommonLanguageClient, LanguageClientOptions } from 'vscode-languageclient';
 import { LanguageClient, ServerOptions, TransportKind } from 'vscode-languageclient/node';
-import { startClient, LanguageClientFactory } from '../client';
+import { startClient, LanguageClientFactory } from '../common/client';
 
 export async function activate(context: vscode.ExtensionContext) {
 

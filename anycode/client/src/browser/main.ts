@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { CommonLanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
+import { CommonLanguageClient, LanguageClientOptions } from 'vscode-languageclient';
 import { LanguageClient } from 'vscode-languageclient/browser';
-import { startClient, LanguageClientFactory } from '../client';
+import { startClient, LanguageClientFactory } from '../common/client';
 
 export async function activate(context: vscode.ExtensionContext) {
 

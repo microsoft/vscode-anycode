@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { LanguageInfo } from '../../common';
+import { LanguageInfo } from '../../../../../shared/common/initOptions';
 import Languages, { QueryType } from '../../languages';
 
 export function init(info: LanguageInfo) {

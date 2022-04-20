@@ -1,0 +1,13 @@
+{
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": [
+			"ES2020"
+		]
+	},
+	"include": [
+		"src/common/*",
+		"src/node/*",
+		"../shared/common/*"
+	]
+}

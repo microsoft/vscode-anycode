@@ -74,8 +74,8 @@ const nodeServer = esbuild.build({
 });
 
 const serverTests = esbuild.build({
-	entryPoints: ['server/src/test/trie.test.ts'],
-	outfile: 'server/src/test/trie.test.js',
+	entryPoints: ['server/src/common/test/trie.test.ts'],
+	outfile: 'server/src/common/test/trie.test.js',
 	bundle: true,
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
@@ -88,8 +88,8 @@ const serverTests = esbuild.build({
 // --- tests-fixtures
 
 const testFixture = esbuild.build({
-	entryPoints: ['server/src/test-fixture/client/test.all.ts'],
-	outfile: 'server/src/test-fixture/client/test.all.js',
+	entryPoints: ['server/src/common/test-fixture/client/test.all.ts'],
+	outfile: 'server/src/common/test-fixture/client/test.all.js',
 	bundle: true,
 	define: { process: '{"env":{}}' }, // assert-lib
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc

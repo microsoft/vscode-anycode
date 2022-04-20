@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import Parser from 'web-tree-sitter';
-import { FeatureConfig, LanguageConfiguration } from './common';
+import { FeatureConfig, LanguageConfiguration } from '../../../shared/common/initOptions';
 
 export type QueryModule = {
 	outline?: string;
