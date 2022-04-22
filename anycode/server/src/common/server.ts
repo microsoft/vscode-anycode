@@ -52,10 +52,10 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 		const trees = new Trees(documents);
 
 		// caching
-		const persistedCache = await factory.create(initData.databaseName);
-		connection.onExit(() => factory.destroy(persistedCache));
+		const symbolStorage = await factory.create(initData.databaseName);
+		connection.onExit(() => factory.destroy(symbolStorage));
 
-		const symbolIndex = new SymbolIndex(trees, documents, persistedCache);
+		const symbolIndex = new SymbolIndex(trees, documents, symbolStorage);
 
 		features.push(new WorkspaceSymbol(documents, trees, symbolIndex));
 		features.push(new DefinitionProvider(documents, trees, symbolIndex));
@@ -71,9 +71,7 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 		documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 		documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 		documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
-		connection.onRequest('queue/init', uris => {
-			return symbolIndex.initFiles(uris);
-		});
+		connection.onRequest('queue/init', uris => symbolIndex.initFiles(uris));
 
 		connection.onDidChangeWatchedFiles(e => {
 			for (const { type, uri } of e.changes) {

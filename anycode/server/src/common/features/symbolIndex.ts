@@ -54,6 +54,25 @@ export interface SymbolInfoStorage {
 	delete(uris: Set<string>): Promise<void>;
 }
 
+export class MemorySymbolStorage implements SymbolInfoStorage {
+
+	private readonly _map = new Map<string, Map<string, SymbolInfo>>();
+
+	insert(uri: string, info: Map<string, SymbolInfo>): void {
+		this._map.set(uri, info);
+	}
+
+	async getAll(): Promise<Map<string, Map<string, SymbolInfo>>> {
+		return this._map;
+	}
+
+	async delete(uris: Set<string>): Promise<void> {
+		for (const uri of uris) {
+			this._map.delete(uri);
+		}
+	}
+}
+
 export interface SymbolInfo {
 	definitions: Set<lsp.SymbolKind>
 	usages: Set<lsp.SymbolKind>
@@ -125,7 +144,7 @@ export class SymbolIndex {
 	constructor(
 		private readonly _trees: Trees,
 		private readonly _documents: DocumentStore,
-		private readonly _persistedIndex: SymbolInfoStorage
+		private readonly _symbolInfoStorage: SymbolInfoStorage
 	) { }
 
 	addFile(uri: string): void {
@@ -223,7 +242,7 @@ export class SymbolIndex {
 
 		// update in-memory index and persisted index
 		this.index.update(document.uri, symbolInfo);
-		this._persistedIndex.insert(document.uri, symbolInfo);
+		this._symbolInfoStorage.insert(document.uri, symbolInfo);
 	}
 
 	async initFiles(_uris: string[]) {
@@ -231,7 +250,7 @@ export class SymbolIndex {
 		const sw = new StopWatch();
 
 		console.log(`[index] building index for ${uris.size} files.`);
-		const persisted = await this._persistedIndex.getAll();
+		const persisted = await this._symbolInfoStorage.getAll();
 		const obsolete = new Set<string>();
 
 		for (const [uri, data] of persisted) {
@@ -253,7 +272,7 @@ export class SymbolIndex {
 		await this.update();
 
 		// remove from persisted cache files that aren't interesting anymore 
-		await this._persistedIndex.delete(obsolete);
+		await this._symbolInfoStorage.delete(obsolete);
 
 		// async update all files that were taken from cache
 		const asyncUpdate = async () => {
