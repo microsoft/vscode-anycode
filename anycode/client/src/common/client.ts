@@ -243,8 +243,18 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	return new vscode.Disposable(() => disposables.forEach(d => d.dispose()));
 }
 
+function _getRemoteHubExtension() {
+
+	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
+	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('ms-vscode.remote-repositories', true)
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub', true)
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders', true);
+
+	return remoteHub;
+}
+
 function _isRemoteHubWorkspace() {
-	if (!vscode.extensions.getExtension('GitHub.remoteHub') && !vscode.extensions.getExtension('GitHub.remoteHub-insiders')) {
+	if (!_getRemoteHubExtension()) {
 		return false;
 	}
 	return vscode.workspace.workspaceFolders?.every(folder => folder.uri.scheme === 'vscode-vfs') ?? false;
@@ -256,8 +266,6 @@ async function _canInitWithoutLimits() {
 		return false;
 	}
 
-	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
-
 	const remoteFolders = vscode.workspace.workspaceFolders.filter(folder => folder.uri.scheme === 'vscode-vfs');
 
 	if (remoteFolders.length === 0) {
@@ -265,9 +273,7 @@ async function _canInitWithoutLimits() {
 		return true;
 	}
 
-	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('ms-vscode.remote-repositories')
-		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub')
-		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
+	const remoteHub = _getRemoteHubExtension();
 
 	const remoteHubApi = await remoteHub?.activate();
 	if (typeof remoteHubApi?.loadWorkspaceContents !== 'function') {

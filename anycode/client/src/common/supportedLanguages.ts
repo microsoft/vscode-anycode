@@ -105,7 +105,7 @@ export class SupportedLanguages {
 		const result = new Map<string, LanguageInfo>();
 		const isWebWorker = 'importScripts' in globalThis;
 
-		for (const extension of vscode.extensions.all) {
+		for (const extension of vscode.extensions.allAcrossExtensionHosts) {
 
 			let languages = (<Contribution | undefined>extension.packageJSON.contributes)?.['anycodeLanguages'];
 			if (!languages) {
@@ -124,8 +124,12 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				let queries: Queries;
+				if (extension.extensionUri.scheme !== 'file') {
+					console.warn(`UNSUPPORTED extension location from ${extension.id}`, extension.extensionUri.toString());
+					continue;
+				}
 
+				let queries: Queries;
 				try {
 					queries = await SupportedLanguages._readQueryPath(extension, lang.queryPaths);
 				} catch (err) {

@@ -19,6 +19,9 @@
 		"onStartupFinished",
 		"onCommand:workbench.action.showAllSymbols"
 	],
+	"enabledApiProposals": [
+		"extensionsAny"
+	],
 	"browser": "./dist/anycode.extension.browser.js",
 	"main": "./dist/anycode.extension.node.js",
 	"contributes": {

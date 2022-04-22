@@ -12,9 +12,6 @@
 	"engines": {
 		"vscode": "^1.67.0"
 	},
-	"activationEvents": [],
-	"browser": "index.js",
-	"main": "index.js",
 	"categories": [
 		"Programming Languages"
 	],
