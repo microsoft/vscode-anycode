@@ -21,35 +21,61 @@ if (process.argv.includes('--watch')) {
 
 // --- extension
 
-const client = esbuild.build({
-	entryPoints: ['client/src/main.ts'],
-	outfile: 'dist/anycode.extension.js',
+const clientBuildOptions = {
 	bundle: true,
 	external: ['vscode'],
 	target: 'es2020',
 	format: 'cjs',
 	watch
+}
+
+const browserClient = esbuild.build({
+	...clientBuildOptions,
+	entryPoints: ['client/src/browser/main.ts'],
+	outfile: 'dist/anycode.extension.browser.js',
+}).catch((e) => {
+	console.error(e)
+});
+
+const nodeClient = esbuild.build({
+	...clientBuildOptions,
+	platform: 'node',
+	entryPoints: ['client/src/node/main.ts'],
+	outfile: 'dist/anycode.extension.node.js',
 }).catch((e) => {
 	console.error(e)
 });
 
 // --- server
 
-const server = esbuild.build({
-	entryPoints: ['server/src/main.ts'],
-	outfile: 'dist/anycode.server.js',
+const serverBuildOptions = {
 	bundle: true,
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
 	watch
+}
+
+const browserServer = esbuild.build({
+	...serverBuildOptions,
+	entryPoints: ['server/src/browser/main.ts'],
+	outfile: 'dist/anycode.server.browser.js',
+}).catch((e) => {
+	console.error(e)
+});
+
+const nodeServer = esbuild.build({
+	...serverBuildOptions,
+	platform: 'node',
+	entryPoints: ['server/src/node/main.ts'],
+	outfile: 'dist/anycode.server.node.js',
 }).catch((e) => {
 	console.error(e)
 });
 
 const serverTests = esbuild.build({
-	entryPoints: ['server/src/test/trie.test.ts'],
-	outfile: 'server/src/test/trie.test.js',
+	entryPoints: ['server/src/common/test/trie.test.ts'],
+	outfile: 'server/src/common/test/trie.test.js',
 	bundle: true,
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
@@ -62,8 +88,8 @@ const serverTests = esbuild.build({
 // --- tests-fixtures
 
 const testFixture = esbuild.build({
-	entryPoints: ['server/src/test-fixture/client/test.all.ts'],
-	outfile: 'server/src/test-fixture/client/test.all.js',
+	entryPoints: ['server/src/common/test-fixture/client/test.all.ts'],
+	outfile: 'server/src/common/test-fixture/client/test.all.js',
 	bundle: true,
 	define: { process: '{"env":{}}' }, // assert-lib
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
@@ -73,7 +99,11 @@ const testFixture = esbuild.build({
 	console.error(e)
 });
 
-Promise.all([client, server, serverTests, testFixture]).then(() => {
+Promise.all([
+	browserClient, browserServer, // client
+	nodeClient, nodeServer, // server
+	serverTests, testFixture // testing
+]).then(() => {
 	if (watch) {
 		console.log('done building, watching for file changes')
 	} else {

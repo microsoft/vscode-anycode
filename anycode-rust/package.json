@@ -12,8 +12,6 @@
 	"engines": {
 		"vscode": "^1.67.0"
 	},
-	"activationEvents": [],
-	"browser": "index.js",
 	"categories": [
 		"Programming Languages"
 	],
@@ -37,7 +35,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-rust",
 		"deploy": "npx vsce publish",
-		"test": "node ../anycode/server/src/test-fixture/test.js --outline ./fixtures/outline.rs --highlights ./fixtures/highlights.rs"
+		"test": "node ../anycode/server/src/common/test-fixture/test.js --outline ./fixtures/outline.rs --highlights ./fixtures/highlights.rs"
 	},
 	"devDependencies": {
 		"tree-sitter-cli": "0.20.6",

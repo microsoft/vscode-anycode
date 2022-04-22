@@ -5,11 +5,17 @@
 
 import * as vscode from 'vscode';
 import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
-import { LanguageClient } from 'vscode-languageclient/browser';
+import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import type { InitOptions } from '../../../shared/common/initOptions';
 
-export async function activate(context: vscode.ExtensionContext) {
+export interface LanguageClientFactory {
+	createLanguageClient(id: string, name: string, clientOptions: LanguageClientOptions): CommonLanguageClient;
+	destoryLanguageClient(client: CommonLanguageClient): void;
+}
+
+export async function startClient(factory: LanguageClientFactory, context: vscode.ExtensionContext) {
 
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
 	const supportedLanguages = new SupportedLanguages();
@@ -18,7 +24,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	startServer();
 
 	function startServer() {
-		serverHandles.push(_startServer(context, supportedLanguages, telemetry));
+		serverHandles.push(_startServer(factory, context, supportedLanguages, telemetry));
 	}
 
 	async function stopServers() {
@@ -63,11 +69,12 @@ function _showStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: 
 	};
 }
 
-async function _startServer(context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
+async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
 
 	const supportedLanguages = await supportedLanguagesInfo.getSupportedLanguages();
 	const documentSelector = await supportedLanguagesInfo.getSupportedLanguagesAsSelector();
 	if (documentSelector.length === 0) {
+		console.log('[anycode] NO supported languages, no server needed');
 		// no supported languages -> nothing to do
 		return new vscode.Disposable(() => { });
 	}
@@ -98,17 +105,20 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	const watcher = vscode.workspace.createFileSystemWatcher(langPattern);
 	disposables.push(watcher);
 
+	const treeSitterWasmUri = vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm');
+	const initializationOptions: InitOptions = {
+		treeSitterWasmUri: 'importScripts' in globalThis ? treeSitterWasmUri.toString() : treeSitterWasmUri.fsPath,
+		supportedLanguages: Array.from(supportedLanguages.entries()),
+		databaseName
+	};
+
 	// LSP setup
 	const clientOptions: LanguageClientOptions = {
 		outputChannelName: 'anycode',
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector,
 		synchronize: { fileEvents: watcher },
-		initializationOptions: {
-			treeSitterWasmUri: vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm').toString(),
-			supportedLanguages,
-			databaseName
-		},
+		initializationOptions,
 		middleware: {
 			provideWorkspaceSymbols(query, token, next) {
 				_sendFeatureTelementry('workspaceSymbols', '');
@@ -133,12 +143,10 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 		}
 	};
 
-	const serverMain = vscode.Uri.joinPath(context.extensionUri, 'dist/anycode.server.js');
-	const worker = new Worker(serverMain.toString());
-	const client = new LanguageClient('anycode', 'anycode', clientOptions, worker);
+	const client = factory.createLanguageClient('anycode', 'anycode', clientOptions);
 
 	disposables.push(client.start());
-	disposables.push(new vscode.Disposable(() => worker.terminate()));
+	disposables.push(new vscode.Disposable(() => factory.destoryLanguageClient(client)));
 
 	await client.onReady();
 
@@ -194,66 +202,59 @@ async function _startServer(context: vscode.ExtensionContext, supportedLanguages
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	// serve fileRead request
-	client.onRequest('file/read', async raw => {
+	client.onRequest('file/read', async (raw: string): Promise<number[]> => {
 		const uri = vscode.Uri.parse(raw);
 
 		if (uri.scheme === 'vscode-notebook-cell') {
 			// we are dealing with a notebook
 			try {
 				const doc = await vscode.workspace.openTextDocument(uri);
-				return new TextEncoder().encode(doc.getText());
+				return Array.from(new TextEncoder().encode(doc.getText()));
 			} catch (err) {
 				console.warn(err);
-				return new Uint8Array();
+				return [];
 			}
 		}
 
 		if (vscode.workspace.fs.isWritableFileSystem(uri.scheme) === undefined) {
 			// undefined means we don't know anything about these uris
-			return new Uint8Array();
+			return [];
 		}
 
-		let data: Uint8Array;
+		let data: number[];
 		try {
 			const stat = await vscode.workspace.fs.stat(uri);
 			if (stat.size > 1024 ** 2) {
 				console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
-				data = new Uint8Array();
+				data = [];
 			} else {
-				data = await vscode.workspace.fs.readFile(uri);
+				data = Array.from(await vscode.workspace.fs.readFile(uri));
 			}
 			return data;
 
 		} catch (err) {
 			// graceful
 			console.warn(err);
-			return new Uint8Array();
+			return [];
 		}
 	});
 
-	// file persisted index
-	const persistUri = context.storageUri && vscode.Uri.joinPath(context.storageUri, 'anycode.db');
-	client.onRequest('persisted/read', async () => {
-		if (!persistUri) {
-			return new Uint8Array();
-		}
-		try {
-			return await vscode.workspace.fs.readFile(persistUri);
-		} catch {
-			return new Uint8Array();
-		}
-	});
-	client.onRequest('persisted/write', async (data) => {
-		if (persistUri) {
-			await vscode.workspace.fs.writeFile(persistUri, data);
-		}
-	});
 
 	return new vscode.Disposable(() => disposables.forEach(d => d.dispose()));
 }
 
+function _getRemoteHubExtension() {
+
+	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
+	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('ms-vscode.remote-repositories', true)
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub', true)
+		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders', true);
+
+	return remoteHub;
+}
+
 function _isRemoteHubWorkspace() {
-	if (!vscode.extensions.getExtension('GitHub.remoteHub') && !vscode.extensions.getExtension('GitHub.remoteHub-insiders')) {
+	if (!_getRemoteHubExtension()) {
 		return false;
 	}
 	return vscode.workspace.workspaceFolders?.every(folder => folder.uri.scheme === 'vscode-vfs') ?? false;
@@ -265,8 +266,6 @@ async function _canInitWithoutLimits() {
 		return false;
 	}
 
-	type RemoteHubApiStub = { loadWorkspaceContents?(workspaceUri: vscode.Uri): Promise<boolean> };
-
 	const remoteFolders = vscode.workspace.workspaceFolders.filter(folder => folder.uri.scheme === 'vscode-vfs');
 
 	if (remoteFolders.length === 0) {
@@ -274,9 +273,7 @@ async function _canInitWithoutLimits() {
 		return true;
 	}
 
-	const remoteHub = vscode.extensions.getExtension<RemoteHubApiStub>('ms-vscode.remote-repositories')
-		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub')
-		?? vscode.extensions.getExtension<RemoteHubApiStub>('GitHub.remoteHub-insiders');
+	const remoteHub = _getRemoteHubExtension();
 
 	const remoteHubApi = await remoteHub?.activate();
 	if (typeof remoteHubApi?.loadWorkspaceContents !== 'function') {

@@ -12,8 +12,6 @@
 	"engines": {
 		"vscode": "^1.67.0"
 	},
-	"activationEvents": [],
-	"browser": "index.js",
 	"categories": [
 		"Programming Languages"
 	],
@@ -57,7 +55,7 @@
 	"scripts": {
 		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-python",
 		"deploy": "npx vsce publish",
-		"test": "node ../anycode/server/src/test-fixture/test.js  --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
+		"test": "node ../anycode/server/src/common/test-fixture/test.js  --outline ./fixtures/outline.ts --highlights ./fixtures/highlights.ts"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",

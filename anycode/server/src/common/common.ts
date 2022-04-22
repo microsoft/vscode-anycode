@@ -54,36 +54,6 @@ export const symbolMapping: SymbolMapping = new class {
 	}
 };
 
-export interface Queries {
-	readonly comments?: string;
-	readonly folding?: string;
-	readonly identifiers?: string;
-	readonly locals?: string;
-	readonly outline?: string;
-	readonly references?: string;
-}
-
-export class LanguageInfo {
-	constructor(
-		readonly languageId: string,
-		readonly wasmUri: string,
-		readonly suffixes: string[],
-		readonly queries?: Queries
-	) { }
-}
-
-export interface FeatureConfig {
-	completions?: boolean;
-	definitions?: boolean;
-	references?: boolean;
-	highlights?: boolean;
-	outline?: boolean;
-	folding?: boolean;
-	workspaceSymbols?: boolean;
-	diagnostics?: boolean;
-};
-
-export type LanguageConfiguration = ReadonlyMap<LanguageInfo, FeatureConfig>;
 
 // --- geometry
 

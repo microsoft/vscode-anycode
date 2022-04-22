@@ -1,0 +1,14 @@
+{
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"lib": [
+			"ES2020",
+			"WebWorker"
+		]
+	},
+	"include": [
+		"src/common/*",
+		"src/browser/*",
+		"../shared/common/*"
+	]
+}
