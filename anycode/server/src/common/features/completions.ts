@@ -7,6 +7,7 @@ import * as lsp from 'vscode-languageserver';
 import { DocumentStore } from '../documentStore';
 import Languages from '../languages';
 import { Trees } from '../trees';
+import { nodeAtPosition } from '../common';
 import { SymbolIndex } from './symbolIndex';
 
 export class CompletionItemProvider {
@@ -35,7 +36,7 @@ export class CompletionItemProvider {
 		// (1) all identifiers that are used in this file
 		const query = Languages.getQuery(document.languageId, 'identifiers');
 		const captures = query.captures(tree.rootNode);
-		for (let capture of captures) {
+		for (const capture of captures) {
 			const text = capture.node.text;
 			result.set(text, { label: text });
 		}
@@ -47,9 +48,8 @@ export class CompletionItemProvider {
 		// it is very likely that the current file has changed and that we have it already processed
 		// await this._symbols.update();
 
-		for (let [name, map] of this._symbols.index) {
-
-			for (let [, info] of map) {
+		for (const [name, map] of this._symbols.index) {
+			for (const [, info] of map) {
 				if (info.definitions.size > 0) {
 					const [firstDefinitionKind] = info.definitions;
 					result.set(name, {
@@ -59,8 +59,15 @@ export class CompletionItemProvider {
 					break;
 				}
 			}
-
 		}
+
+		// remove current identifier (the one that's being typed)
+		const current = nodeAtPosition(tree.rootNode, params.position, true);
+		const currentCaptures = query.captures(current);
+		if (currentCaptures.length === 1) {
+			result.delete(currentCaptures[0].node.text);
+		}
+
 		return Array.from(result.values());
 	}
 
