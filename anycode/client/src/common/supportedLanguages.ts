@@ -124,7 +124,7 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				if (extension.extensionUri.scheme !== 'file') {
+				if (extension.extensionUri.scheme === 'vscode-remote') {
 					console.warn(`UNSUPPORTED extension location from ${extension.id}`, extension.extensionUri.toString());
 					continue;
 				}
