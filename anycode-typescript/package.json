@@ -28,21 +28,10 @@
 				"locals": "./queries/locals.scm",
 				"outline": "./queries/outline.scm",
 				"references": "./queries/references.scm"
-			}
-		},
-		"configurationDefaults": {
-			"[typescript]": {
-				"anycode.language.features": {
-					"definitions": true,
-					"workspaceSymbols": true,
-					"highlights": false,
-					"completions": false,
-					"references": false,
-					"outline": false,
-					"folding": false,
-					"diagnostics": false
-				}
-			}
+			},
+			"suppressedBy": [
+				"vscode.typescript-language-features"
+			]
 		}
 	},
 	"scripts": {

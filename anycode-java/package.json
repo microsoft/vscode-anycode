@@ -29,7 +29,10 @@
 				"locals": "./queries/locals.scm",
 				"outline": "./queries/outline.scm",
 				"references": "./queries/references.scm"
-			}
+			},
+			"suppressedBy": [
+				"redhat.java"
+			]
 		}
 	},
 	"scripts": {

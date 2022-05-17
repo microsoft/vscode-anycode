@@ -32,7 +32,10 @@
 				"locals": "./queries/locals.scm",
 				"outline": "./queries/outline.scm",
 				"references": "./queries/references.scm"
-			}
+			},
+			"suppressedBy": [
+				"bmewburn.vscode-intelephense-client"
+			]
 		}
 	},
 	"scripts": {
