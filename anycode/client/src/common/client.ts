@@ -17,14 +17,16 @@ export interface LanguageClientFactory {
 
 export async function startClient(factory: LanguageClientFactory, context: vscode.ExtensionContext) {
 
+	const channel = vscode.window.createOutputChannel('anycode');
+
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
-	const supportedLanguages = new SupportedLanguages();
+	const supportedLanguages = new SupportedLanguages(channel);
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
 	startServer();
 
 	function startServer() {
-		serverHandles.push(_startServer(factory, context, supportedLanguages, telemetry));
+		serverHandles.push(_startServer(factory, context, supportedLanguages, telemetry, channel));
 	}
 
 	async function stopServers() {
@@ -38,6 +40,7 @@ export async function startClient(factory: LanguageClientFactory, context: vscod
 		}
 	}
 
+	context.subscriptions.push(channel);
 	context.subscriptions.push(supportedLanguages);
 	context.subscriptions.push(supportedLanguages.onDidChange(async () => {
 		// restart server when supported languages change
@@ -69,12 +72,12 @@ function _showStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: 
 	};
 }
 
-async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter): Promise<vscode.Disposable> {
+async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter, log: vscode.OutputChannel): Promise<vscode.Disposable> {
 
 	const supportedLanguages = await supportedLanguagesInfo.getSupportedLanguages();
 	const documentSelector = await supportedLanguagesInfo.getSupportedLanguagesAsSelector();
 	if (documentSelector.length === 0) {
-		console.log('[anycode] NO supported languages, no server needed');
+		log.appendLine('[anycode] NO supported languages, no server needed');
 		// no supported languages -> nothing to do
 		return new vscode.Disposable(() => { });
 	}
@@ -114,7 +117,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 
 	// LSP setup
 	const clientOptions: LanguageClientOptions = {
-		outputChannelName: 'anycode',
+		outputChannel: log,
 		revealOutputChannelOn: RevealOutputChannelOn.Never,
 		documentSelector,
 		synchronize: { fileEvents: watcher },
@@ -175,7 +178,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		}
 
 		const uris = all.slice(0, size);
-		console.info(`USING ${uris.length} of ${all.length} files for ${langPattern}`);
+		log.appendLine(`[INDEX] using ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
 		await client.sendRequest('queue/init', uris.map(String));

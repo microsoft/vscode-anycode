@@ -18,7 +18,8 @@ export class LanguageInfo {
 		readonly languageId: string,
 		readonly wasmUri: string,
 		readonly suffixes: string[],
-		readonly queries?: Queries
+		readonly queries?: Queries,
+		readonly suppressedBy?: string[]
 	) { }
 }
 

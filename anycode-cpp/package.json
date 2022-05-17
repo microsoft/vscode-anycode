@@ -28,7 +28,10 @@
 					"comments": "./queries/c/comments.scm",
 					"identifiers": "./queries/c/identifiers.scm",
 					"outline": "./queries/c/outline.scm"
-				}
+				},
+				"suppressedBy": [
+					"ms-vscode.cpptools"
+				]
 			},
 			{
 				"grammarPath": "./tree-sitter-cpp.wasm",
@@ -55,7 +58,10 @@
 					"comments": "./queries/cpp/comments.scm",
 					"identifiers": "./queries/cpp/identifiers.scm",
 					"outline": "./queries/cpp/outline.scm"
-				}
+				},
+				"suppressedBy": [
+					"ms-vscode.cpptools"
+				]
 			}
 		]
 	},

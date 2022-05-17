@@ -19,7 +19,8 @@ type JSONAnycodeLanguage = {
 	grammarPath: string;
 	languageId: string;
 	extensions: string[];
-	queryPaths: JSONQueryPaths
+	queryPaths: JSONQueryPaths;
+	suppressedBy?: string[];
 };
 
 function validateAnycodeLanguage(lang: JSONAnycodeLanguage): boolean {
@@ -35,6 +36,9 @@ function validateAnycodeLanguage(lang: JSONAnycodeLanguage): boolean {
 	if (!lang.queryPaths || typeof lang.queryPaths !== 'object') {
 		return false;
 	}
+	if (lang.suppressedBy && !Array.isArray(lang.suppressedBy)) {
+		return false;
+	}
 	return true;
 }
 
@@ -47,7 +51,7 @@ export class SupportedLanguages {
 
 	private readonly _disposable: vscode.Disposable;
 
-	constructor() {
+	constructor(private readonly _log: vscode.OutputChannel) {
 
 		// reset when extension or configuration changes
 		this._disposable = vscode.Disposable.from(
@@ -83,7 +87,17 @@ export class SupportedLanguages {
 				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
 				const empty = Object.keys(featureConfig).every(key => !(<Record<string, any>>featureConfig)[key]);
 				if (empty) {
+					this._log.appendLine(`[CONFIG] ignoring ${info.languageId} because configuration IS EMPTY`);
 					continue;
+				}
+
+				if (info.suppressedBy) {
+					const inspectConfig = config.inspect('language.features');
+					const explicitlyEnabled = inspectConfig?.globalLanguageValue || inspectConfig?.workspaceLanguageValue || inspectConfig?.workspaceFolderLanguageValue;
+					if (!explicitlyEnabled && info.suppressedBy.some(id => vscode.extensions.getExtension(id, true))) {
+						this._log.appendLine(`[CONFIG] ignoring ${info.languageId} because it is SUPPRESSED by any of [${info.suppressedBy.join(', ')}]`);
+						continue;
+					}
 				}
 
 				this._tuples.set(info, featureConfig);
@@ -149,7 +163,8 @@ export class SupportedLanguages {
 					lang.languageId,
 					isWebWorker ? grammarUri.toString() : grammarUri.fsPath,
 					lang.extensions,
-					queries
+					queries,
+					lang.suppressedBy
 				);
 
 				if (result.has(info.languageId)) {
