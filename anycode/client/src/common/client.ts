@@ -9,6 +9,7 @@ import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import type { InitOptions } from '../../../shared/common/initOptions';
+import { CustomMessages } from '../../../shared/common/messages';
 
 export interface LanguageClientFactory {
 	createLanguageClient(id: string, name: string, clientOptions: LanguageClientOptions): CommonLanguageClient;
@@ -181,7 +182,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		log.appendLine(`[INDEX] using ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
-		await client.sendRequest('queue/init', uris.map(String));
+		await client.sendRequest(CustomMessages.QueueInit, uris.map(String));
 		/* __GDPR__
 			"init" : {
 				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
@@ -205,7 +206,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	// serve fileRead request
-	client.onRequest('file/read', async (raw: string): Promise<number[]> => {
+	client.onRequest(CustomMessages.FileRead, async (raw: string): Promise<number[]> => {
 		const uri = vscode.Uri.parse(raw);
 
 		if (uri.scheme === 'vscode-notebook-cell') {

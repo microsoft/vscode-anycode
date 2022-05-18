@@ -6,6 +6,7 @@
 import { Connection, FileChangeType, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import Parser from 'web-tree-sitter';
 import type { InitOptions } from '../../../shared/common/initOptions';
+import { CustomMessages } from '../../../shared/common/messages';
 import { DocumentStore } from './documentStore';
 import { CompletionItemProvider } from './features/completions';
 import { DefinitionProvider } from './features/definitions';
@@ -71,7 +72,7 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 		documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 		documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 		documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
-		connection.onRequest('queue/init', uris => symbolIndex.initFiles(uris));
+		connection.onRequest(CustomMessages.QueueInit, uris => symbolIndex.initFiles(uris));
 
 		connection.onDidChangeWatchedFiles(e => {
 			for (const { type, uri } of e.changes) {
