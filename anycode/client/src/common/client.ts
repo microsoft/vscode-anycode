@@ -198,7 +198,9 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 			duration: performance.now() - t1,
 		});
 
-		// start indexing for a language extension as soon as one of its documents is loaded
+		// incremental indexing: per language we wait for the first document to appear
+		// and only then we starting indexing all files matching the language. this is 
+		// done with the "unleash" message
 		const suffixesByLangId = new Map<string, string[]>();
 		for (const [lang] of supportedLanguages) {
 			suffixesByLangId.set(lang.languageId, lang.suffixes);
@@ -209,7 +211,11 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 				return;
 			}
 			suffixesByLangId.delete(doc.languageId);
-			client.sendRequest(CustomMessages.QueueUnleash, suffixes);
+			const initLang = client.sendRequest(CustomMessages.QueueUnleash, suffixes);
+
+			const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
+			vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: `Updating Index for '${doc.languageId}'...` }, () => Promise.race([initLang, initCancel]));
+
 			if (suffixesByLangId.size === 0) {
 				listener.dispose();
 			}
@@ -222,9 +228,6 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		_showStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
 
-	// stop on server-end
-	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
-	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
 
 	// serve fileRead request
 	client.onRequest(CustomMessages.FileRead, async (raw: string): Promise<number[]> => {
