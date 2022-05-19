@@ -26,23 +26,19 @@ class Queue {
 		this._queue.delete(uri);
 	}
 
-	consume(n?: number): string[] {
+	consume(n: number | undefined, filter: (uri: string) => boolean): string[] {
 		if (n === undefined) {
-			const result = Array.from(this._queue.values());
-			this._queue.clear();
-			return result;
+			n = this._queue.size;
 		}
-
 		const result: string[] = [];
-		const iter = this._queue.values();
-		for (; n > 0; n--) {
-			const r = iter.next();
-			if (r.done) {
+		for (const uri of this._queue) {
+			if (!filter(uri)) {
+				continue;
+			}
+			this._queue.delete(uri);
+			if (result.push(uri) >= n) {
 				break;
 			}
-			const uri = r.value;
-			result.push(uri);
-			this._queue.delete(uri);
 		}
 		return result;
 	}
@@ -134,12 +130,34 @@ class Index {
 	}
 }
 
+class SuffixFilter {
+
+	private _suffixes = new Set<string>();
+	private _regex?: RegExp;
+
+	accept(uri: string) {
+		return Boolean(this._regex?.test(uri));
+	}
+
+	update(suffixes: string[]) {
+		for (const item of suffixes) {
+			this._suffixes.add(item);
+		}
+		this._regex = new RegExp(`\\.(${Array.from(this._suffixes).map(SuffixFilter._escapeRegExpCharacters).join('|')})`, 'i');
+	}
+
+	private static _escapeRegExpCharacters(value: string): string {
+		return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
+	}
+}
+
 export class SymbolIndex {
 
 	readonly index = new Index();
 
 	private readonly _syncQueue = new Queue();
 	private readonly _asyncQueue = new Queue();
+	private readonly _suffixFilter = new SuffixFilter();
 
 	constructor(
 		private readonly _trees: Trees,
@@ -162,11 +180,12 @@ export class SymbolIndex {
 
 	async update(): Promise<void> {
 		await this._currentUpdate;
-		this._currentUpdate = this._doUpdate(this._syncQueue.consume());
+		const uris = this._syncQueue.consume(undefined, uri => this._suffixFilter.accept(uri));
+		this._currentUpdate = this._doUpdate(uris, false);
 		return this._currentUpdate;
 	}
 
-	private async _doUpdate(uris: string[], silent?: boolean): Promise<void> {
+	private async _doUpdate(uris: string[], async: boolean): Promise<void> {
 		if (uris.length !== 0) {
 
 			// schedule a new task to update the cache for changed uris
@@ -181,9 +200,7 @@ export class SymbolIndex {
 				totalIndex += stat.durationIndex;
 			}
 
-			if (!silent) {
-				console.log(`[index] added ${uris.length} files ${sw.elapsed()}ms\n\tretrieval: ${Math.round(totalRetrieve)}ms\n\tindexing: ${Math.round(totalIndex)}ms`);
-			}
+			console.log(`[index] (${async ? 'async' : 'sync'}) added ${uris.length} files ${sw.elapsed()}ms (retrieval: ${Math.round(totalRetrieve)}ms, indexing: ${Math.round(totalIndex)}ms) (files: ${uris.map(String)})`);
 		}
 	}
 
@@ -249,13 +266,13 @@ export class SymbolIndex {
 		const uris = new Set(_uris);
 		const sw = new StopWatch();
 
-		console.log(`[index] building index for ${uris.size} files.`);
+		console.log(`[index] initializing index for ${uris.size} files.`);
 		const persisted = await this._symbolInfoStorage.getAll();
 		const obsolete = new Set<string>();
 
 		for (const [uri, data] of persisted) {
 			if (!uris.delete(uri)) {
-				// this file isn't requested anymore, remove later
+				// this file isn't requested anymore -> remove later
 				obsolete.add(uri);
 
 			} else {
@@ -265,20 +282,30 @@ export class SymbolIndex {
 				this._asyncQueue.enqueue(uri);
 			}
 		}
-		console.log(`[index] added FROM CACHE ${persisted.size} files ${sw.elapsed()}ms\n\t${uris.size} files still need to be fetched\n\t${obsolete.size} files are obsolete in cache`);
 
-		// sync update all files that were not cached
-		uris.forEach(this.addFile, this);
-		await this.update();
+		for (const uri of uris) {
+			// this file wasn't seen yet -> add now
+			this.addFile(uri);
+		}
 
 		// remove from persisted cache files that aren't interesting anymore 
 		await this._symbolInfoStorage.delete(obsolete);
 
+		console.log(`[index] added FROM CACHE ${persisted.size} files ${sw.elapsed()}ms, all need revalidation, ${uris.size} files are NEW, ${obsolete.size} where OBSOLETE`);
+	}
+
+	async unleashFiles(suffixes: string[]) {
+
+		console.log(`[index] unleashed files matching: ${suffixes.join(',')}`);
+
+		this._suffixFilter.update(suffixes);
+
+		await this.update();
+
 		// async update all files that were taken from cache
 		const asyncUpdate = async () => {
-			const uris = this._asyncQueue.consume(70);
+			const uris = this._asyncQueue.consume(70, uri => this._suffixFilter.accept(uri));
 			if (uris.length === 0) {
-				console.log('[index] ASYNC update is done');
 				return;
 			}
 			const t1 = performance.now();

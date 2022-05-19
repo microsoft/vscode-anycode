@@ -198,9 +198,30 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 			duration: performance.now() - t1,
 		});
 
+		// start indexing for a language extension as soon as one of its documents is loaded
+		const suffixesByLangId = new Map<string, string[]>();
+		for (const [lang] of supportedLanguages) {
+			suffixesByLangId.set(lang.languageId, lang.suffixes);
+		}
+		const handleTextDocument = (doc: vscode.TextDocument) => {
+			const suffixes = suffixesByLangId.get(doc.languageId);
+			if (!suffixes) {
+				return;
+			}
+			suffixesByLangId.delete(doc.languageId);
+			client.sendRequest(CustomMessages.QueueUnleash, suffixes);
+			if (suffixesByLangId.size === 0) {
+				listener.dispose();
+			}
+		};
+		const listener = vscode.workspace.onDidOpenTextDocument(handleTextDocument);
+		disposables.push(listener);
+		vscode.workspace.textDocuments.forEach(handleTextDocument);
+
 		// show status/maybe notifications
 		_showStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
+
 	// stop on server-end
 	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
 	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));

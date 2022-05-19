@@ -72,7 +72,14 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 		documents.all().forEach(doc => symbolIndex.addFile(doc.uri));
 		documents.onDidOpen(event => symbolIndex.addFile(event.document.uri));
 		documents.onDidChangeContent(event => symbolIndex.addFile(event.document.uri));
-		connection.onRequest(CustomMessages.QueueInit, uris => symbolIndex.initFiles(uris));
+
+		connection.onRequest(CustomMessages.QueueInit, uris => {
+			symbolIndex.initFiles(uris);
+		});
+
+		connection.onRequest(CustomMessages.QueueUnleash, suffixes => {
+			symbolIndex.unleashFiles(suffixes);
+		});
 
 		connection.onDidChangeWatchedFiles(e => {
 			for (const { type, uri } of e.changes) {
@@ -91,8 +98,6 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 				}
 			}
 		});
-
-		console.log('Tree-sitter, languages, and features are READY');
 
 		return {
 			capabilities: { textDocumentSync: TextDocumentSyncKind.Incremental }
