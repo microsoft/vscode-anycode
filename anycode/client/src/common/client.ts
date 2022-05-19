@@ -9,6 +9,7 @@ import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import type { InitOptions } from '../../../shared/common/initOptions';
+import { CustomMessages } from '../../../shared/common/messages';
 
 export interface LanguageClientFactory {
 	createLanguageClient(id: string, name: string, clientOptions: LanguageClientOptions): CommonLanguageClient;
@@ -181,7 +182,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		log.appendLine(`[INDEX] using ${uris.length} of ${all.length} files for ${langPattern}`);
 
 		const t1 = performance.now();
-		await client.sendRequest('queue/init', uris.map(String));
+		await client.sendRequest(CustomMessages.QueueInit, uris.map(String));
 		/* __GDPR__
 			"init" : {
 				"numOfFiles" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true },
@@ -197,15 +198,39 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 			duration: performance.now() - t1,
 		});
 
+		// incremental indexing: per language we wait for the first document to appear
+		// and only then we starting indexing all files matching the language. this is 
+		// done with the "unleash" message
+		const suffixesByLangId = new Map<string, string[]>();
+		for (const [lang] of supportedLanguages) {
+			suffixesByLangId.set(lang.languageId, lang.suffixes);
+		}
+		const handleTextDocument = (doc: vscode.TextDocument) => {
+			const suffixes = suffixesByLangId.get(doc.languageId);
+			if (!suffixes) {
+				return;
+			}
+			suffixesByLangId.delete(doc.languageId);
+			const initLang = client.sendRequest(CustomMessages.QueueUnleash, suffixes);
+
+			const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
+			vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: `Updating Index for '${doc.languageId}'...` }, () => Promise.race([initLang, initCancel]));
+
+			if (suffixesByLangId.size === 0) {
+				listener.dispose();
+			}
+		};
+		const listener = vscode.workspace.onDidOpenTextDocument(handleTextDocument);
+		disposables.push(listener);
+		vscode.workspace.textDocuments.forEach(handleTextDocument);
+
 		// show status/maybe notifications
 		_showStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
 	}));
-	// stop on server-end
-	const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
-	vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: 'Building Index...' }, () => Promise.race([init, initCancel]));
+
 
 	// serve fileRead request
-	client.onRequest('file/read', async (raw: string): Promise<number[]> => {
+	client.onRequest(CustomMessages.FileRead, async (raw: string): Promise<number[]> => {
 		const uri = vscode.Uri.parse(raw);
 
 		if (uri.scheme === 'vscode-notebook-cell') {
