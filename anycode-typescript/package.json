@@ -4,7 +4,7 @@
 	"displayName": "anycode-typescript",
 	"description": "TypeScript for Anycode",
 	"license": "MIT",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
