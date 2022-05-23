@@ -28,10 +28,9 @@ cp.execSync(`npm --no-git-tag-version version ${newVersion}`, { cwd: folder, std
 const data = JSON.parse(fs.readFileSync(packageJsonPath).toString())
 const { version } = data;
 
-const tagName = `${name}.v${version}`;
+// const tagName = `${name}.v${version}`;
+// cp.execSync(`git tag ${tagName}`, { cwd: folder, stdio: 'inherit' });
 cp.execSync(`git commit -a -m "Update ${name} to ${version}"`, { cwd: folder, stdio: 'inherit' });
-cp.execSync(`git tag ${tagName}`, { cwd: folder, stdio: 'inherit' });
 
 
-
-console.log(`DONE, version: ${version}, tag: ${tagName}`)
+console.log(`DONE, version: ${version}`)
