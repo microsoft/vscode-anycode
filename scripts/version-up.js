@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// BUMPS THE VERSION FOR A GIVEN FOLDER. THIS SHOULD ON A TOPIC BRANCH
+
 const fs = require('fs')
 const path = require('path')
 const cp = require('child_process')
