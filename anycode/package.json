@@ -22,6 +22,12 @@
 	"enabledApiProposals": [
 		"extensionsAny"
 	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
+	},
 	"browser": "./dist/anycode.extension.browser.js",
 	"main": "./dist/anycode.extension.node.js",
 	"contributes": {
