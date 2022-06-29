@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient';
 import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
-import TelemetryReporter from 'vscode-extension-telemetry';
+import TelemetryReporter from '@vscode/extension-telemetry';
 import type { InitOptions } from '../../../shared/common/initOptions';
 import { CustomMessages } from '../../../shared/common/messages';
 
