@@ -98,6 +98,7 @@
 		"ms-vscode.anycode-cpp",
 		"ms-vscode.anycode-go",
 		"ms-vscode.anycode-java",
+		"ms-vscode.anycode-kotlin",
 		"ms-vscode.anycode-php",
 		"ms-vscode.anycode-python",
 		"ms-vscode.anycode-rust",
