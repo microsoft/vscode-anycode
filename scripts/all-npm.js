@@ -7,7 +7,7 @@ const fs = require('fs')
 const path = require('path')
 const cp = require('child_process')
 
-const newArgv = process.argv.slice(2).join()
+const newArgv = process.argv.slice(2).join(' ')
 
 function runNpm(folder) {
 	console.log(`RUNNING \`npm ${newArgv}\` for ${folder}`)
