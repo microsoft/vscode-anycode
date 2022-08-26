@@ -31,7 +31,7 @@
 				"references": "./queries/references.scm"
 			},
 			"suppressedBy": [
-				"rust-lang.rust"
+				"rust-lang.rust-analyzer"
 			]
 		}
 	},
