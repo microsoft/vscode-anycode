@@ -8,7 +8,8 @@ import * as documentSymbols from './documentSymbols.test';
 import * as queries from './queries.test';
 import Parser from 'web-tree-sitter';
 import Languages from '../../languages';
-import { FeatureConfig, LanguageInfo } from '../../../../../shared/common/initOptions';
+import { FeatureConfig, LanguageData, LanguageInfo } from '../../../../../shared/common/initOptions';
+import { encodeBase64 } from '../../../../../shared/common/base64';
 
 (async function () {
 
@@ -31,7 +32,13 @@ import { FeatureConfig, LanguageInfo } from '../../../../../shared/common/initOp
 			queries.init(info);
 		}
 
-		await Languages.init(config);
+		Languages.init(config);
+
+		for (let info of langInfo) {
+			const data = await fetch((<any>info).wasmUri);
+			const base64 = encodeBase64(new Uint8Array(await data.arrayBuffer()));
+			Languages.setLanguageData(info.languageId, new LanguageData(base64, info.queryInfo));
+		}
 
 		const outline = target.searchParams.get('outline');
 		if (outline) {

@@ -5,21 +5,21 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
-  var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
   var __commonJS = (cb, mod) => function __require() {
-    return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
-  var __reExport = (target, module, desc) => {
-    if (module && typeof module === "object" || typeof module === "function") {
-      for (let key of __getOwnPropNames(module))
-        if (!__hasOwnProp.call(target, key) && key !== "default")
-          __defProp(target, key, { get: () => module[key], enumerable: !(desc = __getOwnPropDesc(module, key)) || desc.enumerable });
+  var __copyProps = (to, from, except, desc) => {
+    if (from && typeof from === "object" || typeof from === "function") {
+      for (let key of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key) && key !== except)
+          __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
     }
-    return target;
+    return to;
   };
-  var __toModule = (module) => {
-    return __reExport(__markAsModule(__defProp(module != null ? __create(__getProtoOf(module)) : {}, "default", module && module.__esModule && "default" in module ? { get: () => module.default, enumerable: true } : { value: module, enumerable: true })), module);
-  };
+  var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+    mod
+  ));
 
   // server/node_modules/has-symbols/shams.js
   var require_shams = __commonJS({
@@ -125,13 +125,19 @@
         var bound;
         var binder = function() {
           if (this instanceof bound) {
-            var result = target.apply(this, args.concat(slice.call(arguments)));
+            var result = target.apply(
+              this,
+              args.concat(slice.call(arguments))
+            );
             if (Object(result) === result) {
               return result;
             }
             return this;
           } else {
-            return target.apply(that, args.concat(slice.call(arguments)));
+            return target.apply(
+              that,
+              args.concat(slice.call(arguments))
+            );
           }
         };
         var boundLength = Math.max(0, target.length - args.length);
@@ -248,7 +254,7 @@
         "%IteratorPrototype%": hasSymbols ? getProto(getProto([][Symbol.iterator]())) : undefined2,
         "%JSON%": typeof JSON === "object" ? JSON : undefined2,
         "%Map%": typeof Map === "undefined" ? undefined2 : Map,
-        "%MapIteratorPrototype%": typeof Map === "undefined" || !hasSymbols ? undefined2 : getProto(new Map()[Symbol.iterator]()),
+        "%MapIteratorPrototype%": typeof Map === "undefined" || !hasSymbols ? undefined2 : getProto((/* @__PURE__ */ new Map())[Symbol.iterator]()),
         "%Math%": Math,
         "%Number%": Number,
         "%Object%": Object,
@@ -261,7 +267,7 @@
         "%Reflect%": typeof Reflect === "undefined" ? undefined2 : Reflect,
         "%RegExp%": RegExp,
         "%Set%": typeof Set === "undefined" ? undefined2 : Set,
-        "%SetIteratorPrototype%": typeof Set === "undefined" || !hasSymbols ? undefined2 : getProto(new Set()[Symbol.iterator]()),
+        "%SetIteratorPrototype%": typeof Set === "undefined" || !hasSymbols ? undefined2 : getProto((/* @__PURE__ */ new Set())[Symbol.iterator]()),
         "%SharedArrayBuffer%": typeof SharedArrayBuffer === "undefined" ? undefined2 : SharedArrayBuffer,
         "%String%": String,
         "%StringIteratorPrototype%": hasSymbols ? getProto(""[Symbol.iterator]()) : undefined2,
@@ -484,7 +490,11 @@
         if ($gOPD && $defineProperty) {
           var desc = $gOPD(func, "length");
           if (desc.configurable) {
-            $defineProperty(func, "length", { value: 1 + $max(0, originalFunction.length - (arguments.length - 1)) });
+            $defineProperty(
+              func,
+              "length",
+              { value: 1 + $max(0, originalFunction.length - (arguments.length - 1)) }
+            );
           }
         }
         return func;
@@ -879,7 +889,7 @@
       function isMapToString(value) {
         return ObjectToString(value) === "[object Map]";
       }
-      isMapToString.working = typeof Map !== "undefined" && isMapToString(new Map());
+      isMapToString.working = typeof Map !== "undefined" && isMapToString(/* @__PURE__ */ new Map());
       function isMap(value) {
         if (typeof Map === "undefined") {
           return false;
@@ -890,7 +900,7 @@
       function isSetToString(value) {
         return ObjectToString(value) === "[object Set]";
       }
-      isSetToString.working = typeof Set !== "undefined" && isSetToString(new Set());
+      isSetToString.working = typeof Set !== "undefined" && isSetToString(/* @__PURE__ */ new Set());
       function isSet(value) {
         if (typeof Set === "undefined") {
           return false;
@@ -901,7 +911,7 @@
       function isWeakMapToString(value) {
         return ObjectToString(value) === "[object WeakMap]";
       }
-      isWeakMapToString.working = typeof WeakMap !== "undefined" && isWeakMapToString(new WeakMap());
+      isWeakMapToString.working = typeof WeakMap !== "undefined" && isWeakMapToString(/* @__PURE__ */ new WeakMap());
       function isWeakMap(value) {
         if (typeof WeakMap === "undefined") {
           return false;
@@ -912,7 +922,7 @@
       function isWeakSetToString(value) {
         return ObjectToString(value) === "[object WeakSet]";
       }
-      isWeakSetToString.working = typeof WeakSet !== "undefined" && isWeakSetToString(new WeakSet());
+      isWeakSetToString.working = typeof WeakSet !== "undefined" && isWeakSetToString(/* @__PURE__ */ new WeakSet());
       function isWeakSet(value) {
         return isWeakSetToString(value);
       }
@@ -1209,7 +1219,7 @@
       function stylizeWithColor(str, styleType) {
         var style = inspect.styles[styleType];
         if (style) {
-          return "[" + inspect.colors[style][0] + "m" + str + "[" + inspect.colors[style][1] + "m";
+          return "\x1B[" + inspect.colors[style][0] + "m" + str + "\x1B[" + inspect.colors[style][1] + "m";
         } else {
           return str;
         }
@@ -1320,14 +1330,28 @@
         var output = [];
         for (var i = 0, l = value.length; i < l; ++i) {
           if (hasOwnProperty(value, String(i))) {
-            output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, String(i), true));
+            output.push(formatProperty(
+              ctx,
+              value,
+              recurseTimes,
+              visibleKeys,
+              String(i),
+              true
+            ));
           } else {
             output.push("");
           }
         }
         keys.forEach(function(key) {
           if (!key.match(/^\d+$/)) {
-            output.push(formatProperty(ctx, value, recurseTimes, visibleKeys, key, true));
+            output.push(formatProperty(
+              ctx,
+              value,
+              recurseTimes,
+              visibleKeys,
+              key,
+              true
+            ));
           }
         });
         return output;
@@ -1555,7 +1579,10 @@
             writable: false,
             configurable: true
           });
-        return Object.defineProperties(fn, getOwnPropertyDescriptors(original));
+        return Object.defineProperties(
+          fn,
+          getOwnPropertyDescriptors(original)
+        );
       };
       exports.promisify.custom = kCustomPromisifiedSymbol;
       function callbackifyOnRejected(reason, cb) {
@@ -1583,14 +1610,20 @@
           var cb = function() {
             return maybeCb.apply(self, arguments);
           };
-          original.apply(this, args).then(function(ret) {
-            process.nextTick(cb.bind(null, null, ret));
-          }, function(rej) {
-            process.nextTick(callbackifyOnRejected.bind(null, rej, cb));
-          });
+          original.apply(this, args).then(
+            function(ret) {
+              process.nextTick(cb.bind(null, null, ret));
+            },
+            function(rej) {
+              process.nextTick(callbackifyOnRejected.bind(null, rej, cb));
+            }
+          );
         }
         Object.setPrototypeOf(callbackified, Object.getPrototypeOf(original));
-        Object.defineProperties(callbackified, getOwnPropertyDescriptors(original));
+        Object.defineProperties(
+          callbackified,
+          getOwnPropertyDescriptors(original)
+        );
         return callbackified;
       }
       exports.callbackify = callbackify;
@@ -1855,7 +1888,7 @@
           _setPrototypeOf(subClass, superClass);
       }
       function _wrapNativeSuper(Class) {
-        var _cache = typeof Map === "function" ? new Map() : void 0;
+        var _cache = typeof Map === "function" ? /* @__PURE__ */ new Map() : void 0;
         _wrapNativeSuper = function _wrapNativeSuper2(Class2) {
           if (Class2 === null || !_isNativeFunction(Class2))
             return Class2;
@@ -2157,10 +2190,10 @@
           } else {
             if (process.stderr && process.stderr.isTTY) {
               if (process.stderr && process.stderr.getColorDepth && process.stderr.getColorDepth() !== 1) {
-                blue = "[34m";
-                green = "[32m";
-                white = "[39m";
-                red = "[31m";
+                blue = "\x1B[34m";
+                green = "\x1B[32m";
+                white = "\x1B[39m";
+                red = "\x1B[31m";
               } else {
                 blue = "";
                 green = "";
@@ -2982,8 +3015,8 @@
         }
         if (memos === void 0) {
           memos = {
-            val1: new Map(),
-            val2: new Map(),
+            val1: /* @__PURE__ */ new Map(),
+            val2: /* @__PURE__ */ new Map(),
             position: 0
           };
         } else {
@@ -3055,7 +3088,7 @@
           var val = aValues[i];
           if (_typeof(val) === "object" && val !== null) {
             if (set === null) {
-              set = new Set();
+              set = /* @__PURE__ */ new Set();
             }
             set.add(val);
           } else if (!b.has(val)) {
@@ -3065,7 +3098,7 @@
               return false;
             }
             if (set === null) {
-              set = new Set();
+              set = /* @__PURE__ */ new Set();
             }
             set.add(val);
           }
@@ -3103,7 +3136,7 @@
           var _aEntries$i = _slicedToArray(aEntries[i], 2), key = _aEntries$i[0], item1 = _aEntries$i[1];
           if (_typeof(key) === "object" && key !== null) {
             if (set === null) {
-              set = new Set();
+              set = /* @__PURE__ */ new Set();
             }
             set.add(key);
           } else {
@@ -3114,7 +3147,7 @@
               if (!mapMightHaveLoosePrim(a, b, key, item1, memo))
                 return false;
               if (set === null) {
-                set = new Set();
+                set = /* @__PURE__ */ new Set();
               }
               set.add(key);
             }
@@ -3225,7 +3258,6 @@
       var isRegExp = _require$types.isRegExp;
       var objectAssign = Object.assign ? Object.assign : require_es6_object_assign().assign;
       var objectIs = Object.is ? Object.is : require_object_is();
-      var errorCache = new Map();
       var isDeepEqual;
       var isDeepStrictEqual;
       function lazyLoadComparison() {
@@ -3679,7 +3711,7 @@
   });
 
   // server/src/common/test/trie.test.ts
-  var import_assert = __toModule(require_assert());
+  var import_assert = __toESM(require_assert());
 
   // server/src/common/util/trie.ts
   var Entry = class {
@@ -3694,7 +3726,7 @@
       this.element = element;
       this._size = 0;
       this._depth = 0;
-      this._children = new Map();
+      this._children = /* @__PURE__ */ new Map();
     }
     static create() {
       return new Trie("", void 0);
@@ -3775,8 +3807,8 @@
       return true;
     }
     *query(str) {
-      const bucket = new Set();
-      const cache = new Map();
+      const bucket = /* @__PURE__ */ new Set();
+      const cache = /* @__PURE__ */ new Map();
       const _query = (node, str2, pos, skipped, lastCh) => {
         if (bucket.has(node)) {
           return;
@@ -3791,7 +3823,7 @@
         if (map) {
           map.set(pos, true);
         } else {
-          cache.set(node, new Map([[pos, true]]));
+          cache.set(node, /* @__PURE__ */ new Map([[pos, true]]));
         }
         if (pos >= str2.length) {
           bucket.add(node);

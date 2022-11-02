@@ -15,11 +15,33 @@ export interface Queries {
 
 export class LanguageInfo {
 	constructor(
+		readonly extensionId: string,
 		readonly languageId: string,
-		readonly wasmUri: string,
 		readonly suffixes: string[],
-		readonly queries?: Queries,
-		readonly suppressedBy?: string[]
+		readonly suppressedBy: string[],
+		readonly queryInfo: Queries
+	) { }
+}
+
+export class Language {
+
+	private _data?: Promise<LanguageData>;
+
+	constructor(
+		readonly info: LanguageInfo,
+		private readonly _loadData: () => Promise<LanguageData>
+	) { }
+
+	fetchLanguageData() {
+		this._data ??= this._loadData();
+		return this._data;
+	}
+}
+
+export class LanguageData {
+	constructor(
+		readonly grammarBase64: string,
+		readonly queries: Queries,
 	) { }
 }
 

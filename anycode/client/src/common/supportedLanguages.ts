@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { Queries, LanguageInfo, FeatureConfig } from '../../../shared/common/initOptions';
+import { encodeBase64 } from '../../../shared/common/base64';
+import { Queries, LanguageInfo, FeatureConfig, LanguageData, Language } from '../../../shared/common/initOptions';
 
 type JSONQueryPaths = {
 	comments?: string;
@@ -47,7 +48,7 @@ export class SupportedLanguages {
 	private readonly _onDidChange = new vscode.EventEmitter<this>();
 	readonly onDidChange = this._onDidChange.event;
 
-	private _tuples?: Map<LanguageInfo, FeatureConfig>;
+	private _tuples?: Map<Language, FeatureConfig>;
 
 	private readonly _disposable: vscode.Disposable;
 
@@ -74,7 +75,7 @@ export class SupportedLanguages {
 		this._onDidChange.fire(this);
 	}
 
-	async getSupportedLanguages(): Promise<ReadonlyMap<LanguageInfo, FeatureConfig>> {
+	async getSupportedLanguages(): Promise<ReadonlyMap<Language, FeatureConfig>> {
 
 		if (!this._tuples) {
 
@@ -82,25 +83,25 @@ export class SupportedLanguages {
 
 			this._tuples = new Map();
 
-			for (const info of languageInfos.values()) {
-				const config = vscode.workspace.getConfiguration('anycode', { languageId: info.languageId });
+			for (const language of languageInfos.values()) {
+				const config = vscode.workspace.getConfiguration('anycode', { languageId: language.info.languageId });
 				const featureConfig: FeatureConfig = { ...config.get<FeatureConfig>(`language.features`) };
 				const empty = Object.keys(featureConfig).every(key => !(<Record<string, any>>featureConfig)[key]);
 				if (empty) {
-					this._log.appendLine(`[CONFIG] ignoring ${info.languageId} because configuration IS EMPTY`);
+					this._log.appendLine(`[CONFIG] ignoring ${language.info.languageId} because configuration IS EMPTY`);
 					continue;
 				}
 
-				if (info.suppressedBy) {
+				if (language.info.suppressedBy) {
 					const inspectConfig = config.inspect('language.features');
 					const explicitlyEnabled = inspectConfig?.globalLanguageValue || inspectConfig?.workspaceLanguageValue || inspectConfig?.workspaceFolderLanguageValue;
-					if (!explicitlyEnabled && info.suppressedBy.some(id => vscode.extensions.getExtension(id, true))) {
-						this._log.appendLine(`[CONFIG] ignoring ${info.languageId} because it is SUPPRESSED by any of [${info.suppressedBy.join(', ')}]`);
+					if (!explicitlyEnabled && language.info.suppressedBy.some(id => vscode.extensions.getExtension(id, true))) {
+						this._log.appendLine(`[CONFIG] ignoring ${language.info.languageId} because it is SUPPRESSED by any of [${language.info.suppressedBy.join(', ')}]`);
 						continue;
 					}
 				}
 
-				this._tuples.set(info, featureConfig);
+				this._tuples.set(language, featureConfig);
 			}
 		}
 
@@ -108,16 +109,15 @@ export class SupportedLanguages {
 	}
 
 	async getSupportedLanguagesAsSelector(): Promise<string[]> {
-		const infos = await this.getSupportedLanguages();
-		return Array.from(infos.keys()).map(info => info.languageId);
+		const languages = await this.getSupportedLanguages();
+		return Array.from(languages.keys()).map(language => language.info.languageId);
 	}
 
-	async _readLanguageInfos(): Promise<ReadonlyMap<string, LanguageInfo>> {
+	async _readLanguageInfos(): Promise<ReadonlyMap<string, Language>> {
 
 		type Contribution = { ['anycodeLanguages']: JSONAnycodeLanguage | JSONAnycodeLanguage[] };
 
-		const result = new Map<string, LanguageInfo>();
-		const isWebWorker = 'importScripts' in globalThis;
+		const result = new Map<string, Language>();
 
 		for (const extension of vscode.extensions.allAcrossExtensionHosts) {
 
@@ -138,39 +138,24 @@ export class SupportedLanguages {
 					continue;
 				}
 
-				if (extension.extensionUri.scheme === 'vscode-remote') {
-					console.warn(`UNSUPPORTED extension location from ${extension.id}`, extension.extensionUri.toString());
-					continue;
-				}
-
-				let queries: Queries;
-				try {
-					queries = await SupportedLanguages._readQueryPath(extension, lang.queryPaths);
-				} catch (err) {
-					console.warn(`INVALID anycode-language queryPaths from ${extension.id}`, err);
-					continue;
-				}
-
-				const grammarUri = vscode.Uri.joinPath(extension.extensionUri, lang.grammarPath);
-				try {
-					vscode.workspace.fs.stat(grammarUri);
-				} catch (err) {
-					console.warn(`INVALID anycode-language grammerPath from ${extension.id}`, err);
-					continue;
-				}
-
 				const info = new LanguageInfo(
+					extension.id,
 					lang.languageId,
-					isWebWorker ? grammarUri.toString() : grammarUri.fsPath,
 					lang.extensions,
-					queries,
-					lang.suppressedBy
+					lang.suppressedBy ?? [],
+					lang.queryPaths
 				);
+
+				const language = new Language(info, async () => {
+					const grammar = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(extension.extensionUri, lang.grammarPath));
+					const queries = await SupportedLanguages._readQueryPath(extension, lang.queryPaths);
+					return new LanguageData(encodeBase64(grammar), queries);
+				});
 
 				if (result.has(info.languageId)) {
 					console.info(`extension ${extension.id} OVERWRITES language info for ${info.languageId}`);
 				}
-				result.set(info.languageId, info);
+				result.set(info.languageId, language);
 			}
 		}
 		return result;

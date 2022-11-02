@@ -26,7 +26,7 @@ export class DocumentSymbols {
 	}
 }
 
-export function getDocumentSymbols(document: TextDocument, trees: Trees, flat: boolean): lsp.DocumentSymbol[] {
+export async function getDocumentSymbols(document: TextDocument, trees: Trees, flat: boolean): Promise<lsp.DocumentSymbol[]> {
 
 	class Node {
 		readonly range: lsp.Range;
@@ -36,11 +36,11 @@ export function getDocumentSymbols(document: TextDocument, trees: Trees, flat: b
 		}
 	}
 
-	const tree = trees.getParseTree(document);
+	const tree = await trees.getParseTree(document);
 	if (!tree) {
 		return [];
 	}
-	const query = Languages.getQuery(document.languageId, 'outline');
+	const query = Languages.getQuery(tree.getLanguage(), 'outline');
 	const captures = query.captures(tree.rootNode);
 
 

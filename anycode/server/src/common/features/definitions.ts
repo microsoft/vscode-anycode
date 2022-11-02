@@ -28,7 +28,7 @@ export class DefinitionProvider {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
 		// find definition in file
-		const info = Locals.create(document, this._trees);
+		const info = await Locals.create(document, this._trees);
 		const anchor = info.root.findDefinitionOrUsage(params.position);
 		if (anchor) {
 			// find definition inside this file
@@ -39,12 +39,12 @@ export class DefinitionProvider {
 		}
 
 		// find definition globally
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return [];
 		}
 
-		const query = Languages.getQuery(document.languageId, 'identifiers');
+		const query = Languages.getQuery(tree.getLanguage(), 'identifiers');
 		const ident = identifierAtPosition(query, tree.rootNode, params.position)?.text;
 		if (!ident) {
 			// not an identifier

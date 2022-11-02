@@ -22,7 +22,7 @@ export class SelectionRangesProvider {
 	async provideSelectionRanges(params: lsp.SelectionRangeParams) {
 
 		const document = await this._documents.retrieve(params.textDocument.uri);
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return [];
 		}
