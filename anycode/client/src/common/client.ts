@@ -8,7 +8,7 @@ import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languagecli
 import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from '@vscode/extension-telemetry';
-import type { InitOptions, Language, LanguageInfo } from '../../../shared/common/initOptions';
+import type { InitOptions, Language } from '../../../shared/common/initOptions';
 import { CustomMessages } from '../../../shared/common/messages';
 
 export interface LanguageClientFactory {
@@ -16,10 +16,12 @@ export interface LanguageClientFactory {
 	destoryLanguageClient(client: CommonLanguageClient): void;
 }
 
+
+const _statusItem = vscode.languages.createLanguageStatusItem('info', []);
+
 export async function startClient(factory: LanguageClientFactory, context: vscode.ExtensionContext) {
 
 	const channel = vscode.window.createOutputChannel('anycode');
-
 	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
 	const supportedLanguages = new SupportedLanguages(channel);
 
@@ -42,6 +44,7 @@ export async function startClient(factory: LanguageClientFactory, context: vscod
 	}
 
 	context.subscriptions.push(channel);
+	context.subscriptions.push(_statusItem);
 	context.subscriptions.push(supportedLanguages);
 	context.subscriptions.push(supportedLanguages.onDidChange(async () => {
 		// restart server when supported languages change
@@ -53,18 +56,17 @@ export async function startClient(factory: LanguageClientFactory, context: vscod
 	context.subscriptions.push(new vscode.Disposable(stopServers));
 }
 
-function _showStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: boolean, disposables: vscode.Disposable[]): void {
+function _updateStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint: boolean): void {
 
-	const statusItem = vscode.languages.createLanguageStatusItem('info', selector);
-	disposables.push(statusItem);
-	statusItem.severity = vscode.LanguageStatusSeverity.Warning;
-	statusItem.text = `Partial Mode`;
+	_statusItem.selector = selector;
+	_statusItem.severity = vscode.LanguageStatusSeverity.Warning;
+	_statusItem.text = `Partial Mode`;
 	if (showCommandHint) {
-		statusItem.detail = 'Language support is inaccurate in this context. $(lightbulb-autofix) Did not index all files because search [indexing is disabled](command:remoteHub.enableIndexing).';
+		_statusItem.detail = 'Language support is inaccurate in this context. $(lightbulb-autofix) Did not index all files because search [indexing is disabled](command:remoteHub.enableIndexing).';
 	} else {
-		statusItem.detail = 'Language support is inaccurate in this context, results may be imprecise and incomplete.';
+		_statusItem.detail = 'Language support is inaccurate in this context, results may be imprecise and incomplete.';
 	}
-	statusItem.command = {
+	_statusItem.command = {
 		title: 'Learn More',
 		command: 'vscode.open',
 		arguments: [
@@ -226,7 +228,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		vscode.workspace.textDocuments.forEach(handleTextDocument);
 
 		// show status/maybe notifications
-		_showStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace(), disposables);
+		_updateStatusAndInfo(documentSelector, !hasWorkspaceContents && _isRemoteHubWorkspace());
 	}));
 
 
