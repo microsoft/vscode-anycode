@@ -152,14 +152,9 @@ export class SupportedLanguages {
 				}
 
 				const grammarUri = vscode.Uri.joinPath(extension.extensionUri, lang.grammarPath);
-				try {
-					vscode.workspace.fs.stat(grammarUri);
-				} catch (err) {
-					console.warn(`INVALID anycode-language grammerPath from ${extension.id}`, err);
-					continue;
-				}
 
 				const info = new LanguageInfo(
+					extension.id,
 					lang.languageId,
 					isWebWorker ? grammarUri.toString() : grammarUri.fsPath,
 					lang.extensions,

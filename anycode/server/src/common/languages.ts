@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import Parser, { Language } from 'web-tree-sitter';
-import { FeatureConfig, LanguageConfiguration } from '../../../shared/common/initOptions';
+import { FeatureConfig, LanguageConfiguration, LanguageInfo } from '../../../shared/common/initOptions';
 
 export type QueryModule = {
 	outline?: string;
@@ -21,7 +21,7 @@ const _queryModules = new Map<string, QueryModule>();
 
 export default abstract class Languages {
 
-	private static readonly _languageInstances = new Map<string, string | Promise<Parser.Language>>();
+	private static readonly _languageInstances = new Map<string, LanguageInfo | Promise<Parser.Language | undefined>>();
 	private static readonly _languageIdByLanguage = new Map<Parser.Language, string>();
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
@@ -31,7 +31,7 @@ export default abstract class Languages {
 	static init(langConfiguration: LanguageConfiguration): void {
 		this._langConfiguration = langConfiguration;
 		for (const [entry, config] of langConfiguration) {
-			this._languageInstances.set(entry.languageId, entry.wasmUri);
+			this._languageInstances.set(entry.languageId, entry);
 			this._configurations.set(entry.languageId, config);
 
 			if (entry.queries) {
@@ -41,21 +41,28 @@ export default abstract class Languages {
 	}
 
 	static async getLanguage(languageId: string): Promise<Parser.Language | undefined> {
-		let wasmUriOrLanguage = this._languageInstances.get(languageId);
-		if (wasmUriOrLanguage === undefined) {
+		let infoOrLanguage = this._languageInstances.get(languageId);
+		if (infoOrLanguage === undefined) {
 			console.warn(`UNKNOWN languages: '${languageId}'`);
 			return undefined;
-		} else if (typeof wasmUriOrLanguage === 'string') {
-			console.info(`LOADING ${languageId} from ${wasmUriOrLanguage}`);
-			const loadPromise = Parser.Language.load(wasmUriOrLanguage).then(language => {
-				this._languageIdByLanguage.set(language, languageId);
-				return language;
-			});
-			this._languageInstances.set(languageId, loadPromise);
-			return loadPromise;
-		} else {
-			return wasmUriOrLanguage;
 		}
+		if (infoOrLanguage instanceof Promise) {
+			return infoOrLanguage;
+		}
+
+		console.info(`LOADING ${languageId} from ${infoOrLanguage}`);
+		const { wasmUri, extensionId } = infoOrLanguage;
+		const loadPromise = Parser.Language.load(wasmUri).then(language => {
+			this._languageIdByLanguage.set(language, languageId);
+			return language;
+		}).catch(err => {
+			console.error(`FAILED to load language ${wasmUri} from extension ${extensionId}`);
+			console.error(err);
+			this._languageInstances.delete(languageId);
+			return undefined;
+		});
+		this._languageInstances.set(languageId, loadPromise);
+		return loadPromise;
 	}
 
 	static allAsSelector(): string[] {

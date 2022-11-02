@@ -15,6 +15,7 @@ export interface Queries {
 
 export class LanguageInfo {
 	constructor(
+		readonly extensionId: string,
 		readonly languageId: string,
 		readonly wasmUri: string,
 		readonly suffixes: string[],
