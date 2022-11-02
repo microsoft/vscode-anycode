@@ -26,7 +26,7 @@ export class DocumentHighlightsProvider {
 	async provideDocumentHighlights(params: lsp.DocumentHighlightParams): Promise<lsp.DocumentHighlight[]> {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
-		const info = Locals.create(document, this._trees);
+		const info = await Locals.create(document, this._trees);
 		const anchor = info.root.findDefinitionOrUsage(params.position);
 		if (!anchor) {
 			return this._identifierBasedHighlights(document, params.position);
@@ -45,14 +45,14 @@ export class DocumentHighlightsProvider {
 		return result;
 	}
 
-	private _identifierBasedHighlights(document: TextDocument, position: lsp.Position): lsp.DocumentHighlight[] {
+	private async _identifierBasedHighlights(document: TextDocument, position: lsp.Position): Promise<lsp.DocumentHighlight[]> {
 		const result: lsp.DocumentHighlight[] = [];
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return result;
 		}
 
-		const query = Languages.getQuery(document.languageId, 'identifiers');
+		const query = Languages.getQuery(tree.getLanguage(), 'identifiers');
 		const candidate = identifierAtPosition(query, tree.rootNode, position);
 		if (!candidate) {
 			// not on an identifier

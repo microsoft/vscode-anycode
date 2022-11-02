@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LRUMap } from "./util/lruMap";
-import Parser from 'web-tree-sitter';
+import Parser, { Language } from 'web-tree-sitter';
 import { Disposable, Position } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DocumentStore, TextDocumentChange2 } from './documentStore';
@@ -55,27 +55,24 @@ export class Trees {
 
 	// --- tree/parse
 
-	getParseTree(documentOrUri: string): Promise<Parser.Tree | undefined>;
-	getParseTree(documentOrUri: TextDocument): Parser.Tree | undefined;
-	getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> | Parser.Tree | undefined {
+	async getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> {
 		if (typeof documentOrUri === 'string') {
-			return this._documents.retrieve(documentOrUri).then(doc => this._parse(doc));
-		} else {
-			return this._parse(documentOrUri);
+			documentOrUri = await this._documents.retrieve(documentOrUri);
 		}
+		const language = await Languages.getLanguage(documentOrUri.languageId);
+		if (!language) {
+			return undefined;
+		}
+		return this._parse(documentOrUri, language);
 	}
 
-	private _parse(documentOrUri: TextDocument): Parser.Tree | undefined {
+	private _parse(documentOrUri: TextDocument, language: Language): Parser.Tree | undefined {
 
 		let info = this._cache.get(documentOrUri.uri);
 		if (info?.version === documentOrUri.version) {
 			return info.tree;
 		}
 
-		const language = Languages.getLanguage(documentOrUri.languageId);
-		if (!language) {
-			return undefined;
-		}
 		this._parser.setLanguage(language);
 		this._parser.setTimeoutMicros(1000 * 1000); // parse max 1sec
 

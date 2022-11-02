@@ -50,7 +50,7 @@ export class WorkspaceSymbol {
 	async resolveWorkspaceSymbol(item: lsp.WorkspaceSymbol): Promise<lsp.WorkspaceSymbol> {
 		// TODO@jrieken handle the case where a file has multiple symbols with the same name _and_ kind
 		const document = await this._documents.retrieve(item.location.uri);
-		const symbols = getDocumentSymbols(document, this._trees, true);
+		const symbols = await getDocumentSymbols(document, this._trees, true);
 		for (let candidate of symbols) {
 			if (candidate.name === item.name && candidate.kind === item.kind) {
 				return lsp.SymbolInformation.create(item.name, item.kind, candidate.selectionRange, item.location.uri);

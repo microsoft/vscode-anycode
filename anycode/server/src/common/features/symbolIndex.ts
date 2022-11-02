@@ -217,7 +217,7 @@ export class SymbolIndex {
 			// update index
 			const _t1Index = performance.now();
 			try {
-				this._doIndex(document);
+				await this._doIndex(document);
 			} catch (e) {
 				console.log(`FAILED to index ${uri}`, e);
 			}
@@ -227,13 +227,13 @@ export class SymbolIndex {
 		};
 	}
 
-	private _doIndex(document: TextDocument, symbols?: lsp.DocumentSymbol[], usages?: IUsage[]): void {
+	private async _doIndex(document: TextDocument, symbols?: lsp.DocumentSymbol[], usages?: IUsage[]): Promise<void> {
 
 		const symbolInfo = new Map<string, SymbolInfo>();
 
 		// definitions
 		if (!symbols) {
-			symbols = getDocumentSymbols(document, this._trees, true);
+			symbols = await getDocumentSymbols(document, this._trees, true);
 		}
 		for (const symbol of symbols) {
 			const all = symbolInfo.get(symbol.name);
@@ -246,7 +246,7 @@ export class SymbolIndex {
 
 		// usages
 		if (!usages) {
-			usages = getDocumentUsages(document, this._trees);
+			usages = await getDocumentUsages(document, this._trees);
 		}
 		for (const usage of usages) {
 			const all = symbolInfo.get(usage.name);
@@ -334,9 +334,9 @@ export class SymbolIndex {
 				continue;
 			}
 
-			work.push(this._documents.retrieve(uri).then(document => {
+			work.push(this._documents.retrieve(uri).then(async document => {
 				const isSameLanguage = source.languageId === document.languageId;
-				const symbols = getDocumentSymbols(document, this._trees, true);
+				const symbols = await getDocumentSymbols(document, this._trees, true);
 				for (const item of symbols) {
 					if (item.name === ident) {
 						const info = lsp.SymbolInformation.create(item.name, item.kind, item.selectionRange, uri);
@@ -384,9 +384,9 @@ export class SymbolIndex {
 				continue;
 			}
 
-			work.push(this._documents.retrieve(uri).then(document => {
+			work.push(this._documents.retrieve(uri).then(async document => {
 				const isSameLanguage = source.languageId === document.languageId;
-				const usages = getDocumentUsages(document, this._trees);
+				const usages = await getDocumentUsages(document, this._trees);
 				for (const item of usages) {
 					if (item.name === ident) {
 						const location = lsp.Location.create(uri, item.range);

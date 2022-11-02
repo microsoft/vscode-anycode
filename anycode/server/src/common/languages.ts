@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import Parser from 'web-tree-sitter';
+import Parser, { Language } from 'web-tree-sitter';
 import { FeatureConfig, LanguageConfiguration } from '../../../shared/common/initOptions';
 
 export type QueryModule = {
@@ -17,24 +17,21 @@ export type QueryModule = {
 
 export type QueryType = keyof QueryModule;
 
-
-const _queryModules = new Map<string, QueryModule>([
-
-]);
+const _queryModules = new Map<string, QueryModule>();
 
 export default abstract class Languages {
 
-	private static readonly _languageInstances = new Map<string, Parser.Language>();
+	private static readonly _languageInstances = new Map<string, string | Promise<Parser.Language>>();
+	private static readonly _languageIdByLanguage = new Map<Parser.Language, string>();
 	private static readonly _queryInstances = new Map<string, Parser.Query>();
 
 	private static readonly _configurations = new Map<string, FeatureConfig>();
 	private static _langConfiguration: LanguageConfiguration;
 
-	static async init(langConfiguration: LanguageConfiguration) {
+	static init(langConfiguration: LanguageConfiguration): void {
 		this._langConfiguration = langConfiguration;
 		for (const [entry, config] of langConfiguration) {
-			const lang = await Parser.Language.load(entry.wasmUri);
-			this._languageInstances.set(entry.languageId, lang);
+			this._languageInstances.set(entry.languageId, entry.wasmUri);
 			this._configurations.set(entry.languageId, config);
 
 			if (entry.queries) {
@@ -43,13 +40,22 @@ export default abstract class Languages {
 		}
 	}
 
-	static getLanguage(languageId: string): Parser.Language | undefined {
-		let result = this._languageInstances.get(languageId);
-		if (!result) {
+	static async getLanguage(languageId: string): Promise<Parser.Language | undefined> {
+		let wasmUriOrLanguage = this._languageInstances.get(languageId);
+		if (wasmUriOrLanguage === undefined) {
 			console.warn(`UNKNOWN languages: '${languageId}'`);
 			return undefined;
+		} else if (typeof wasmUriOrLanguage === 'string') {
+			console.info(`LOADING ${languageId} from ${wasmUriOrLanguage}`);
+			const loadPromise = Parser.Language.load(wasmUriOrLanguage).then(language => {
+				this._languageIdByLanguage.set(language, languageId);
+				return language;
+			});
+			this._languageInstances.set(languageId, loadPromise);
+			return loadPromise;
+		} else {
+			return wasmUriOrLanguage;
 		}
-		return result;
 	}
 
 	static allAsSelector(): string[] {
@@ -57,12 +63,13 @@ export default abstract class Languages {
 	}
 
 
-	static getQuery(languageId: string, type: QueryType, strict = false): Parser.Query {
+	static getQuery(language: Language, type: QueryType, strict = false): Parser.Query {
 
+		const languageId = this._languageIdByLanguage.get(language)!;
 		const module = _queryModules.get(languageId);
 		if (!module) {
 			// unknown language or invalid query (deleted after failed parse attempt)
-			return this.getLanguage(languageId)!.query('');
+			return language.query('');
 		}
 
 		const source = module[type] ?? '';
@@ -71,9 +78,9 @@ export default abstract class Languages {
 		let query = this._queryInstances.get(key);
 		if (!query) {
 			try {
-				query = this.getLanguage(languageId)!.query(source);
+				query = language.query(source);
 			} catch (e) {
-				query = this.getLanguage(languageId)!.query('');
+				query = language.query('');
 				console.error(languageId, e);
 				if (strict) {
 					throw e;

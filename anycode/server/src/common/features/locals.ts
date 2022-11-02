@@ -12,15 +12,15 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 export class Locals {
 
-	static create(document: TextDocument, trees: Trees): Locals {
+	static async create(document: TextDocument, trees: Trees): Promise<Locals> {
 		const root = new Scope(lsp.Range.create(0, 0, document.lineCount, 0), true);
-		const tree = trees.getParseTree(document);
+		const tree = await trees.getParseTree(document);
 		if (!tree) {
 			return new Locals(document, root);
 		}
 
 		const all: Node[] = [];
-		const query = Languages.getQuery(document.languageId, 'locals');
+		const query = Languages.getQuery(tree.getLanguage(), 'locals');
 		const captures = query.captures(tree.rootNode).sort(this._compareCaptures);
 
 		// Find all scopes and merge some. The challange is that function-bodies "see" their

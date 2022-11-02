@@ -26,7 +26,7 @@ export class CompletionItemProvider {
 	async provideCompletionItems(params: lsp.CompletionParams): Promise<lsp.CompletionItem[]> {
 
 		const document = await this._documents.retrieve(params.textDocument.uri);
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return [];
 		}
@@ -34,7 +34,7 @@ export class CompletionItemProvider {
 		const result = new Map<string, lsp.CompletionItem>();
 
 		// (1) all identifiers that are used in this file
-		const query = Languages.getQuery(document.languageId, 'identifiers');
+		const query = Languages.getQuery(tree.getLanguage(), 'identifiers');
 		const captures = query.captures(tree.rootNode);
 		for (const capture of captures) {
 			const text = capture.node.text;

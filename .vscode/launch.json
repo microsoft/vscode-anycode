@@ -14,7 +14,7 @@
 			],
 			"preLaunchTask": "npm: watch",
 			"request": "launch",
-			"type": "pwa-extensionHost"
+			"type": "extensionHost"
 		}
 	]
 }

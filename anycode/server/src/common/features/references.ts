@@ -29,7 +29,7 @@ export class ReferencesProvider {
 		const document = await this._documents.retrieve(params.textDocument.uri);
 
 		// find references inside file
-		const info = Locals.create(document, this._trees);
+		const info = await Locals.create(document, this._trees);
 		const anchor = info.root.findDefinitionOrUsage(params.position);
 
 		if (anchor && !anchor.scope.likelyExports) {
@@ -55,12 +55,12 @@ export class ReferencesProvider {
 	}
 
 	private async _findGlobalReferences(document: TextDocument, position: lsp.Position, includeDeclaration: boolean): Promise<lsp.Location[]> {
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		if (!tree) {
 			return [];
 		}
 
-		const query = Languages.getQuery(document.languageId, 'identifiers');
+		const query = Languages.getQuery(tree.getLanguage(), 'identifiers');
 		const ident = identifierAtPosition(query, tree.rootNode, position)?.text;
 		if (!ident) {
 			// not an identifier
@@ -100,13 +100,13 @@ export interface IUsage {
 	kind: lsp.SymbolKind;
 }
 
-export function getDocumentUsages(document: TextDocument, trees: Trees): IUsage[] {
-	const tree = trees.getParseTree(document);
+export async function getDocumentUsages(document: TextDocument, trees: Trees): Promise<IUsage[]> {
+	const tree = await trees.getParseTree(document);
 	if (!tree) {
 		return [];
 	}
 
-	const query = Languages.getQuery(document.languageId, 'references');
+	const query = Languages.getQuery(tree.getLanguage(), 'references');
 	const captures = query.captures(tree.rootNode);
 
 	const result: IUsage[] = [];

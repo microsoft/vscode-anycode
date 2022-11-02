@@ -51,7 +51,7 @@ export class Validation {
 	}
 
 	private async _createDiagnostics(document: TextDocument): Promise<void> {
-		const tree = this._trees.getParseTree(document);
+		const tree = await this._trees.getParseTree(document);
 		const diagnostics: Diagnostic[] = [];
 		if (tree) {
 			// find MISSING nodes (those that got auto-inserted)
