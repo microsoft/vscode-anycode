@@ -8,7 +8,7 @@ import { LanguageInfo } from '../../../../../shared/common/initOptions';
 import Languages, { QueryType } from '../../languages';
 
 export function init(info: LanguageInfo) {
-	if (!info.queries) {
+	if (!info.queryInfo) {
 		return;
 	}
 
@@ -17,7 +17,7 @@ export function init(info: LanguageInfo) {
 		for (let type of types) {
 			test(type, async function () {
 
-				if (!info.queries![type]) {
+				if (!info.queryInfo![type]) {
 					this.skip();
 				}
 

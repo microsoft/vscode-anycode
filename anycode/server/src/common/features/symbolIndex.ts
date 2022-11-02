@@ -296,8 +296,6 @@ export class SymbolIndex {
 
 	async unleashFiles(suffixes: string[]) {
 
-		console.log(`[index] unleashed files matching: ${suffixes.join(',')}`);
-
 		this._suffixFilter.update(suffixes);
 
 		await this.update();

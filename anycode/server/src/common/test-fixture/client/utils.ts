@@ -66,15 +66,15 @@ export class Fixture {
 
 		const store = new TestDocumentStore(...documents);
 		const trees = new Trees(store);
-		const query = Languages.getQuery(languageId, 'comments', true);
 
 		const fixtures: Fixture[] = [];
 
 		for (const doc of documents) {
-			const tree = trees.getParseTree(doc);
+			const tree = await trees.getParseTree(doc);
 			if (!tree) {
 				throw new Error();
 			}
+			const query = Languages.getQuery(tree.getLanguage(), 'comments', true);
 
 			const name = names?.shift()?.replace(/^.+###/, '').trim() ?? doc.uri;
 			if (name.includes('/SKIP/')) {

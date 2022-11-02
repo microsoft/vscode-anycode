@@ -5,7 +5,7 @@
 
 import { Connection, FileChangeType, InitializeParams, InitializeResult, TextDocumentSyncKind } from 'vscode-languageserver';
 import Parser from 'web-tree-sitter';
-import type { InitOptions } from '../../../shared/common/initOptions';
+import type { InitOptions, LanguageData, LanguageInfo } from '../../../shared/common/initOptions';
 import { CustomMessages } from '../../../shared/common/messages';
 import { DocumentStore } from './documentStore';
 import { CompletionItemProvider } from './features/completions';
@@ -46,7 +46,7 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 			}
 		};
 		await Parser.init(options);
-		await Languages.init(initData.supportedLanguages);
+		Languages.init(initData.supportedLanguages);
 
 		// setup features
 		const documents = new DocumentStore(connection);
@@ -77,8 +77,11 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 			symbolIndex.initFiles(uris);
 		});
 
-		connection.onRequest(CustomMessages.QueueUnleash, suffixes => {
-			symbolIndex.unleashFiles(suffixes);
+		connection.onRequest(CustomMessages.QueueUnleash, async (arg: [LanguageInfo, LanguageData]) => {
+			const [info, data] = arg;
+			console.log(`[index] unleashed files matching: ${info.languageId}`);
+			Languages.setLanguageData(info.languageId, data);
+			symbolIndex.unleashFiles(info.suffixes);
 		});
 
 		connection.onDidChangeWatchedFiles(e => {

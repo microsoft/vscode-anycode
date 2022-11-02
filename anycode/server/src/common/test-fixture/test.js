@@ -65,17 +65,17 @@ function readAnycodeExtension(candidate) {
 	const bucket = []
 
 	for (let lang of languages) {
-		let queries = {};
+		let queryInfo = {};
 		for (let prop in lang.queryPaths) {
 			const query = join(candidate, '../', lang.queryPaths[prop])
-			queries[prop] = readFileSync(query).toString();
+			queryInfo[prop] = readFileSync(query).toString();
 		}
 
 		bucket.push({
 			languageId: lang.languageId,
 			wasmUri: `/${relative(base, join(candidate, '../', lang.grammarPath))}`,
 			suffixes: lang.extensions,
-			queries
+			queryInfo
 		})
 	}
 	return bucket;

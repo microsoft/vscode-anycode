@@ -8,7 +8,7 @@ import { LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languagecli
 import { CommonLanguageClient } from 'vscode-languageclient';
 import { SupportedLanguages } from './supportedLanguages';
 import TelemetryReporter from '@vscode/extension-telemetry';
-import type { InitOptions } from '../../../shared/common/initOptions';
+import type { InitOptions, Language, LanguageInfo } from '../../../shared/common/initOptions';
 import { CustomMessages } from '../../../shared/common/messages';
 
 export interface LanguageClientFactory {
@@ -100,9 +100,9 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	// Build a glob-patterns for languages which have features enabled, like workspace symbol search, 
 	// and use this pattern for initial file discovery and file watching
 	const findAndSearchSuffixes: string[][] = [];
-	for (const [info, config] of supportedLanguages) {
+	for (const [lang, config] of supportedLanguages) {
 		if (config.workspaceSymbols || config.references || config.definitions) {
-			findAndSearchSuffixes.push(info.suffixes);
+			findAndSearchSuffixes.push(lang.info.suffixes);
 		}
 	}
 	const langPattern = `**/*.{${findAndSearchSuffixes.join(',')}}`;
@@ -112,7 +112,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	const treeSitterWasmUri = vscode.Uri.joinPath(context.extensionUri, './server/node_modules/web-tree-sitter/tree-sitter.wasm');
 	const initializationOptions: InitOptions = {
 		treeSitterWasmUri: 'importScripts' in globalThis ? treeSitterWasmUri.toString() : treeSitterWasmUri.fsPath,
-		supportedLanguages: Array.from(supportedLanguages.entries()),
+		supportedLanguages: Array.from(supportedLanguages.entries(), tuple => [tuple[0].info, tuple[1]]),
 		databaseName
 	};
 
@@ -201,17 +201,18 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		// incremental indexing: per language we wait for the first document to appear
 		// and only then we starting indexing all files matching the language. this is 
 		// done with the "unleash" message
-		const suffixesByLangId = new Map<string, string[]>();
+		const suffixesByLangId = new Map<string, Language>();
 		for (const [lang] of supportedLanguages) {
-			suffixesByLangId.set(lang.languageId, lang.suffixes);
+			suffixesByLangId.set(lang.info.languageId, lang);
 		}
-		const handleTextDocument = (doc: vscode.TextDocument) => {
-			const suffixes = suffixesByLangId.get(doc.languageId);
-			if (!suffixes) {
+		const handleTextDocument = async (doc: vscode.TextDocument) => {
+			const lang = suffixesByLangId.get(doc.languageId);
+			if (!lang) {
 				return;
 			}
 			suffixesByLangId.delete(doc.languageId);
-			const initLang = client.sendRequest(CustomMessages.QueueUnleash, suffixes);
+			const langData = await lang.fetchLanguageData();
+			const initLang = client.sendRequest(CustomMessages.QueueUnleash, [lang.info, langData]);
 
 			const initCancel = new Promise<void>(resolve => disposables.push(new vscode.Disposable(resolve)));
 			vscode.window.withProgress({ location: vscode.ProgressLocation.Window, title: `Updating Index for '${doc.languageId}'...` }, () => Promise.race([initLang, initCancel]));
@@ -268,7 +269,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 	});
 
 
-	return new vscode.Disposable(() => disposables.forEach(d => d.dispose()));
+	return vscode.Disposable.from(...disposables);
 }
 
 function _getRemoteHubExtension() {
