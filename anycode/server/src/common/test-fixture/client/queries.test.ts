@@ -15,14 +15,15 @@ export function init(info: LanguageInfo) {
 	suite(`Queries ${info.languageId}`, function () {
 		const types: QueryType[] = ['comments', 'folding', 'identifiers', 'locals', 'outline', 'references'];
 		for (let type of types) {
-			test(type, function () {
+			test(type, async function () {
 
 				if (!info.queries![type]) {
 					this.skip();
 				}
 
 				try {
-					const q = Languages.getQuery(info.languageId, type, true);
+					const language = await Languages.getLanguage(info.languageId);
+					const q = Languages.getQuery(language, type, true);
 					assert.ok(q);
 				} catch (err) {
 					assert.fail(`INVALID ${info.languageId} -> ${err}`);

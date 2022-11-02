@@ -31,7 +31,7 @@ import { FeatureConfig, LanguageInfo } from '../../../../../shared/common/initOp
 			queries.init(info);
 		}
 
-		await Languages.init(config);
+		Languages.init(config);
 
 		const outline = target.searchParams.get('outline');
 		if (outline) {
