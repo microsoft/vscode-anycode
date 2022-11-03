@@ -9,12 +9,10 @@
 				"--extensionDevelopmentPath=${workspaceFolder}/anycode"
 			],
 			"name": "Launch Extension",
-			"outFiles": [
-				"${workspaceFolder}/anycode/dist/**/*.js"
-			],
 			"preLaunchTask": "npm: watch",
 			"request": "launch",
-			"type": "extensionHost"
+			"type": "extensionHost",
+			"sourceMaps": true
 		}
 	]
 }
