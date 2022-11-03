@@ -26,6 +26,7 @@ const clientBuildOptions = {
 	external: ['vscode'],
 	target: 'es2020',
 	format: 'cjs',
+	sourcemap: 'external',
 	watch
 }
 
@@ -53,6 +54,7 @@ const serverBuildOptions = {
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
+	sourcemap: 'external',
 	watch
 }
 
