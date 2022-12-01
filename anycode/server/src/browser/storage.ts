@@ -159,3 +159,86 @@ export class IndexedDBSymbolStorage implements SymbolInfoStorage {
 		});
 	}
 }
+
+export class PrivateOriginFileSystemStorage implements SymbolInfoStorage {
+
+	static canIUse(): boolean {
+		return navigator.storage && typeof navigator.storage.getDirectory === 'function';
+	}
+
+	private readonly _encoder = new TextEncoder();
+	private readonly _decoder = new TextDecoder();
+	private readonly _init = navigator.storage.getDirectory();
+
+	insert(uri: string, info: Map<string, SymbolInfo>): void {
+
+		const name = btoa(uri);
+		const flatInfo: Array<string | number> = [];
+		for (let [word, i] of info) {
+			flatInfo.push(word);
+			flatInfo.push(i.definitions.size);
+			flatInfo.push(...i.definitions);
+			flatInfo.push(...i.usages);
+		}
+
+		this._init.then(async root => {
+			const handle = await root.getFileHandle(name, { create: true });
+			const stream = await handle.createWritable();
+			stream.write(this._encoder.encode(JSON.stringify(flatInfo)));
+			stream.close();
+		});
+	}
+
+	async getAll(): Promise<Map<string, Map<string, SymbolInfo>>> {
+		const root = await this._init;
+
+		const result = new Map<string, Map<string, SymbolInfo>>();
+		const work: Promise<any>[] = [];
+
+		for await (const handle of root.values()) {
+			if (handle.kind !== 'file') {
+				continue; // unexpected. delete?
+			}
+
+			work.push(handle.getFile().then(async file => {
+				const uri = atob(handle.name);
+
+				try {
+					const raw = this._decoder.decode(await file.arrayBuffer());
+					const flatInfo = <Array<string | number>>JSON.parse(raw);
+					const info = new Map<string, SymbolInfo>();
+
+					for (let i = 0; i < flatInfo.length;) {
+						let word = (<string>flatInfo[i]);
+						let defLen = (<number>flatInfo[++i]);
+						let kindStart = ++i;
+
+						for (; i < flatInfo.length && typeof flatInfo[i] === 'number'; i++) { ; }
+
+						info.set(word, {
+							definitions: new Set(<SymbolKind[]>flatInfo.slice(kindStart, kindStart + defLen)),
+							usages: new Set(<SymbolKind[]>flatInfo.slice(kindStart + defLen, i))
+						});
+					}
+
+					result.set(uri, info);
+
+				} catch (err) {
+					console.error(`FAILED to process ${handle.name} -> ${uri}`);
+					console.error(err);
+				}
+			}));
+		}
+
+		await Promise.allSettled(work);
+		return result;
+	}
+
+	async delete(uris: Set<string>): Promise<void> {
+		const root = await this._init;
+		for (const uri of uris) {
+			const name = btoa(uri);
+			await root.removeEntry(name);
+		}
+	}
+}

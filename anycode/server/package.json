@@ -15,6 +15,7 @@
 		"@types/assert": "^1.5.6",
 		"@types/chai": "^4.2.21",
 		"@types/mocha": "~9.1.0",
+		"@types/wicg-file-system-access": "^2020.9.5",
 		"assert": "~2.0.0",
 		"mocha": "^9.2.1",
 		"web-tree-sitter": "0.20.5",
