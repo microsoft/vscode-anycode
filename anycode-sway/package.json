@@ -1,0 +1,47 @@
+{
+	"name": "anycode-sway",
+	"publisher": "ms-vscode",
+	"displayName": "anycode-sway",
+	"description": "Sway for Anycode",
+	"license": "MIT",
+	"version": "0.0.6",
+	"preview": true,
+	"repository": {
+		"url": "https://github.com/microsoft/vscode-anycode"
+	},
+	"engines": {
+		"vscode": "^1.67.0"
+	},
+	"categories": [
+		"Programming Languages"
+	],
+	"contributes": {
+		"anycodeLanguages": {
+			"grammarPath": "./tree-sitter-sway.wasm",
+			"languageId": "sway",
+			"extensions": [
+				"rs"
+			],
+			"queryPaths": {
+				"comments": "./queries/comments.scm",
+				"folding": "./queries/folding.scm",
+				"identifiers": "./queries/identifiers.scm",
+				"locals": "./queries/locals.scm",
+				"outline": "./queries/outline.scm",
+				"references": "./queries/references.scm"
+			},
+			"suppressedBy": [
+				"fuellabs.sway-vscode-plugin"
+			]
+		}
+	},
+	"scripts": {
+		"postinstall": "npx tree-sitter build-wasm node_modules/tree-sitter-sway",
+		"deploy": "npx vsce publish",
+		"test": "node ../anycode/server/src/common/test-fixture/test.js --outline ./fixtures/outline.rs --highlights ./fixtures/highlights.rs"
+	},
+	"devDependencies": {
+		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-sway": "1.0.0"
+	}
+}

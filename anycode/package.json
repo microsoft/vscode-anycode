@@ -102,6 +102,7 @@
 		"ms-vscode.anycode-php",
 		"ms-vscode.anycode-python",
 		"ms-vscode.anycode-rust",
+		"ms-vscode.anycode-sway",
 		"ms-vscode.anycode-typescript"
 	],
 	"scripts": {
