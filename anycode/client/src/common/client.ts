@@ -255,7 +255,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 		let data: number[];
 		try {
 			const stat = await vscode.workspace.fs.stat(uri);
-			if (stat.size > 1024 ** 2) {
+			if (stat.size > 5 * (1024 ** 2)) {
 				console.warn(`IGNORING "${uri.toString()}" because it is too large (${stat.size}bytes)`);
 				data = [];
 			} else {
