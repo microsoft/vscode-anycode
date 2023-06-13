@@ -2,13 +2,11 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 
 trigger:
   branches:
-    include: ["*"]
+    include:
+      - main
   paths:
     include:
       - anycode
-  tags:
-    include:
-      - anycode.*
 pr: none
 
 resources:
@@ -18,6 +16,12 @@ resources:
       name: microsoft/vscode-engineering
       ref: main
       endpoint: Monaco
+
+parameters:
+  - name: publishExtension
+    displayName: 🚀 Publish Extension
+    type: boolean
+    default: false
 
 extends:
   template: azure-pipelines/extension/stable.yml@templates
@@ -34,3 +38,8 @@ extends:
 
       - script: cd anycode && npm run test-server
         displayName: Compile extension
+
+    ghCreateTag: true
+    ghTagPrefix: anycode.v
+
+    publishExtension: ${{ parameters.publishExtension }}
