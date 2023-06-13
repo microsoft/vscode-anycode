@@ -7,9 +7,6 @@ trigger:
   paths:
     include:
       - anycode-rust
-  tags:
-    include:
-      - anycode-rust.*
 pr: none
 
 resources:
@@ -19,6 +16,12 @@ resources:
       name: microsoft/vscode-engineering
       ref: main
       endpoint: Monaco
+
+parameters:
+  - name: publishExtension
+    displayName: 🚀 Publish Extension
+    type: boolean
+    default: false
 
 extends:
   template: azure-pipelines/extension/stable.yml@templates
@@ -32,6 +35,11 @@ extends:
 
       - script: cd anycode-rust && npm run test
         displayName: Run Test Fixtures
+
+    ghCreateTag: true
+    ghTagPrefix: anycode-rust.v
+
+    publishExtension: ${{ parameters.publishExtension }}
 
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode-rust
     workingDirectory: $(Build.SourcesDirectory)/anycode-rust
