@@ -27,6 +27,18 @@ extends:
   template: azure-pipelines/extension/stable.yml@templates
   parameters:
     buildSteps:
+      - script: ls -al
+        workingDirectory: $(Build.SourcesDirectory)
+        displayName: List files
+
+      - script: ls -al
+        workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
+        displayName: List files
+
+      - script: ls -al
+        workingDirectory: $(Build.SourcesDirectory)/anycode
+        displayName: List files
+
       - script: npm install --loglevel verbose
         continueOnError: true
         workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
