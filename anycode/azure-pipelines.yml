@@ -14,7 +14,7 @@ resources:
     - repository: templates
       type: github
       name: microsoft/vscode-engineering
-      ref: main
+      ref: lszomoru/terrapin-windows
       endpoint: Monaco
 
 parameters:
@@ -28,7 +28,6 @@ extends:
   parameters:
     cgSourceScanPath: $(Build.SourcesDirectory)/anycode
     workingDirectory: $(Build.SourcesDirectory)/anycode
-    customNPMRegistry: ''
     buildSteps:
       - script: cd anycode && npm install
         displayName: Install All dependencies
