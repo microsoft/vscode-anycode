@@ -43,15 +43,15 @@ extends:
         continueOnError: true
         workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
         displayName: Install dependencies
-        env:
-          NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
+        # env:
+        #   NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
 
       - script: npm install --loglevel verbose
         continueOnError: true
         workingDirectory: $(Build.SourcesDirectory)/anycode
         displayName: Install dependencies (anycode)
-        env:
-          NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
+        # env:
+        #   NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
 
       - script: npm run test
         workingDirectory: $(Build.SourcesDirectory)/anycode-typescript
