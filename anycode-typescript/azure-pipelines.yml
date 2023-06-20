@@ -30,10 +30,14 @@ extends:
       - script: cd anycode-typescript && npm install --loglevel verbose
         continueOnError: true
         displayName: Install dependencies
+        env:
+          NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
 
       - script: cd anycode && npm install --loglevel verbose
         continueOnError: true  
         displayName: Install dependencies (anycode)
+        env:
+          NPM_CONFIG_USERCONFIG: $(Agent.TempDirectory)/.npmrc
 
       - script: cd anycode-typescript && npm run test
         displayName: Run Test Fixtures
