@@ -22,8 +22,18 @@ const _statusItem = vscode.languages.createLanguageStatusItem('info', []);
 export async function startClient(factory: LanguageClientFactory, context: vscode.ExtensionContext) {
 
 	const channel = vscode.window.createOutputChannel('anycode');
-	const telemetry = new TelemetryReporter(context.extension.id, context.extension.packageJSON['version'], context.extension.packageJSON['aiKey']);
+	const reporter = new TelemetryReporter(context.extension.packageJSON['aiKey']);
+	const sender: vscode.TelemetrySender = {
+		sendEventData(event, data) {
+			reporter.sendTelemetryEvent(event, data);
+		},
+		sendErrorData() {
+		}
+	};
+	const telemetry = vscode.env.createTelemetryLogger(sender);
 	const supportedLanguages = new SupportedLanguages(channel);
+
+	context.subscriptions.push(reporter, telemetry);
 
 	let serverHandles: Promise<vscode.Disposable>[] = [];
 	startServer();
@@ -75,7 +85,7 @@ function _updateStatusAndInfo(selector: vscode.DocumentSelector, showCommandHint
 	};
 }
 
-async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: TelemetryReporter, log: vscode.OutputChannel): Promise<vscode.Disposable> {
+async function _startServer(factory: LanguageClientFactory, context: vscode.ExtensionContext, supportedLanguagesInfo: SupportedLanguages, telemetry: vscode.TelemetryLogger, log: vscode.OutputChannel): Promise<vscode.Disposable> {
 
 	const supportedLanguages = await supportedLanguagesInfo.getSupportedLanguages();
 	const documentSelector = await supportedLanguagesInfo.getSupportedLanguagesAsSelector();
@@ -92,7 +102,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 				"language" : { "classification": "SystemMetaData", "purpose": "FeatureInsight" }
 			}
 		*/
-		telemetry.sendTelemetryEvent('feature', { name, language });
+		telemetry.logUsage('feature', { name, language });
 	}
 
 	const disposables: vscode.Disposable[] = [];
@@ -193,7 +203,7 @@ async function _startServer(factory: LanguageClientFactory, context: vscode.Exte
 				"duration" : { "classification": "SystemMetaData", "purpose": "FeatureInsight", "isMeasurement": true }
 			}
 		*/
-		telemetry.sendTelemetryEvent('init', undefined, {
+		telemetry.logUsage('init', {
 			numOfFiles: all.length, // number of files found
 			indexSize: uris.length, // number of files loaded
 			hasWorkspaceContents, // firehose access?
