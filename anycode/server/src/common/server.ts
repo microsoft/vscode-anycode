@@ -45,7 +45,14 @@ export function startServer(connection: Connection, factory: IStorageFactory) {
 				return initData.treeSitterWasmUri;
 			}
 		};
-		await Parser.init(options);
+		try {
+			await Parser.init(options);
+		} catch (e) {
+			console.error('FAILED to initialize tree-sitter');
+			console.error(typeof e);
+			console.error(e);
+			throw e;
+		}
 		Languages.init(initData.supportedLanguages);
 
 		// setup features
