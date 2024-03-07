@@ -42,7 +42,16 @@ extends:
     ghTagPrefix: anycode.v
 
     tsa:
-        configFile: $(Build.SourcesDirectory)/tsaoptions.json
-        enabled: true
+      enabled: true
+      options:
+        codebaseName: 'devdiv_$(Build.Repository.Name)'
+        serviceTreeID: 'c4cd3983-4977-4bcd-931f-a9822d2e950c'
+        instanceUrl: 'https://devdiv.visualstudio.com/defaultcollection'
+        projectName: 'DevDiv'
+        areaPath: "DevDiv\\VS Code (compliance tracking only)\\Visual Studio Code Language Extensions"
+        notificationAliases:
+          - 'stbatt@microsoft.com'
+          - 'lszomoru@microsoft.com'
+          - 'jrieken@microsoft.com'
 
     publishExtension: ${{ parameters.publishExtension }}
