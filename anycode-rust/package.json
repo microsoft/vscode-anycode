@@ -41,7 +41,7 @@
 		"test": "node ../anycode/server/src/common/test-fixture/test.js --outline ./fixtures/outline.rs --highlights ./fixtures/highlights.rs"
 	},
 	"devDependencies": {
-		"tree-sitter-cli": "0.20.6",
-		"tree-sitter-rust": "0.20.1"
+		"tree-sitter-cli": "0.22.1",
+		"tree-sitter-rust": "0.20.4"
 	}
 }
