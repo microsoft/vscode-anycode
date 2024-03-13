@@ -72,8 +72,8 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",
-		"tree-sitter-cli": "0.22.1",
-		"tree-sitter-cpp": "^0.20.0",
-		"tree-sitter-c": "^0.20.0"
+		"tree-sitter-cli": "^0.20.0",
+		"tree-sitter-cpp": "^0.19.0",
+		"tree-sitter-c": "^0.19.0"
 	}
 }
