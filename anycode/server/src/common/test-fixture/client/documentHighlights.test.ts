@@ -43,8 +43,8 @@ function assertDocumentHighlights(fixture: Fixture, actual: DocumentHighlight[])
 
 	for (let highlight of actual) {
 		const e = fixture.marks.shift();
-		assert.ok(e);
-		assert.strictEqual(fixture.document.offsetAt(highlight.range.start), e.start, fixture.name);
+		assert.ok(e, `${fixture.name}: MISSING hightlight`);
+		assert.strictEqual(fixture.document.offsetAt(highlight.range.start), e.start, `${fixture.name}: BAD start range`);
 	}
 
 	if (fixture.marks.length > 0) {

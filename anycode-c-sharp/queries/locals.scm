@@ -16,7 +16,6 @@
 (constructor_declaration name: (identifier) @local.escape)
 (method_declaration name: (identifier) @local.escape)
 (parameter name: (identifier) @local)
-(parameter_array (identifier) @local)
 (variable_declarator (identifier) @local)
 (type_parameter (identifier) @local)
 (for_each_statement left: (identifier) @local)
