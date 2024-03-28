@@ -49,7 +49,7 @@
 		"test": "node ../anycode/server/src/common/test-fixture/test.js --outline ./fixtures/outline.kt"
 	},
 	"devDependencies": {
-		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-cli": "^0.20.8",
 		"tree-sitter-kotlin": "git+https://github.com/fwcd/tree-sitter-kotlin.git#a4f71eb9b8c9b19ded3e0e9470be4b1b77c2b569"
 	}
 }
