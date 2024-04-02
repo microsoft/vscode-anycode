@@ -4,7 +4,7 @@
 	"displayName": "anycode-kotlin",
 	"description": "Kotlin for Anycode",
 	"license": "MIT",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
@@ -49,7 +49,7 @@
 		"test": "node ../anycode/server/src/common/test-fixture/test.js --outline ./fixtures/outline.kt"
 	},
 	"devDependencies": {
-		"tree-sitter-cli": "0.20.6",
+		"tree-sitter-cli": "^0.20.8",
 		"@swimm/tree-sitter-kotlin": "^0.3.2"
 	}
 }

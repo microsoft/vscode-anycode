@@ -106,6 +106,7 @@ export default abstract class Languages {
 			} catch (e) {
 				query = language.query('');
 				console.error(languageId, e);
+				console.log(language);
 				if (strict) {
 					throw e;
 				}

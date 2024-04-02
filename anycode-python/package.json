@@ -4,7 +4,7 @@
 	"displayName": "anycode-python",
 	"description": "Python for Anycode",
 	"license": "MIT",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
@@ -48,7 +48,7 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.14.1",
-		"tree-sitter-cli": "0.22.1",
-		"tree-sitter-python": "0.21.0"
+		"tree-sitter-cli": "^0.20.8",
+		"tree-sitter-python": "^0.20.4"
 	}
 }
