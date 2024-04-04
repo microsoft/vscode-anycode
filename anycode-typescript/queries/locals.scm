@@ -1,9 +1,11 @@
 (method_definition) @scope
 (function_declaration) @scope
-(function_expression) @scope
+;; (function_expression) @scope
+(function) @scope
 (arrow_function) @scope
 [(class_body) (enum_body)] @scope
-(interface_declaration body: (interface_body) @scope)
+;; (interface_declaration body: (interface_body) @scope)
+(interface_declaration body: (object_type) @scope)
 (for_statement) @scope
 (if_statement consequence: (_) @scope)
 (if_statement alternative: (_) @scope)
@@ -13,7 +15,8 @@
 (statement_block) @scope
 
 (function_declaration name: (identifier) @local.escape)
-(function_expression name: (identifier) @local.escape)
+;; (function_expression name: (identifier) @local.escape)
+(function name: (identifier) @local.escape)
 (required_parameter (identifier) @local)
 (optional_parameter (identifier) @local)
 (catch_clause parameter: (identifier) @local)
