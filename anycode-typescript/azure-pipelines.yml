@@ -27,7 +27,9 @@ extends:
   template: azure-pipelines/extension/stable.yml@templates
   parameters:
     buildSteps:
-      - script: cd anycode-typescript && npm install
+      - script: |
+          env
+          cd anycode-typescript && npm install
         displayName: Install dependencies
 
       - script: cd anycode && npm install
