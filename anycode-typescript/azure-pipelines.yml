@@ -28,7 +28,7 @@ extends:
   parameters:
     buildSteps:
       - script: |
-          env
+          export npm_config_build_from_source=true
           cd anycode-typescript && npm install
         displayName: Install dependencies
 
