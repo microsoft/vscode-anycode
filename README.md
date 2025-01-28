@@ -2,7 +2,7 @@
 
 A [Tree-sitter](https://tree-sitter.github.io/tree-sitter/)-based language extension that _inaccurately_ implements popular features like "Outline & Breadcrumbs", "Go to Symbol in Workspace", "Document Highlights" and more. This extension should be used when running in enviroments that don't allow for running actual language services, like https://github.dev or https://vscode.dev. 
 
----
+production
 
 This is the mono-repo for **Anycode** itself and its languages: the `anycode`-folder is a LSP client and server that implements basic language features and all `anycode-XYZ` folders are for the respective `XYZ` languages. 
 
