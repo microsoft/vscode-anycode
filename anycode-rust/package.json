@@ -4,7 +4,7 @@
 	"displayName": "anycode-rust",
 	"description": "Rust for Anycode",
 	"license": "MIT",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"preview": true,
 	"repository": {
 		"url": "https://github.com/microsoft/vscode-anycode"
