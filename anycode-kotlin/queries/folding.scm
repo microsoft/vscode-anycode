@@ -1,4 +1,4 @@
-(comment) @comment
+(multiline_comment) @comment
 [(class_body) (function_body) (enum_class_body) (control_structure_body)] @scope
 (if_expression (control_structure_body) @scope)
 (while_statement) @scope
