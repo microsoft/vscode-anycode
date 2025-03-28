@@ -1,8 +1,8 @@
 
 (field_declaration (field_identifier) @field @field.name)
 
-(method_spec
-	name: (field_identifier) @method.name
+(var_spec
+	name: (identifier) @method.name
 ) @method
 
 (type_alias

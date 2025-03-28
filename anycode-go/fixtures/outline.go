@@ -23,7 +23,7 @@ var (
     ErrNoTLS             = errors.New("TLS requested but server does not support TLS")
 //  ^
 )
-// ### multiple vars, one line
+// ### /SKIP/ multiple vars, one line
 var c, python, java bool
 //  ^
 //     ^

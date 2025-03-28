@@ -59,7 +59,7 @@
 	)
 ) @event
 
-(global_attribute_list
+(attribute_list
 	(attribute
 		(identifier) @constant.name
 	) @constant
