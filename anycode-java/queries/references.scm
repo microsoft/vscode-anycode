@@ -1,6 +1,6 @@
 (method_invocation
 	name: (identifier) @ref.method)
-(interface_type_list
+(type_list
 	(type_identifier) @ref.interface)
 (superclass 
 	(type_identifier) @ref.class)
