@@ -4,7 +4,7 @@
 (constructor_declaration) @scope
 (method_declaration) @scope
 (if_statement [consequence: (_) @scope alternative: (_) @scope]) 
-(for_each_statement) @scope
+(foreach_statement) @scope
 (for_statement) @scope
 (do_statement) @scope
 (while_statement) @scope
@@ -18,7 +18,7 @@
 (parameter name: (identifier) @local)
 (variable_declarator (identifier) @local)
 (type_parameter (identifier) @local)
-(for_each_statement left: (identifier) @local)
+(foreach_statement left: (identifier) @local)
 (query_expression [
 	(from_clause . (identifier) @local) 
 ])
