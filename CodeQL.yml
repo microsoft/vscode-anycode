@@ -1,0 +1,4 @@
+path_classifiers:
+  test:
+    # Classify all test fixtures as test code.
+    - "**/test-fixture/**/*"
