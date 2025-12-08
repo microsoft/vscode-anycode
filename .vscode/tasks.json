@@ -9,7 +9,7 @@
 			"problemMatcher": [],
 			"path": "anycode",
 			"label": "npm: watch",
-			"detail": "node esbuild.js --watch",
+			"detail": "node esbuild.mjs --watch",
 			"runOptions": {
 				"runOn": "folderOpen"
 			},
