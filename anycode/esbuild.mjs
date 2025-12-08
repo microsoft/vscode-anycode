@@ -3,21 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const esbuild = require('esbuild')
+import esbuild from 'esbuild';
 
-
-let watch;
-if (process.argv.includes('--watch')) {
-	watch = {
-		onRebuild(error, result) {
-			if (error) {
-				console.error('watch build failed:', error);
-			} else {
-				console.log('watch build succeeded');
-			}
-		}
-	}
-}
+const isWatch = process.argv.includes('--watch')
 
 // --- extension
 
@@ -26,11 +14,10 @@ const clientBuildOptions = {
 	external: ['vscode'],
 	target: 'es2020',
 	format: 'cjs',
-	sourcemap: 'external',
-	watch
+	sourcemap: 'external'
 }
 
-const browserClient = esbuild.build({
+const browserClient = await esbuild.context({
 	...clientBuildOptions,
 	entryPoints: ['client/src/browser/main.ts'],
 	outfile: 'dist/anycode.extension.browser.js',
@@ -38,7 +25,7 @@ const browserClient = esbuild.build({
 	console.error(e)
 });
 
-const nodeClient = esbuild.build({
+const nodeClient = await esbuild.context({
 	...clientBuildOptions,
 	platform: 'node',
 	entryPoints: ['client/src/node/main.ts'],
@@ -54,11 +41,10 @@ const serverBuildOptions = {
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
-	sourcemap: 'external',
-	watch
+	sourcemap: 'external'
 }
 
-const browserServer = esbuild.build({
+const browserServer = await esbuild.context({
 	...serverBuildOptions,
 	entryPoints: ['server/src/browser/main.ts'],
 	outfile: 'dist/anycode.server.browser.js',
@@ -66,7 +52,7 @@ const browserServer = esbuild.build({
 	console.error(e)
 });
 
-const nodeServer = esbuild.build({
+const nodeServer = await esbuild.context({
 	...serverBuildOptions,
 	platform: 'node',
 	entryPoints: ['server/src/node/main.ts'],
@@ -75,40 +61,47 @@ const nodeServer = esbuild.build({
 	console.error(e)
 });
 
-const serverTests = esbuild.build({
+const serverTests = await esbuild.context({
 	entryPoints: ['server/src/common/test/trie.test.ts'],
 	outfile: 'server/src/common/test/trie.test.js',
 	bundle: true,
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
 	format: 'iife',
-	watch
 }).catch((e) => {
 	console.error(e)
 });
 
 // --- tests-fixtures
 
-const testFixture = esbuild.build({
+const testFixture = await esbuild.context({
 	entryPoints: ['server/src/common/test-fixture/client/test.all.ts'],
 	outfile: 'server/src/common/test-fixture/client/test.all.js',
 	bundle: true,
 	define: { process: '{"env":{}}' }, // assert-lib
 	external: ['fs', 'path'], // not ideal but because of treesitter/emcc
 	target: 'es2020',
-	watch
 }).catch((e) => {
 	console.error(e)
 });
 
-Promise.all([
+
+
+const all = [
 	browserClient, browserServer, // client
 	nodeClient, nodeServer, // server
-	serverTests, testFixture // testing
-]).then(() => {
-	if (watch) {
-		console.log('done building, watching for file changes')
-	} else {
+	serverTests, testFixture
+];
+Promise.all(all).then(() => {
+
+	if (!isWatch) {
+		all.forEach(build => build.dispose());
 		console.log('done building')
+		return;
 	}
+
+	all.forEach(build => {
+		build.watch({ delay: 500 })
+	});
+	console.log('done building, start watching...')
 })

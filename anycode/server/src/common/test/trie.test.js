@@ -5,6 +5,7 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __commonJS = (cb, mod) => function __require() {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
@@ -17,9 +18,14 @@
     return to;
   };
   var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+    // If the importer is in node compatibility mode or this is not an ESM
+    // file that has been converted to a CommonJS file using a Babel-
+    // compatible transform (i.e. "__esModule" has not been set), then set
+    // "default" to the CommonJS "module.exports" for node compatibility.
     isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
     mod
   ));
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // server/node_modules/has-symbols/shams.js
   var require_shams = __commonJS({
@@ -33,7 +39,7 @@
           return true;
         }
         var obj = {};
-        var sym = Symbol("test");
+        var sym = /* @__PURE__ */ Symbol("test");
         var symObj = Object(sym);
         if (typeof sym === "string") {
           return false;
@@ -100,7 +106,7 @@
         if (typeof origSymbol("foo") !== "symbol") {
           return false;
         }
-        if (typeof Symbol("bar") !== "symbol") {
+        if (typeof /* @__PURE__ */ Symbol("bar") !== "symbol") {
           return false;
         }
         return hasSymbolSham();
@@ -201,7 +207,7 @@
       var throwTypeError = function() {
         throw new $TypeError();
       };
-      var ThrowTypeError = $gOPD ? function() {
+      var ThrowTypeError = $gOPD ? (function() {
         try {
           arguments.callee;
           return throwTypeError;
@@ -212,7 +218,7 @@
             return throwTypeError;
           }
         }
-      }() : throwTypeError;
+      })() : throwTypeError;
       var hasSymbols = require_has_symbols()();
       var getProto = Object.getPrototypeOf || function(x) {
         return x.__proto__;
@@ -240,6 +246,7 @@
         "%encodeURIComponent%": encodeURIComponent,
         "%Error%": Error,
         "%eval%": eval,
+        // eslint-disable-line no-eval
         "%EvalError%": EvalError,
         "%Float32Array%": typeof Float32Array === "undefined" ? undefined2 : Float32Array,
         "%Float64Array%": typeof Float64Array === "undefined" ? undefined2 : Float64Array,
@@ -442,7 +449,7 @@
               if (!allowMissing) {
                 throw new $TypeError("base intrinsic for " + name + " exists, but the property is not available.");
               }
-              return void 0;
+              return void undefined2;
             }
             if ($gOPD && i + 1 >= parts.length) {
               var desc = $gOPD(value, part);
@@ -546,9 +553,9 @@
         }
         return value !== null && typeof value === "object" && typeof value.length === "number" && value.length >= 0 && $toString(value) !== "[object Array]" && $toString(value.callee) === "[object Function]";
       };
-      var supportsStandardArguments = function() {
+      var supportsStandardArguments = (function() {
         return isStandardArguments(arguments);
-      }();
+      })();
       isStandardArguments.isLegacyArguments = isLegacyArguments;
       module.exports = supportsStandardArguments ? isStandardArguments : isLegacyArguments;
     }
@@ -1087,10 +1094,8 @@
         var args = arguments;
         var len = args.length;
         var str = String(f).replace(formatRegExp, function(x2) {
-          if (x2 === "%%")
-            return "%";
-          if (i >= len)
-            return x2;
+          if (x2 === "%%") return "%";
+          if (i >= len) return x2;
           switch (x2) {
             case "%s":
               return String(args[i++]);
@@ -1169,25 +1174,18 @@
           seen: [],
           stylize: stylizeNoColor
         };
-        if (arguments.length >= 3)
-          ctx.depth = arguments[2];
-        if (arguments.length >= 4)
-          ctx.colors = arguments[3];
+        if (arguments.length >= 3) ctx.depth = arguments[2];
+        if (arguments.length >= 4) ctx.colors = arguments[3];
         if (isBoolean(opts)) {
           ctx.showHidden = opts;
         } else if (opts) {
           exports._extend(ctx, opts);
         }
-        if (isUndefined(ctx.showHidden))
-          ctx.showHidden = false;
-        if (isUndefined(ctx.depth))
-          ctx.depth = 2;
-        if (isUndefined(ctx.colors))
-          ctx.colors = false;
-        if (isUndefined(ctx.customInspect))
-          ctx.customInspect = true;
-        if (ctx.colors)
-          ctx.stylize = stylizeWithColor;
+        if (isUndefined(ctx.showHidden)) ctx.showHidden = false;
+        if (isUndefined(ctx.depth)) ctx.depth = 2;
+        if (isUndefined(ctx.colors)) ctx.colors = false;
+        if (isUndefined(ctx.customInspect)) ctx.customInspect = true;
+        if (ctx.colors) ctx.stylize = stylizeWithColor;
         return formatValue(ctx, obj, ctx.depth);
       }
       exports.inspect = inspect;
@@ -1214,6 +1212,7 @@
         "null": "bold",
         "string": "green",
         "date": "magenta",
+        // "name": intentionally not styling
         "regexp": "red"
       };
       function stylizeWithColor(str, styleType) {
@@ -1235,7 +1234,9 @@
         return hash;
       }
       function formatValue(ctx, value, recurseTimes) {
-        if (ctx.customInspect && value && isFunction(value.inspect) && value.inspect !== exports.inspect && !(value.constructor && value.constructor.prototype === value)) {
+        if (ctx.customInspect && value && isFunction(value.inspect) && // Filter out the util module, it's inspect function is special
+        value.inspect !== exports.inspect && // Also filter out any prototype objects using the circular check.
+        !(value.constructor && value.constructor.prototype === value)) {
           var ret = value.inspect(recurseTimes, ctx);
           if (!isString(ret)) {
             ret = formatValue(ctx, ret, recurseTimes);
@@ -1414,8 +1415,7 @@
         var numLinesEst = 0;
         var length = output.reduce(function(prev, cur) {
           numLinesEst++;
-          if (cur.indexOf("\n") >= 0)
-            numLinesEst++;
+          if (cur.indexOf("\n") >= 0) numLinesEst++;
           return prev + cur.replace(/\u001b\[\d\d?m/g, "").length + 1;
         }, 0);
         if (length > 60) {
@@ -1480,7 +1480,8 @@
       }
       exports.isFunction = isFunction;
       function isPrimitive(arg) {
-        return arg === null || typeof arg === "boolean" || typeof arg === "number" || typeof arg === "string" || typeof arg === "symbol" || typeof arg === "undefined";
+        return arg === null || typeof arg === "boolean" || typeof arg === "number" || typeof arg === "string" || typeof arg === "symbol" || // ES6 symbol
+        typeof arg === "undefined";
       }
       exports.isPrimitive = isPrimitive;
       exports.isBuffer = require_isBufferBrowser();
@@ -1505,7 +1506,7 @@
         "Dec"
       ];
       function timestamp() {
-        var d = new Date();
+        var d = /* @__PURE__ */ new Date();
         var time = [
           pad(d.getHours()),
           pad(d.getMinutes()),
@@ -1518,8 +1519,7 @@
       };
       exports.inherits = require_inherits_browser();
       exports._extend = function(origin, add) {
-        if (!add || !isObject(add))
-          return origin;
+        if (!add || !isObject(add)) return origin;
         var keys = Object.keys(add);
         var i = keys.length;
         while (i--) {
@@ -1530,7 +1530,7 @@
       function hasOwnProperty(obj, prop) {
         return Object.prototype.hasOwnProperty.call(obj, prop);
       }
-      var kCustomPromisifiedSymbol = typeof Symbol !== "undefined" ? Symbol("util.promisify.custom") : void 0;
+      var kCustomPromisifiedSymbol = typeof Symbol !== "undefined" ? /* @__PURE__ */ Symbol("util.promisify.custom") : void 0;
       exports.promisify = function promisify(original) {
         if (typeof original !== "function")
           throw new TypeError('The "original" argument must be of type Function');
@@ -1572,13 +1572,12 @@
           return promise;
         }
         Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
-        if (kCustomPromisifiedSymbol)
-          Object.defineProperty(fn, kCustomPromisifiedSymbol, {
-            value: fn,
-            enumerable: false,
-            writable: false,
-            configurable: true
-          });
+        if (kCustomPromisifiedSymbol) Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+          value: fn,
+          enumerable: false,
+          writable: false,
+          configurable: true
+        });
         return Object.defineProperties(
           fn,
           getOwnPropertyDescriptors(original)
@@ -1674,8 +1673,7 @@
           throw new TypeError("Super expression must either be null or a function");
         }
         subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } });
-        if (superClass)
-          _setPrototypeOf(subClass, superClass);
+        if (superClass) _setPrototypeOf(subClass, superClass);
       }
       function _setPrototypeOf(o, p) {
         _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf2(o2, p2) {
@@ -1698,7 +1696,7 @@
             return message(arg1, arg2, arg3);
           }
         }
-        var NodeError = /* @__PURE__ */ function(_Base) {
+        var NodeError = /* @__PURE__ */ (function(_Base) {
           _inherits(NodeError2, _Base);
           function NodeError2(arg1, arg2, arg3) {
             var _this;
@@ -1708,7 +1706,7 @@
             return _this;
           }
           return NodeError2;
-        }(Base);
+        })(Base);
         codes[code] = NodeError;
       }
       function oneOf(expected, thing) {
@@ -1749,8 +1747,7 @@
       }
       createErrorType("ERR_AMBIGUOUS_ARGUMENT", 'The "%s" argument is ambiguous. %s', TypeError);
       createErrorType("ERR_INVALID_ARG_TYPE", function(name, expected, actual) {
-        if (assert2 === void 0)
-          assert2 = require_assert();
+        if (assert2 === void 0) assert2 = require_assert();
         assert2(typeof name === "string", "'name' must be a string");
         var determiner;
         if (typeof expected === "string" && startsWith(expected, "not ")) {
@@ -1771,8 +1768,7 @@
       }, TypeError);
       createErrorType("ERR_INVALID_ARG_VALUE", function(name, value) {
         var reason = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : "is invalid";
-        if (util === void 0)
-          util = require_util();
+        if (util === void 0) util = require_util();
         var inspected = util.inspect(value);
         if (inspected.length > 128) {
           inspected = "".concat(inspected.slice(0, 128), "...");
@@ -1792,8 +1788,7 @@
         for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
           args[_key] = arguments[_key];
         }
-        if (assert2 === void 0)
-          assert2 = require_assert();
+        if (assert2 === void 0) assert2 = require_assert();
         assert2(args.length > 0, "At least one arg needs to be specified");
         var msg = "The ";
         var len = args.length;
@@ -1855,16 +1850,13 @@
           var descriptor = props[i];
           descriptor.enumerable = descriptor.enumerable || false;
           descriptor.configurable = true;
-          if ("value" in descriptor)
-            descriptor.writable = true;
+          if ("value" in descriptor) descriptor.writable = true;
           Object.defineProperty(target, descriptor.key, descriptor);
         }
       }
       function _createClass(Constructor, protoProps, staticProps) {
-        if (protoProps)
-          _defineProperties(Constructor.prototype, protoProps);
-        if (staticProps)
-          _defineProperties(Constructor, staticProps);
+        if (protoProps) _defineProperties(Constructor.prototype, protoProps);
+        if (staticProps) _defineProperties(Constructor, staticProps);
         return Constructor;
       }
       function _possibleConstructorReturn(self, call) {
@@ -1884,20 +1876,17 @@
           throw new TypeError("Super expression must either be null or a function");
         }
         subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } });
-        if (superClass)
-          _setPrototypeOf(subClass, superClass);
+        if (superClass) _setPrototypeOf(subClass, superClass);
       }
       function _wrapNativeSuper(Class) {
         var _cache = typeof Map === "function" ? /* @__PURE__ */ new Map() : void 0;
         _wrapNativeSuper = function _wrapNativeSuper2(Class2) {
-          if (Class2 === null || !_isNativeFunction(Class2))
-            return Class2;
+          if (Class2 === null || !_isNativeFunction(Class2)) return Class2;
           if (typeof Class2 !== "function") {
             throw new TypeError("Super expression must either be null or a function");
           }
           if (typeof _cache !== "undefined") {
-            if (_cache.has(Class2))
-              return _cache.get(Class2);
+            if (_cache.has(Class2)) return _cache.get(Class2);
             _cache.set(Class2, Wrapper);
           }
           function Wrapper() {
@@ -1909,12 +1898,9 @@
         return _wrapNativeSuper(Class);
       }
       function isNativeReflectConstruct() {
-        if (typeof Reflect === "undefined" || !Reflect.construct)
-          return false;
-        if (Reflect.construct.sham)
-          return false;
-        if (typeof Proxy === "function")
-          return true;
+        if (typeof Reflect === "undefined" || !Reflect.construct) return false;
+        if (Reflect.construct.sham) return false;
+        if (typeof Proxy === "function") return true;
         try {
           Date.prototype.toString.call(Reflect.construct(Date, [], function() {
           }));
@@ -1932,8 +1918,7 @@
             a.push.apply(a, args2);
             var Constructor = Function.bind.apply(Parent2, a);
             var instance = new Constructor();
-            if (Class2)
-              _setPrototypeOf(instance, Class2.prototype);
+            if (Class2) _setPrototypeOf(instance, Class2.prototype);
             return instance;
           };
         }
@@ -1979,8 +1964,7 @@
       }
       function repeat(str, count) {
         count = Math.floor(count);
-        if (str.length == 0 || count == 0)
-          return "";
+        if (str.length == 0 || count == 0) return "";
         var maxCount = str.length * count;
         count = Math.floor(Math.log(count) / Math.log(2));
         while (count) {
@@ -2025,10 +2009,18 @@
           customInspect: false,
           depth: 1e3,
           maxArrayLength: Infinity,
+          // Assert compares only enumerable properties (with a few exceptions).
           showHidden: false,
+          // Having a long line as error is better than wrapping the line for
+          // comparison for now.
+          // TODO(BridgeAR): `breakLength` should be limited as soon as soon as we
+          // have meta information about the inspected properties (i.e., know where
+          // in what line the property starts and ends).
           breakLength: Infinity,
+          // Assert does not detect proxies currently.
           showProxy: false,
           sorted: true,
+          // Inspect getters as we also check them when comparing entries.
           getters: true
         });
       }
@@ -2075,8 +2067,7 @@
           }
           actualLines.pop();
           expectedLines.pop();
-          if (actualLines.length === 0 || expectedLines.length === 0)
-            break;
+          if (actualLines.length === 0 || expectedLines.length === 0) break;
           a = actualLines[actualLines.length - 1];
           b = expectedLines[expectedLines.length - 1];
         }
@@ -2173,7 +2164,7 @@
         }
         return "".concat(msg).concat(skipped ? skippedMsg : "", "\n").concat(res).concat(other).concat(end).concat(indicator);
       }
-      var AssertionError = /* @__PURE__ */ function(_Error) {
+      var AssertionError = /* @__PURE__ */ (function(_Error) {
         _inherits(AssertionError2, _Error);
         function AssertionError2(options) {
           var _this;
@@ -2284,7 +2275,7 @@
           }
         }]);
         return AssertionError2;
-      }(_wrapNativeSuper(Error));
+      })(_wrapNativeSuper(Error));
       module.exports = AssertionError;
     }
   });
@@ -2398,7 +2389,7 @@
           $webkitStorageInfo: true,
           $window: true
         };
-        hasAutomationEqualityBug = function() {
+        hasAutomationEqualityBug = (function() {
           if (typeof window === "undefined") {
             return false;
           }
@@ -2416,7 +2407,7 @@
             }
           }
           return false;
-        }();
+        })();
         equalsConstructorPrototypeIfNotBuggy = function(o) {
           if (typeof window === "undefined" || !hasAutomationEqualityBug) {
             return equalsConstructorPrototype(o);
@@ -2492,10 +2483,10 @@
       var originalKeys = Object.keys;
       keysShim.shim = function shimObjectKeys() {
         if (Object.keys) {
-          var keysWorksWithArguments = function() {
+          var keysWorksWithArguments = (function() {
             var args = Object.keys(arguments);
             return args && args.length === arguments.length;
-          }(1, 2);
+          })(1, 2);
           if (!keysWorksWithArguments) {
             Object.keys = function keys(object) {
               if (isArgs(object)) {
@@ -2518,7 +2509,7 @@
     "server/node_modules/define-properties/index.js"(exports, module) {
       "use strict";
       var keys = require_object_keys();
-      var hasSymbols = typeof Symbol === "function" && typeof Symbol("foo") === "symbol";
+      var hasSymbols = typeof Symbol === "function" && typeof /* @__PURE__ */ Symbol("foo") === "symbol";
       var toStr = Object.prototype.toString;
       var concat = Array.prototype.concat;
       var origDefineProperty = Object.defineProperty;
@@ -2717,26 +2708,22 @@
         try {
           for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
             _arr.push(_s.value);
-            if (i && _arr.length === i)
-              break;
+            if (i && _arr.length === i) break;
           }
         } catch (err) {
           _d = true;
           _e = err;
         } finally {
           try {
-            if (!_n && _i["return"] != null)
-              _i["return"]();
+            if (!_n && _i["return"] != null) _i["return"]();
           } finally {
-            if (_d)
-              throw _e;
+            if (_d) throw _e;
           }
         }
         return _arr;
       }
       function _arrayWithHoles(arr) {
-        if (Array.isArray(arr))
-          return arr;
+        if (Array.isArray(arr)) return arr;
       }
       function _typeof(obj) {
         if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
@@ -2793,12 +2780,10 @@
       var isFloat32Array = _require$types.isFloat32Array;
       var isFloat64Array = _require$types.isFloat64Array;
       function isNonIndex(key) {
-        if (key.length === 0 || key.length > 10)
-          return true;
+        if (key.length === 0 || key.length > 10) return true;
         for (var i = 0; i < key.length; i++) {
           var code = key.charCodeAt(i);
-          if (code < 48 || code > 57)
-            return true;
+          if (code < 48 || code > 57) return true;
         }
         return key.length === 10 && key >= Math.pow(2, 32);
       }
@@ -2873,8 +2858,7 @@
       }
       function innerDeepEqual(val1, val2, strict, memos) {
         if (val1 === val2) {
-          if (val1 !== 0)
-            return true;
+          if (val1 !== 0) return true;
           return strict ? objectIs(val1, val2) : true;
         }
         if (strict) {
@@ -3057,6 +3041,9 @@
             return false;
           case "string":
             prim = +prim;
+          // Loose equal entries exist only if the string is possible to convert to
+          // a regular number and not NaN.
+          // Fall through
           case "number":
             if (numberIsNaN(prim)) {
               return false;
@@ -3066,8 +3053,7 @@
       }
       function setMightHaveLoosePrim(a, b, prim) {
         var altValue = findLooseMatchingPrimitives(prim);
-        if (altValue != null)
-          return altValue;
+        if (altValue != null) return altValue;
         return b.has(altValue) && !a.has(altValue);
       }
       function mapMightHaveLoosePrim(a, b, prim, item, memo) {
@@ -3092,8 +3078,7 @@
             }
             set.add(val);
           } else if (!b.has(val)) {
-            if (strict)
-              return false;
+            if (strict) return false;
             if (!setMightHaveLoosePrim(a, b, val)) {
               return false;
             }
@@ -3108,8 +3093,7 @@
           for (var _i = 0; _i < bValues.length; _i++) {
             var _val = bValues[_i];
             if (_typeof(_val) === "object" && _val !== null) {
-              if (!setHasEqualElement(set, _val, strict, memo))
-                return false;
+              if (!setHasEqualElement(set, _val, strict, memo)) return false;
             } else if (!strict && !a.has(_val) && !setHasEqualElement(set, _val, strict, memo)) {
               return false;
             }
@@ -3142,10 +3126,8 @@
           } else {
             var item2 = b.get(key);
             if (item2 === void 0 && !b.has(key) || !innerDeepEqual(item1, item2, strict, memo)) {
-              if (strict)
-                return false;
-              if (!mapMightHaveLoosePrim(a, b, key, item1, memo))
-                return false;
+              if (strict) return false;
+              if (!mapMightHaveLoosePrim(a, b, key, item1, memo)) return false;
               if (set === null) {
                 set = /* @__PURE__ */ new Set();
               }
@@ -3158,8 +3140,7 @@
           for (var _i2 = 0; _i2 < bEntries.length; _i2++) {
             var _bEntries$_i = _slicedToArray(bEntries[_i2], 2), key = _bEntries$_i[0], item = _bEntries$_i[1];
             if (_typeof(key) === "object" && key !== null) {
-              if (!mapHasEqualEntry(set, a, key, item, strict, memo))
-                return false;
+              if (!mapHasEqualEntry(set, a, key, item, strict, memo)) return false;
             } else if (!strict && (!a.has(key) || !innerDeepEqual(a.get(key), item, false, memo)) && !mapHasEqualEntry(set, a, key, item, false, memo)) {
               return false;
             }
@@ -3269,8 +3250,7 @@
       var assert2 = module.exports = ok;
       var NO_EXCEPTION_SENTINEL = {};
       function innerFail(obj) {
-        if (obj.message instanceof Error)
-          throw obj.message;
+        if (obj.message instanceof Error) throw obj.message;
         throw new AssertionError(obj);
       }
       function fail(actual, expected, message, operator, stackStartFn) {
@@ -3287,11 +3267,9 @@
             var warn = process.emitWarning ? process.emitWarning : console.warn.bind(console);
             warn("assert.fail() with more than one argument is deprecated. Please use assert.strictEqual() instead or only pass a message.", "DeprecationWarning", "DEP0094");
           }
-          if (argsLen === 2)
-            operator = "!=";
+          if (argsLen === 2) operator = "!=";
         }
-        if (message instanceof Error)
-          throw message;
+        if (message instanceof Error) throw message;
         var errArgs = {
           actual,
           expected,
@@ -3369,8 +3347,7 @@
         if (arguments.length < 2) {
           throw new ERR_MISSING_ARGS("actual", "expected");
         }
-        if (isDeepEqual === void 0)
-          lazyLoadComparison();
+        if (isDeepEqual === void 0) lazyLoadComparison();
         if (!isDeepEqual(actual, expected)) {
           innerFail({
             actual,
@@ -3385,8 +3362,7 @@
         if (arguments.length < 2) {
           throw new ERR_MISSING_ARGS("actual", "expected");
         }
-        if (isDeepEqual === void 0)
-          lazyLoadComparison();
+        if (isDeepEqual === void 0) lazyLoadComparison();
         if (isDeepEqual(actual, expected)) {
           innerFail({
             actual,
@@ -3401,8 +3377,7 @@
         if (arguments.length < 2) {
           throw new ERR_MISSING_ARGS("actual", "expected");
         }
-        if (isDeepEqual === void 0)
-          lazyLoadComparison();
+        if (isDeepEqual === void 0) lazyLoadComparison();
         if (!isDeepStrictEqual(actual, expected)) {
           innerFail({
             actual,
@@ -3418,8 +3393,7 @@
         if (arguments.length < 2) {
           throw new ERR_MISSING_ARGS("actual", "expected");
         }
-        if (isDeepEqual === void 0)
-          lazyLoadComparison();
+        if (isDeepEqual === void 0) lazyLoadComparison();
         if (isDeepStrictEqual(actual, expected)) {
           innerFail({
             actual,
@@ -3498,8 +3472,7 @@
       }
       function expectedException(actual, expected, msg, fn) {
         if (typeof expected !== "function") {
-          if (isRegExp(expected))
-            return expected.test(actual);
+          if (isRegExp(expected)) return expected.test(actual);
           if (arguments.length === 2) {
             throw new ERR_INVALID_ARG_TYPE("expected", ["Function", "RegExp"], expected);
           }
@@ -3520,8 +3493,7 @@
           } else if (keys.length === 0) {
             throw new ERR_INVALID_ARG_VALUE("error", expected, "may not be an empty object");
           }
-          if (isDeepEqual === void 0)
-            lazyLoadComparison();
+          if (isDeepEqual === void 0) lazyLoadComparison();
           keys.forEach(function(key) {
             if (typeof actual[key] === "string" && isRegExp(expected[key]) && expected[key].test(actual[key])) {
               return;
@@ -3611,8 +3583,7 @@
         }
       }
       function expectsNoError(stackStartFn, actual, error, message) {
-        if (actual === NO_EXCEPTION_SENTINEL)
-          return;
+        if (actual === NO_EXCEPTION_SENTINEL) return;
         if (typeof error === "string") {
           message = error;
           error = void 0;
@@ -3720,16 +3691,16 @@
       this.value = value;
     }
   };
-  var Trie = class {
+  var Trie = class _Trie {
     constructor(ch, element) {
       this.ch = ch;
       this.element = element;
-      this._size = 0;
-      this._depth = 0;
-      this._children = /* @__PURE__ */ new Map();
+      __publicField(this, "_size", 0);
+      __publicField(this, "_depth", 0);
+      __publicField(this, "_children", /* @__PURE__ */ new Map());
     }
     static create() {
-      return new Trie("", void 0);
+      return new _Trie("", void 0);
     }
     get size() {
       return this._size;
@@ -3745,7 +3716,7 @@
         const ch = chars[pos];
         let child = node._children.get(ch);
         if (!child) {
-          child = new Trie(ch, void 0);
+          child = new _Trie(ch, void 0);
           node._children.set(ch, child);
         }
         node = child;
@@ -3916,9 +3887,13 @@
     });
   });
 })();
-/*!
- * The buffer module from node.js, for the browser.
- *
- * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
- * @license  MIT
- */
+/*! Bundled license information:
+
+assert/build/internal/util/comparisons.js:
+  (*!
+   * The buffer module from node.js, for the browser.
+   *
+   * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+   * @license  MIT
+   *)
+*/
