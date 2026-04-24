@@ -109,7 +109,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -b tsconfig.json && node esbuild.mjs",
 		"watch": "node esbuild.mjs --watch",
-		"postinstall": "cd client && npm install && cd ../server && npm install && cd .. && node esbuild.js",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd .. && node esbuild.mjs",
 		"lint": "eslint client server",
 		"deploy": "npx vsce publish --noVerify",
 		"pretest-extension": "npx esbuild client/src/test/suite/index.ts --bundle --external:vscode --target=es2020 --format=cjs --outfile=dist/extension.test.js --define:process=\"{\\\"env\\\":{}}\"",
