@@ -133,6 +133,16 @@ async function runTests() {
 	const context = await browser.newContext();
 	const page = await context.newPage();
 	const timeoutMs = Number(process.env.ANYCODE_TEST_TIMEOUT_MS ?? 15000);
+	page.on('pageerror', (err) => console.error('BROWSER PAGEERROR', err));
+	page.on('requestfailed', (request) => {
+		const failure = request.failure();
+		console.error(`BROWSER REQUESTFAILED ${request.method()} ${request.url()} ${failure?.errorText ?? ''}`);
+	});
+	page.on('console', (msg) => {
+		if (msg.type() === 'error') {
+			console.error(`BROWSER CONSOLE ${msg.type()} ${msg.text()}`);
+		}
+	});
 
 	const mochaDone = new Promise((resolve, reject) => {
 		page.exposeFunction('report_mocha_done', (/** @type {number|string} */ failCount) => {
@@ -143,9 +153,13 @@ async function runTests() {
 		}
 	})
 
-	await page.goto(target.href);
+	await page.goto(target.href, { timeout: timeoutMs });
 
 	const failCount = await mochaDone;
+	if (typeof failCount !== 'number') {
+		console.error('BROWSER TEST ERROR', failCount);
+		process.exit(1)
+	}
 
 	if (args.debug) {
 		return;
