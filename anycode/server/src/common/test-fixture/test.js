@@ -5,9 +5,10 @@
 
 //@ts-check
 
-const { readFileSync } = require('fs');
+const { readFileSync, existsSync } = require('fs');
 const http = require('http');
 const { join, relative } = require('path')
+const { execFileSync } = require('child_process');
 const { chromium } = require('playwright');
 
 const args = (function () {
@@ -40,6 +41,29 @@ const args = (function () {
 
 const base = join(__dirname, '../../../../..');
 const port = 3000 + Math.ceil(Math.random() * 5080);
+
+function ensureBrowserTestBundle() {
+	const outFile = join(base, 'anycode/server/src/common/test-fixture/client/test.all.js');
+	if (existsSync(outFile)) {
+		return;
+	}
+
+	console.log('Building browser test bundle...');
+	const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+	execFileSync(npxCmd, [
+		'esbuild',
+		'server/src/common/test-fixture/client/test.all.ts',
+		'--bundle',
+		'--target=es2020',
+		'--external:fs',
+		'--external:path',
+		'--outfile=server/src/common/test-fixture/client/test.all.js',
+		'--define:process={"env":{}}',
+	], {
+		cwd: join(base, 'anycode'),
+		stdio: 'inherit',
+	});
+}
 
 /**
  * @param {string} candidate
@@ -97,6 +121,7 @@ const requestListener = function (req, res) {
 };
 
 async function runTests() {
+	ensureBrowserTestBundle();
 
 	const target = new URL(`http://localhost:${port}/anycode/server/src/common/test-fixture/client/test.html`);
 
