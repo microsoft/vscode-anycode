@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ANYCODE_TEST_TIMEOUT_MS: '60000'
 
     steps:
       - uses: actions/checkout@v4

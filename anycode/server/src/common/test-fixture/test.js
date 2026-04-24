@@ -132,13 +132,14 @@ async function runTests() {
 
 	const context = await browser.newContext();
 	const page = await context.newPage();
+	const timeoutMs = Number(process.env.ANYCODE_TEST_TIMEOUT_MS ?? 15000);
 
 	const mochaDone = new Promise((resolve, reject) => {
 		page.exposeFunction('report_mocha_done', (/** @type {number|string} */ failCount) => {
 			resolve(failCount)
 		})
 		if (!args.debug) {
-			setTimeout(() => reject('TIMEOUT'), 15000);
+			setTimeout(() => reject(`TIMEOUT (${timeoutMs}ms)`), timeoutMs);
 		}
 	})
 
