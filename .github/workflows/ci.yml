@@ -8,13 +8,15 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    env:
+      ANYCODE_TEST_TIMEOUT_MS: '60000'
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '20'
 
       - name: Install anycode dependencies and compile
         run: npm install
