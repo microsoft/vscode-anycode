@@ -19,5 +19,8 @@
 		"mocha": "~11.1.0",
 		"web-tree-sitter": "0.20.8",
 		"yargs": "^17.3.1"
+	},
+	"overrides": {
+		"serialize-javascript": "^7.0.3"
 	}
 }
