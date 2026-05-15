@@ -92,16 +92,14 @@ const all = [
 	nodeClient, nodeServer, // server
 	serverTests, testFixture
 ];
-Promise.all(all).then(() => {
 
-	if (!isWatch) {
-		all.forEach(build => build.dispose());
-		console.log('done building')
-		return;
-	}
-
+if (!isWatch) {
+	await Promise.all(all.map(build => build.rebuild()));
+	all.forEach(build => build.dispose());
+	console.log('done building')
+} else {
 	all.forEach(build => {
 		build.watch({ delay: 500 })
 	});
 	console.log('done building, start watching...')
-})
+}
