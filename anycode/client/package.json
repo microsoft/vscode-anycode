@@ -7,7 +7,6 @@
 		"vscode-languageclient": "^8.0.0-next.5"
 	},
 	"devDependencies": {
-		"@types/node": "17.0.25",
-		"assert": "~2.0.0"
+		"@types/node": "17.0.25"
 	}
 }
